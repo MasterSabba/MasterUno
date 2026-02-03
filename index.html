@@ -15,7 +15,7 @@
             <div class="id-section">
                 <p>IL TUO CODICE INVITO</p>
                 <div id="myPeerId">GENERAZIONE...</div>
-                <button id="copyBtn">COPIA CODICE</button>
+                <button id="copyBtn" class="btn-yellow">COPIA CODICE</button>
             </div>
             <div class="input-section">
                 <button id="playBotBtn" class="btn-yellow">GIOCA CONTRO COMPUTER</button>
@@ -27,13 +27,8 @@
     </div>
 
     <div id="gameArea" class="hidden">
-        <div id="turnIndicator">CARICAMENTO...</div>
-        
-        <div class="badge-row">
-            <div id="opponentBadge" class="gold-badge">AVVERSARIO: 7 CARTE</div>
-        </div>
-
-        <div id="opponentArea" class="hand-container">
+        <div class="game-row">
+            <div id="opponentBadge" class="gold-badge">AVVERSARIO: 7</div>
             <div id="opponentHand" class="hand"></div>
         </div>
 
@@ -44,11 +39,8 @@
             <div id="discardPile" class="card-slot"></div>
         </div>
 
-        <div id="playerArea" class="hand-container">
+        <div class="game-row">
             <div id="playerHand" class="hand"></div>
-        </div>
-
-        <div class="badge-row">
             <div id="playerBadge" class="gold-badge">LE TUE CARTE: 7</div>
             <button id="masterUnoBtn" class="hidden">MASTERUNO!</button>
         </div>
