@@ -1,61 +1,38 @@
-<!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MasterUno Pro</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-</head>
-<body>
-    <div id="startScreen">
-        <h1>MasterUno 🃏</h1>
-        <button id="playBotBtn">GIOCA CONTRO BOT</button>
-        <div id="myIdContainer">
-            <p>Tocca il tuo codice per copiarlo:</p>
-            <strong id="myPeerId">...</strong>
-        </div>
-        <input type="text" id="friendIdInput" placeholder="Codice amico">
-        <button id="connectBtn">CONNETTITI</button>
+<div id="gameArea" class="hidden">
+    <div id="toastNotification" class="hidden"></div>
+    
+    <div id="turnIndicator">CARICAMENTO...</div>
+    
+    <div id="opponentArea">
+        <div id="opponentHand" class="hand"></div>
     </div>
+    ```
 
-    <div id="gameArea" class="hidden">
-        <div id="turnIndicator">CARICAMENTO...</div>
-        <div id="info">COLORE: <span id="colorDisplay">-</span></div>
-        
-        <div id="opponentArea">
-            <div id="opponentHand" class="hand"></div>
-        </div>
+### 2. `style.css` (Animazioni e messaggi a scomparsa)
+Aggiungi queste classi per i messaggi che spariscono da soli e per l'estetica:
 
-        <div id="centerArea">
-            <div id="deck" class="card-slot clickable">
-                <div class="card-back"></div>
-            </div>
-            <div id="discardPile" class="card-slot"></div>
-        </div>
+```css
+/* Messaggio a scomparsa (Toast) */
+#toastNotification {
+    position: fixed; top: 20%; left: 50%; transform: translateX(-50%);
+    background: rgba(230, 126, 34, 0.9); color: white; padding: 15px 30px;
+    border-radius: 50px; font-weight: bold; z-index: 10000;
+    border: 3px solid white; box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    animation: popIn 0.3s ease-out;
+}
 
-        <div id="playerArea">
-            <div id="playerHand" class="hand"></div>
-            <button id="masterUnoBtn" class="hidden">MASTERUNO!</button>
-        </div>
+@keyframes popIn {
+    0% { transform: translateX(-50%) scale(0.5); opacity: 0; }
+    100% { transform: translateX(-50%) scale(1); opacity: 1; }
+}
 
-        <div id="colorPicker" class="hidden">
-            <p>SCEGLI UN COLORE</p>
-            <div class="pick-grid">
-                <div class="pick red" onclick="setWildColor('red')"></div>
-                <div class="pick blue" onclick="setWildColor('blue')"></div>
-                <div class="pick green" onclick="setWildColor('green')"></div>
-                <div class="pick yellow" onclick="setWildColor('yellow')"></div>
-            </div>
-        </div>
-    </div>
+/* Rimosso info colore */
+#info { display: none; }
 
-    <div id="endScreen" class="hidden">
-        <h1 id="endMessage"></h1>
-        <button onclick="location.reload()">GIOCA ANCORA</button>
-    </div>
-
-    <script src="script.js"></script>
-</body>
-</html>
+/* Pulsante MasterUno ancora più pulito */
+#masterUnoBtn { 
+    position: absolute; right: 20px; bottom: 130px; background: #e67e22; 
+    border: 2px solid white; padding: 10px 20px; border-radius: 30px; 
+    font-size: 14px; z-index: 100; font-weight: bold; color: white; cursor: pointer;
+    box-shadow: 0 4px 15px rgba(230, 126, 34, 0.5);
+}
