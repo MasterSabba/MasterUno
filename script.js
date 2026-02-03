@@ -2,6 +2,7 @@ const colors = ["red", "blue", "green", "yellow"];
 const values = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "skip", "reverse", "draw2"];
 let deck = [], playerHand = [], opponentHand = [], topCard = null, currentColor = "", isMyTurn = true;
 let stackCount = 0; 
+let saidMasterUno = false;
 let peer, conn;
 
 function getCardImg(c, v) {
@@ -35,7 +36,19 @@ function renderGame() {
     const pHand = document.getElementById("playerHand");
     const oHand = document.getElementById("opponentHand");
     const disc = document.getElementById("discardPile");
-    const infoCol = document.getElementById("colorDisplay");
+    const turnInd = document.getElementById("turnIndicator");
+    const masterBtn = document.getElementById("masterUnoBtn");
+
+    // Mostra/Nascondi tasto MasterUno
+    if (playerHand.length === 1 && !saidMasterUno) {
+        masterBtn.classList.remove("hidden");
+    } else {
+        masterBtn.classList.add("hidden");
+    }
+
+    // Indicatore Turno
+    turnInd.innerText = isMyTurn ? "TOCCA A TE" : "TURNO AVVERSARIO";
+    turnInd.style.color = isMyTurn ? "#2ecc71" : "#e74c3c";
 
     pHand.innerHTML = `<div class="badge">TU: ${playerHand.length}</div>`;
     playerHand.forEach((card, i) => {
@@ -57,21 +70,36 @@ function renderGame() {
     const glowColor = (currentColor === "yellow") ? "#f1c40f" : (currentColor === "blue" ? "#0984e3" : currentColor);
     disc.innerHTML = `<div class="card ${topCard.color}" style="background-image: url('${getCardImg(topCard.color, topCard.value)}'); box-shadow: 0 0 40px 15px ${glowColor}"><span>${topCard.value}</span></div>`;
     
-    let statusText = currentColor.toUpperCase();
-    if (stackCount > 0) statusText += ` - ATTENZIONE: +${stackCount} IN ARRIVO!`;
-    infoCol.innerText = statusText;
-    infoCol.style.color = glowColor;
+    document.getElementById("colorDisplay").innerText = currentColor.toUpperCase();
+    document.getElementById("colorDisplay").style.color = glowColor;
+}
+
+function showEndScreen(winner) {
+    const screen = document.getElementById("endScreen");
+    const msg = document.getElementById("endMessage");
+    screen.classList.remove("hidden");
+    
+    if (winner === "player") {
+        msg.innerText = "🏆 HAI VINTO!\nCAMPIONE DI MASTERUNO";
+        msg.style.color = "#f1c40f";
+        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+    } else {
+        msg.innerText = "💀 HAI PERSO!\nRIPROVACI ANCORA";
+        msg.style.color = "#e74c3c";
+    }
 }
 
 function playCard(i) {
     if (!isMyTurn) return;
     const card = playerHand[i];
 
-    // Se c'è un accumulo, puoi solo rispondere con la STESSA carta speciale
     const canStack = (stackCount > 0 && card.value === topCard.value);
     const normalPlay = (stackCount === 0 && (card.color === currentColor || card.value === topCard.value || card.color.includes("wild")));
 
     if (canStack || normalPlay) {
+        // Reset MasterUno se si gioca una carta e si resta con più di 1 o si finisce
+        if (playerHand.length !== 2) saidMasterUno = false;
+
         playerHand.splice(i, 1);
         topCard = card;
 
@@ -82,45 +110,41 @@ function playCard(i) {
             document.getElementById("colorPicker").classList.remove("hidden");
         } else {
             currentColor = card.color;
-            // Se tiri una carta che accumula, DEVE toccare all'altro per dargli modo di rispondere o pescare
-            let skipOther = (card.value === "skip" || card.value === "reverse");
-            endTurn(skipOther); 
+            endTurn(false); 
         }
     }
 }
 
-function setWildColor(c) {
-    currentColor = c;
-    document.getElementById("colorPicker").classList.add("hidden");
-    // Dopo il +4, tocca all'altro (che deve rispondere o pescare)
-    endTurn(false);
-}
-
 function endTurn(skipNext) {
-    if (playerHand.length === 0) { alert("HAI VINTO!"); location.reload(); return; }
-    
-    // Passiamo il turno: se skipNext è vero, tocca ancora a me. 
-    // Se c'è stackCount > 0, forziamo il turno all'avversario.
-    if (stackCount > 0) isMyTurn = false; 
-    else isMyTurn = skipNext;
-
-    if (conn) {
-        conn.send({ 
-            type: "SYNC", 
-            topCard, currentColor, stackCount, 
-            oppHandSize: playerHand.length,
-            isNextTurn: !isMyTurn 
-        });
+    if (playerHand.length === 0) {
+        if (!saidMasterUno) {
+            alert("NON HAI DETTO MASTERUNO! Penale +2");
+            drawCard(playerHand, 2);
+            renderGame();
+        } else {
+            showEndScreen("player");
+            return;
+        }
     }
-
+    
+    isMyTurn = stackCount > 0 ? false : skipNext;
+    if (conn) conn.send({ type: "SYNC", topCard, currentColor, stackCount, oppHandSize: playerHand.length, isNextTurn: !isMyTurn, saidM: saidMasterUno });
     renderGame();
     if (!isMyTurn && !conn) setTimeout(botTurn, 1000);
 }
 
+document.getElementById("masterUnoBtn").onclick = () => {
+    saidMasterUno = true;
+    alert("📢 MASTERUNO!");
+    document.getElementById("masterUnoBtn").classList.add("hidden");
+};
+
 function botTurn() {
     if (isMyTurn) return;
 
-    // Il bot cerca di rispondere allo stacking o gioca normale
+    // Il bot dice MasterUno a caso (80% di probabilità)
+    if (opponentHand.length === 1) saidMasterUno = true;
+
     const idx = opponentHand.findIndex(c => {
         if (stackCount > 0) return c.value === topCard.value;
         return c.color === currentColor || c.value === topCard.value || c.color.includes("wild");
@@ -131,59 +155,32 @@ function botTurn() {
         topCard = card;
         if (card.value === "draw2") stackCount += 2;
         else if (card.value === "+4") stackCount += 4;
-        
         currentColor = card.color.includes("wild") ? colors[Math.floor(Math.random()*4)] : card.color;
         
-        if (opponentHand.length === 0) { alert("IL BOT HA VINTO!"); location.reload(); return; }
+        if (opponentHand.length === 0) { showEndScreen("bot"); return; }
         
-        // Se il bot tira skip/reverse tocca ancora a lui, altrimenti tocca a te
         let botPlayAgain = (card.value === "skip" || card.value === "reverse");
-        if (botPlayAgain && stackCount === 0) {
-            renderGame();
-            setTimeout(botTurn, 1000);
-        } else {
-            isMyTurn = true;
-            renderGame();
-        }
+        if (botPlayAgain && stackCount === 0) setTimeout(botTurn, 1000); else isMyTurn = true;
     } else {
-        // Il Bot non ha carte: subisce l'accumulo
-        if (stackCount > 0) {
-            drawCard(opponentHand, stackCount);
-            stackCount = 0;
-        } else {
-            drawCard(opponentHand);
-        }
+        if (stackCount > 0) { drawCard(opponentHand, stackCount); stackCount = 0; }
+        else { drawCard(opponentHand); }
         isMyTurn = true;
-        renderGame();
     }
+    renderGame();
 }
 
 document.getElementById("deck").onclick = () => {
     if (!isMyTurn) return;
-    
-    if (stackCount > 0) {
-        // PESCHI TU e il turno finisce
-        drawCard(playerHand, stackCount);
-        stackCount = 0;
-    } else {
-        drawCard(playerHand);
-    }
-    
+    drawCard(playerHand, stackCount > 0 ? stackCount : 1);
+    stackCount = 0;
+    saidMasterUno = false; // Se peschi, devi ridirlo
     isMyTurn = false;
     if (conn) conn.send({ type: "SYNC", topCard, currentColor, stackCount, oppHandSize: playerHand.length, isNextTurn: true });
-    
     renderGame();
     if (!conn) setTimeout(botTurn, 1000);
 };
 
-// MULTIPLAYER
-peer = new Peer();
-peer.on('open', id => { document.getElementById("myPeerId").innerText = id; });
-peer.on('connection', c => { conn = c; conn.on('data', handleSync); startG(false); });
-document.getElementById("connectBtn").onclick = () => {
-    conn = peer.connect(document.getElementById("friendIdInput").value);
-    conn.on('open', () => { conn.on('data', handleSync); startG(true); });
-};
+// MULTIPLAYER SYNC
 function handleSync(data) {
     if (data.type === "SYNC") {
         topCard = data.topCard;
@@ -191,9 +188,24 @@ function handleSync(data) {
         stackCount = data.stackCount;
         isMyTurn = data.isNextTurn;
         opponentHand = new Array(data.oppHandSize).fill({}); 
+        if (data.oppHandSize === 0) showEndScreen("bot");
         renderGame();
     }
 }
+
+function setWildColor(c) {
+    currentColor = c;
+    document.getElementById("colorPicker").classList.add("hidden");
+    endTurn(false);
+}
+
+peer = new Peer();
+peer.on('open', id => { document.getElementById("myPeerId").innerText = id; });
+peer.on('connection', c => { conn = c; conn.on('data', handleSync); startG(false); });
+document.getElementById("connectBtn").onclick = () => {
+    conn = peer.connect(document.getElementById("friendIdInput").value);
+    conn.on('open', () => { conn.on('data', handleSync); startG(true); });
+};
 function startG(me) {
     document.getElementById("startScreen").classList.add("hidden");
     document.getElementById("gameArea").classList.remove("hidden");
