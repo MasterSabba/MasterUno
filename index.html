@@ -6,6 +6,7 @@
     <title>MasterUno Pro</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
 <body>
     <div id="startScreen">
@@ -20,6 +21,7 @@
     </div>
 
     <div id="gameArea" class="hidden">
+        <div id="turnIndicator">CARICAMENTO...</div>
         <div id="info">COLORE: <span id="colorDisplay">-</span></div>
         
         <div id="opponentArea">
@@ -35,6 +37,7 @@
 
         <div id="playerArea">
             <div id="playerHand" class="hand"></div>
+            <button id="masterUnoBtn" class="hidden">MASTERUNO!</button>
         </div>
 
         <div id="colorPicker" class="hidden">
@@ -47,6 +50,12 @@
             </div>
         </div>
     </div>
+
+    <div id="endScreen" class="hidden">
+        <h1 id="endMessage"></h1>
+        <button onclick="location.reload()">GIOCA ANCORA</button>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
