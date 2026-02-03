@@ -54,7 +54,7 @@ function renderGame() {
         oHand.appendChild(div);
     });
 
-    const glowColor = currentColor === "yellow" ? "#f1c40f" : (currentColor === "blue" ? "#0984e3" : currentColor);
+    const glowColor = (currentColor === "yellow") ? "#f1c40f" : (currentColor === "blue" ? "#0984e3" : currentColor);
     disc.innerHTML = `<div class="card ${topCard.color}" style="background-image: url('${getCardImg(topCard.color, topCard.value)}'); box-shadow: 0 0 40px 15px ${glowColor}"><span>${topCard.value}</span></div>`;
     
     let statusText = currentColor.toUpperCase();
@@ -67,7 +67,7 @@ function playCard(i) {
     if (!isMyTurn) return;
     const card = playerHand[i];
 
-    // Se c'è un accumulo, puoi solo rispondere con la stessa carta (+2 su +2, +4 su +4)
+    // Se c'è un accumulo, puoi solo rispondere con la STESSA carta speciale
     const canStack = (stackCount > 0 && card.value === topCard.value);
     const normalPlay = (stackCount === 0 && (card.color === currentColor || card.value === topCard.value || card.color.includes("wild")));
 
@@ -82,9 +82,9 @@ function playCard(i) {
             document.getElementById("colorPicker").classList.remove("hidden");
         } else {
             currentColor = card.color;
-            // IMPORTANTE: Se tiri +2, +4, skip o reverse, l'altro NON salta il turno se deve rispondere all'accumulo
-            // Quindi passiamo sempre il turno all'avversario per dargli la chance di difendersi
-            endTurn(false); 
+            // Se tiri una carta che accumula, DEVE toccare all'altro per dargli modo di rispondere o pescare
+            let skipOther = (card.value === "skip" || card.value === "reverse");
+            endTurn(skipOther); 
         }
     }
 }
@@ -92,22 +92,27 @@ function playCard(i) {
 function setWildColor(c) {
     currentColor = c;
     document.getElementById("colorPicker").classList.add("hidden");
+    // Dopo il +4, tocca all'altro (che deve rispondere o pescare)
     endTurn(false);
 }
 
 function endTurn(skipNext) {
     if (playerHand.length === 0) { alert("HAI VINTO!"); location.reload(); return; }
     
+    // Passiamo il turno: se skipNext è vero, tocca ancora a me. 
+    // Se c'è stackCount > 0, forziamo il turno all'avversario.
+    if (stackCount > 0) isMyTurn = false; 
+    else isMyTurn = skipNext;
+
     if (conn) {
         conn.send({ 
             type: "SYNC", 
             topCard, currentColor, stackCount, 
             oppHandSize: playerHand.length,
-            isNextTurn: !skipNext 
+            isNextTurn: !isMyTurn 
         });
     }
 
-    isMyTurn = skipNext;
     renderGame();
     if (!isMyTurn && !conn) setTimeout(botTurn, 1000);
 }
@@ -115,7 +120,7 @@ function endTurn(skipNext) {
 function botTurn() {
     if (isMyTurn) return;
 
-    // Il bot cerca una carta per rispondere
+    // Il bot cerca di rispondere allo stacking o gioca normale
     const idx = opponentHand.findIndex(c => {
         if (stackCount > 0) return c.value === topCard.value;
         return c.color === currentColor || c.value === topCard.value || c.color.includes("wild");
@@ -131,9 +136,9 @@ function botTurn() {
         
         if (opponentHand.length === 0) { alert("IL BOT HA VINTO!"); location.reload(); return; }
         
-        // Se il bot ha tirato una carta che NON è un accumulo e non è skip/reverse, tocca a te
-        let botSkipsYou = (card.value === "skip" || card.value === "reverse");
-        if (botSkipsYou) {
+        // Se il bot tira skip/reverse tocca ancora a lui, altrimenti tocca a te
+        let botPlayAgain = (card.value === "skip" || card.value === "reverse");
+        if (botPlayAgain && stackCount === 0) {
             renderGame();
             setTimeout(botTurn, 1000);
         } else {
@@ -141,7 +146,7 @@ function botTurn() {
             renderGame();
         }
     } else {
-        // IL BOT NON HA CARTE: PESCA L'ACCUMULO
+        // Il Bot non ha carte: subisce l'accumulo
         if (stackCount > 0) {
             drawCard(opponentHand, stackCount);
             stackCount = 0;
@@ -157,23 +162,21 @@ document.getElementById("deck").onclick = () => {
     if (!isMyTurn) return;
     
     if (stackCount > 0) {
-        // Se clicchi sul mazzo mentre c'è un +2/+4, peschi tutto e passi il turno
+        // PESCHI TU e il turno finisce
         drawCard(playerHand, stackCount);
         stackCount = 0;
-        isMyTurn = false;
     } else {
-        // Pesca normale
         drawCard(playerHand);
-        isMyTurn = false;
     }
     
-    if (conn) conn.send({ type: "SYNC", topCard, currentColor, stackCount, oppHandSize: playerHand.length, isNextTurn: false });
+    isMyTurn = false;
+    if (conn) conn.send({ type: "SYNC", topCard, currentColor, stackCount, oppHandSize: playerHand.length, isNextTurn: true });
     
     renderGame();
-    if (!isMyTurn && !conn) setTimeout(botTurn, 1000);
+    if (!conn) setTimeout(botTurn, 1000);
 };
 
-// --- PEERJS MULTIPLAYER ---
+// MULTIPLAYER
 peer = new Peer();
 peer.on('open', id => { document.getElementById("myPeerId").innerText = id; });
 peer.on('connection', c => { conn = c; conn.on('data', handleSync); startG(false); });
@@ -181,7 +184,6 @@ document.getElementById("connectBtn").onclick = () => {
     conn = peer.connect(document.getElementById("friendIdInput").value);
     conn.on('open', () => { conn.on('data', handleSync); startG(true); });
 };
-
 function handleSync(data) {
     if (data.type === "SYNC") {
         topCard = data.topCard;
@@ -192,18 +194,12 @@ function handleSync(data) {
         renderGame();
     }
 }
-
 function startG(me) {
     document.getElementById("startScreen").classList.add("hidden");
     document.getElementById("gameArea").classList.remove("hidden");
-    createDeck();
-    playerHand = []; opponentHand = [];
+    createDeck(); playerHand = []; opponentHand = [];
     for(let i=0; i<7; i++) { drawCard(playerHand); drawCard(opponentHand); }
-    topCard = deck.pop();
-    while(topCard.color.includes("wild")) topCard = deck.pop();
-    currentColor = topCard.color;
-    isMyTurn = me;
-    renderGame();
+    topCard = deck.pop(); while(topCard.color.includes("wild")) topCard = deck.pop();
+    currentColor = topCard.color; isMyTurn = me; renderGame();
 }
-
 document.getElementById("playBotBtn").onclick = () => { conn = null; startG(true); };
