@@ -1,47 +1,63 @@
-* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
-body { margin: 0; background: #1a472a; color: white; font-family: 'Arial Black', sans-serif; overflow: hidden; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; border: none; }
+body { margin: 0; background: #1a472a; color: white; font-family: 'Arial Black', sans-serif; overflow: hidden; width: 100vw; height: 100vh; }
 .hidden { display: none !important; }
 
-/* INTERFACCIA INIZIALE (BOMBA) */
+/* SCHERMATA INIZIALE */
 #startScreen { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle, #2d5a3f 0%, #1a472a 100%); z-index: 2000; }
-.main-box { background: rgba(0,0,0,0.6); backdrop-filter: blur(15px); padding: 40px; border-radius: 30px; text-align: center; width: 90%; max-width: 400px; display: flex; flex-direction: column; gap: 25px; border: 2px solid rgba(255,255,255,0.1); }
+.main-box { background: rgba(0,0,0,0.6); backdrop-filter: blur(15px); padding: 40px; border-radius: 30px; text-align: center; width: 90%; max-width: 400px; display: flex; flex-direction: column; gap: 20px; border: 2px solid rgba(255,255,255,0.1); }
 
-#copyBtn, .btn-yellow { background: #f1c40f; color: #000; border: none; padding: 18px; border-radius: 15px; font-weight: 900; cursor: pointer; box-shadow: 0 6px 0 #b7950b; width: 100%; transition: 0.1s; text-transform: uppercase; }
-#copyBtn:active, .btn-yellow:active { transform: translateY(4px); box-shadow: 0 2px 0 #b7950b; }
-.btn-white { background: #fff; color: #1a472a; border: none; padding: 18px; border-radius: 15px; font-weight: 900; width: 100%; box-shadow: 0 6px 0 #ccc; text-transform: uppercase; }
+#copyBtn, .btn-yellow { background: #f1c40f; color: #000; padding: 18px; border-radius: 15px; font-weight: 900; cursor: pointer; box-shadow: 0 6px 0 #b7950b; width: 100%; text-transform: uppercase; }
+.btn-white { background: #fff; color: #1a472a; padding: 18px; border-radius: 15px; font-weight: 900; width: 100%; box-shadow: 0 6px 0 #ccc; text-transform: uppercase; }
 
-/* GRAFICA INTERNA RIPRISTINATA */
-#gameArea { height: 100vh; display: flex; flex-direction: column; justify-content: space-around; padding: 20px 0; }
+/* LAYOUT DI GIOCO VERTICALE */
+#gameArea { 
+    height: 100vh; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: space-between; 
+    align-items: center;
+    padding: 30px 0; 
+}
 
-.badge-row { display: flex; justify-content: center; width: 100%; z-index: 10; }
+.game-row { 
+    width: 100%; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    gap: 10px;
+}
+
 .gold-badge { 
-    background: #f1c40f; color: #000; padding: 8px 25px; border-radius: 50px; 
+    background: #f1c40f; color: #000; padding: 6px 20px; border-radius: 50px; 
     font-weight: 900; border: 3px solid #fff; box-shadow: 0 5px 15px rgba(0,0,0,0.4); 
-    font-size: 16px; text-transform: uppercase;
+    font-size: 14px; text-transform: uppercase;
 }
 
-.hand { display: flex; justify-content: center; height: 140px; align-items: center; padding: 0 50px; }
+.hand { 
+    display: flex; 
+    justify-content: center; 
+    width: 100%;
+    min-height: 130px; 
+    padding: 0 40px; 
+}
+
 .card { 
-    width: 85px; height: 125px; border-radius: 12px; border: 3px solid #fff; 
-    background-size: cover; margin: 0 -25px; box-shadow: 0 8px 20px rgba(0,0,0,0.5); 
-    transition: transform 0.2s; position: relative;
+    width: 80px; height: 115px; border-radius: 12px; border: 3px solid #fff; 
+    background-size: cover; margin: 0 -20px; box-shadow: 0 8px 15px rgba(0,0,0,0.5); 
 }
-.card:hover { transform: translateY(-15px); z-index: 100; }
 
-/* MAZZI CENTRALI */
-#centerArea { display: flex; justify-content: center; gap: 60px; align-items: center; }
-.card-slot { width: 90px; height: 130px; }
+/* AREA CENTRALE */
+#centerArea { display: flex; gap: 40px; align-items: center; justify-content: center; margin: 20px 0; }
+.card-slot { width: 85px; height: 120px; }
 .card-back-classic { 
     width: 100%; height: 100%; background: #000; border: 4px solid #fff; 
     border-radius: 15px; color: #f1c40f; display: flex; align-items: center; 
-    justify-content: center; font-weight: 900; text-align: center; font-size: 13px; 
-    box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+    justify-content: center; font-weight: 900; text-align: center; font-size: 11px; 
 }
 
-/* PICKER COLORI */
-#colorPicker { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 5000; }
-.picker-box { background: #222; padding: 30px; border-radius: 25px; border: 3px solid #f1c40f; text-align: center; }
-.pick-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-top: 20px; }
-.pick { width: 90px; height: 90px; border-radius: 50%; border: 5px solid #fff; cursor: pointer; transition: 0.2s; }
-.pick:active { transform: scale(0.9); }
+/* PICKER */
+#colorPicker { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: flex; align-items: center; justify-content: center; z-index: 5000; }
+.picker-box { background: #222; padding: 25px; border-radius: 20px; border: 3px solid #f1c40f; text-align: center; }
+.pick-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 15px; }
+.pick { width: 80px; height: 80px; border-radius: 50%; border: 4px solid #fff; cursor: pointer; }
 .red { background: #d63031; } .blue { background: #0984e3; } .green { background: #27ae60; } .yellow { background: #f1c40f; }
