@@ -12,18 +12,23 @@
 
     <div id="startScreen">
         <h1>MasterUno 🃏</h1>
+        
         <div id="myIdContainer">
-            <p>Codice Invito:</p>
-            <strong id="myPeerId">...</strong>
+            <p>IL TUO CODICE INVITO:</p>
+            <strong id="myPeerId">GENERANDO...</strong>
         </div>
+
         <button id="playBotBtn">GIOCA CONTRO BOT</button>
-        <hr style="width: 200px; margin: 20px; opacity: 0.3;">
+        
+        <div style="margin: 20px 0; opacity: 0.5;">— OPPURE —</div>
+
         <input type="text" id="friendIdInput" placeholder="Inserisci codice amico">
-        <button id="connectBtn">CONNETTI AMICO</button>
+        <button id="connectBtn">CONNETTITI A UN AMICO</button>
     </div>
 
     <div id="gameArea" class="hidden">
         <div id="toastNotification" class="hidden"></div>
+
         <div id="turnIndicator">CARICAMENTO...</div>
         
         <div id="opponentArea">
@@ -43,7 +48,7 @@
         </div>
 
         <div id="colorPicker" class="hidden">
-            <p>SCEGLI COLORE</p>
+            <h3>SCEGLI UN COLORE</h3>
             <div class="pick-grid">
                 <div class="pick red" onclick="setWildColor('red')"></div>
                 <div class="pick blue" onclick="setWildColor('blue')"></div>
@@ -55,7 +60,7 @@
 
     <div id="endScreen" class="hidden">
         <h1 id="endMessage"></h1>
-        <button onclick="location.reload()">NUOVA PARTITA</button>
+        <button onclick="location.reload()">GIOCA ANCORA</button>
     </div>
 
     <script src="script.js"></script>
