@@ -35,8 +35,7 @@ function renderGame() {
     const oHand = document.getElementById("opponentHand");
     const disc = document.getElementById("discardPile");
 
-    // Mano giocatore + contatore
-    pHand.innerHTML = `<div class="badge">${playerHand.length}</div>`;
+    pHand.innerHTML = `<div class="badge">TU<br>${playerHand.length}</div>`;
     playerHand.forEach((card, i) => {
         const div = document.createElement("div");
         div.className = `card ${card.color}`;
@@ -46,8 +45,7 @@ function renderGame() {
         pHand.appendChild(div);
     });
 
-    // Mano avversario + contatore
-    oHand.innerHTML = `<div class="badge">${opponentHand.length}</div>`;
+    oHand.innerHTML = `<div class="badge">AVV<br>${opponentHand.length}</div>`;
     opponentHand.forEach(() => {
         const div = document.createElement("div");
         div.className = "card-back";
@@ -58,20 +56,32 @@ function renderGame() {
     document.getElementById("colorDisplay").innerText = currentColor.toUpperCase();
 }
 
+function checkWin() {
+    if (playerHand.length === 0) { alert("🎉 HAI VINTO!"); location.reload(); }
+    if (opponentHand.length === 0) { alert("💀 HAI PERSO!"); location.reload(); }
+}
+
+function handleSpecialEffect(card, targetIsBot) {
+    let targetHand = targetIsBot ? opponentHand : playerHand;
+    if (card.value === "draw2") { drawCard(targetHand); drawCard(targetHand); return true; }
+    if (card.value === "+4") { for(let i=0; i<4; i++) drawCard(targetHand); return true; }
+    if (card.value === "skip" || card.value === "reverse") return true;
+    return false;
+}
+
 function playCard(i) {
     if (!isMyTurn) return;
     const card = playerHand[i];
     if (card.color === currentColor || card.value === topCard.value || card.color.includes("wild")) {
         playerHand.splice(i, 1);
         topCard = card;
-        if (conn) conn.send({ type: "MOVE", card, color: currentColor });
+        let skipNext = handleSpecialEffect(card, true);
+        
         if (card.color.includes("wild")) {
             document.getElementById("colorPicker").classList.remove("hidden");
         } else {
             currentColor = card.color;
-            isMyTurn = false;
-            renderGame();
-            if (!conn) setTimeout(botTurn, 1000);
+            finishTurn(skipNext);
         }
     }
 }
@@ -79,21 +89,29 @@ function playCard(i) {
 function setWildColor(c) {
     currentColor = c;
     document.getElementById("colorPicker").classList.add("hidden");
-    if (conn) conn.send({ type: "MOVE", card: topCard, color: currentColor });
-    isMyTurn = false;
+    finishTurn(topCard.value === "+4");
+}
+
+function finishTurn(skipNext) {
+    checkWin();
+    if (conn) conn.send({ type: "MOVE", card: topCard, color: currentColor, skip: skipNext });
+    isMyTurn = skipNext; 
     renderGame();
-    if (!conn) setTimeout(botTurn, 1000);
+    if (!isMyTurn && !conn) setTimeout(botTurn, 1000);
 }
 
 function botTurn() {
     const idx = opponentHand.findIndex(c => c.color === currentColor || c.value === topCard.value || c.color.includes("wild"));
     if (idx !== -1) {
-        topCard = opponentHand.splice(idx, 1)[0];
-        currentColor = topCard.color.includes("wild") ? colors[Math.floor(Math.random()*4)] : topCard.color;
+        const card = opponentHand.splice(idx, 1)[0];
+        topCard = card;
+        let skipBotNext = handleSpecialEffect(card, false);
+        currentColor = card.color.includes("wild") ? colors[Math.floor(Math.random()*4)] : card.color;
+        checkWin();
+        if (skipBotNext) setTimeout(botTurn, 1000); else isMyTurn = true;
     } else {
-        drawCard(opponentHand);
+        drawCard(opponentHand); isMyTurn = true;
     }
-    isMyTurn = true;
     renderGame();
 }
 
@@ -106,7 +124,7 @@ document.getElementById("deck").onclick = () => {
     if (!conn) setTimeout(botTurn, 1000);
 };
 
-// PeerJS Setup
+// MULTIPLAYER PEERJS
 peer = new Peer();
 peer.on('open', id => { 
     document.getElementById("myPeerId").innerText = id;
@@ -120,9 +138,9 @@ document.getElementById("connectBtn").onclick = () => {
 };
 function setupConn() {
     conn.on('data', d => {
-        if (d.type === "MOVE") { topCard = d.card; currentColor = d.color; opponentHand.pop(); isMyTurn = true; }
-        if (d.type === "DRAW") { drawCard(opponentHand); }
-        renderGame();
+        if (d.type === "MOVE") { topCard = d.card; currentColor = d.color; opponentHand.pop(); isMyTurn = !d.skip; }
+        if (d.type === "DRAW") drawCard(opponentHand);
+        checkWin(); renderGame();
     });
 }
 function startG(me) {
@@ -130,7 +148,7 @@ function startG(me) {
     document.getElementById("gameArea").classList.remove("hidden");
     createDeck(); playerHand = []; opponentHand = [];
     for(let i=0; i<7; i++) { drawCard(playerHand); drawCard(opponentHand); }
-    topCard = deck.pop(); currentColor = topCard.color.includes("wild") ? "red" : topCard.color;
-    isMyTurn = me; renderGame();
+    topCard = deck.pop(); while(topCard.color.includes("wild")) topCard = deck.pop();
+    currentColor = topCard.color; isMyTurn = me; renderGame();
 }
 document.getElementById("playBotBtn").onclick = () => { conn = null; startG(true); };
