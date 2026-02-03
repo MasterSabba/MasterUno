@@ -1,11 +1,11 @@
 const colors = ["red", "blue", "green", "yellow"];
 const values = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "skip", "reverse", "draw2"];
 let deck = [], playerHand = [], opponentHand = [], topCard = null, currentColor = "", isMyTurn = true;
-let stackCount = 0, saidMasterUno = false;
-let peer, conn;
+let stackCount = 0, saidMasterUno = false, peer, conn;
 
 function getCardImg(c, v) {
-    if (c.includes("wild")) return `https://raw.githubusercontent.com/IgorZayats/uno/master/assets/cards/${c === "wild4" ? "wild_draw4" : "wild"}.png`;
+    if (c === "wild") return "https://raw.githubusercontent.com/IgorZayats/uno/master/assets/cards/wild.png";
+    if (c === "wild4") return "https://raw.githubusercontent.com/IgorZayats/uno/master/assets/cards/wild_draw4.png";
     return `https://raw.githubusercontent.com/IgorZayats/uno/master/assets/cards/${c}_${v}.png`;
 }
 
@@ -38,18 +38,17 @@ function renderGame() {
     const turnInd = document.getElementById("turnIndicator");
     const masterBtn = document.getElementById("masterUnoBtn");
 
-    // Logica tasto MasterUno
-    if (playerHand.length === 1 && !saidMasterUno) masterBtn.classList.remove("hidden");
-    else masterBtn.classList.add("hidden");
-
+    masterBtn.classList.toggle("hidden", !(playerHand.length === 1 && !saidMasterUno));
+    
     turnInd.innerText = isMyTurn ? "🟢 TOCCA A TE" : "🔴 TURNO AVVERSARIO";
     turnInd.style.color = isMyTurn ? "#2ecc71" : "#e74c3c";
 
     pHand.innerHTML = `<div class="badge">TU: ${playerHand.length}</div>`;
     playerHand.forEach((card, i) => {
         const div = document.createElement("div");
-        div.className = `card ${card.color}`;
+        div.className = `card ${card.color} clickable`;
         div.style.backgroundImage = `url('${getCardImg(card.color, card.value)}')`;
+        div.innerHTML = `<span>${card.value.toUpperCase()}</span>`;
         div.onclick = () => playCard(i);
         pHand.appendChild(div);
     });
@@ -58,27 +57,12 @@ function renderGame() {
     opponentHand.forEach(() => {
         const div = document.createElement("div");
         div.className = "card-back";
-        div.innerText = "MASTER UNO";
+        div.innerHTML = "MASTER<br>UNO";
         oHand.appendChild(div);
     });
 
     const glow = currentColor === "yellow" ? "#f1c40f" : (currentColor === "blue" ? "#3498db" : currentColor);
-    disc.innerHTML = `<div class="card ${topCard.color}" style="background-image: url('${getCardImg(topCard.color, topCard.value)}'); box-shadow: 0 0 30px ${glow}"></div>`;
-    document.getElementById("colorDisplay").innerText = currentColor.toUpperCase();
-    document.getElementById("colorDisplay").style.color = glow;
-}
-
-function showEndScreen(winner) {
-    const screen = document.getElementById("endScreen");
-    const msg = document.getElementById("endMessage");
-    screen.classList.remove("hidden");
-    if (winner === "player") {
-        msg.innerText = "🏆 VITTORIA!\nSei il Master!";
-        msg.style.color = "#f1c40f";
-    } else {
-        msg.innerText = "💀 SCONFITTA!\nL'avversario ha vinto.";
-        msg.style.color = "#e74c3c";
-    }
+    disc.innerHTML = `<div class="card ${topCard.color}" style="background-image: url('${getCardImg(topCard.color, topCard.value)}'); box-shadow: 0 0 40px ${glow}"><span>${topCard.value.toUpperCase()}</span></div>`;
 }
 
 function playCard(i) {
@@ -91,29 +75,43 @@ function playCard(i) {
         if (playerHand.length !== 2) saidMasterUno = false;
         playerHand.splice(i, 1);
         topCard = card;
+
         if (card.value === "draw2") stackCount += 2;
         else if (card.value === "+4") stackCount += 4;
 
-        if (card.color.includes("wild")) document.getElementById("colorPicker").classList.remove("hidden");
-        else { currentColor = card.color; endTurn(card.value === "skip" || card.value === "reverse"); }
+        if (card.color.includes("wild")) {
+            document.getElementById("colorPicker").classList.remove("hidden");
+        } else {
+            currentColor = card.color;
+            // Skip e Reverse ridanno il turno in 1vs1
+            let playAgain = (card.value === "skip" || card.value === "reverse" || stackCount > 0);
+            endTurn(!playAgain);
+        }
     }
 }
 
-function endTurn(skipNext) {
+function setWildColor(c) {
+    currentColor = c;
+    document.getElementById("colorPicker").classList.add("hidden");
+    // Se è un +4, l'altro deve pescare o rispondere, quindi NON gli saltiamo il turno nel senso classico
+    endTurn(false);
+}
+
+function endTurn(passTurn) {
     if (playerHand.length === 0) {
         if (!saidMasterUno) {
-            alert("PENALITÀ! Non hai detto MasterUno!");
+            alert("NON HAI DETTO MASTERUNO! +2 CARTE");
             drawCard(playerHand, 2);
             isMyTurn = false;
         } else { showEndScreen("player"); return; }
+    } else {
+        isMyTurn = !passTurn;
     }
-    isMyTurn = stackCount > 0 ? false : skipNext;
+    
     if (conn) conn.send({ type: "SYNC", topCard, currentColor, stackCount, oppHandSize: playerHand.length, isNextTurn: !isMyTurn });
     renderGame();
     if (!isMyTurn && !conn) setTimeout(botTurn, 1000);
 }
-
-document.getElementById("masterUnoBtn").onclick = () => { saidMasterUno = true; alert("MASTERUNO!"); renderGame(); };
 
 function botTurn() {
     if (isMyTurn) return;
@@ -128,9 +126,11 @@ function botTurn() {
         if (card.value === "draw2") stackCount += 2;
         else if (card.value === "+4") stackCount += 4;
         currentColor = card.color.includes("wild") ? colors[Math.floor(Math.random()*4)] : card.color;
+        
         if (opponentHand.length === 0) { showEndScreen("bot"); return; }
-        let again = (card.value === "skip" || card.value === "reverse") && stackCount === 0;
-        if (again) setTimeout(botTurn, 1000); else isMyTurn = true;
+        
+        let botAgain = (card.value === "skip" || card.value === "reverse" || stackCount > 0);
+        if (botAgain) setTimeout(botTurn, 1000); else isMyTurn = true;
     } else {
         if (stackCount > 0) { drawCard(opponentHand, stackCount); stackCount = 0; }
         else drawCard(opponentHand);
@@ -148,8 +148,23 @@ document.getElementById("deck").onclick = () => {
     if (!conn) setTimeout(botTurn, 1000);
 };
 
-function setWildColor(c) { currentColor = c; document.getElementById("colorPicker").classList.add("hidden"); endTurn(false); }
+document.getElementById("masterUnoBtn").onclick = () => { saidMasterUno = true; alert("MASTERUNO!"); renderGame(); };
 
+function showEndScreen(winner) {
+    document.getElementById("endScreen").classList.remove("hidden");
+    document.getElementById("endMessage").innerText = winner === "player" ? "🏆 HAI VINTO!" : "💀 HAI PERSO!";
+    document.getElementById("endMessage").style.color = winner === "player" ? "#f1c40f" : "#e74c3c";
+    if(winner === "player") confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+}
+
+// Inizializzazione Multiplayer (PeerJS)
+peer = new Peer();
+peer.on('open', id => document.getElementById("myPeerId").innerText = id);
+peer.on('connection', c => { conn = c; conn.on('data', handleSync); startG(false); });
+document.getElementById("connectBtn").onclick = () => {
+    conn = peer.connect(document.getElementById("friendIdInput").value);
+    conn.on('open', () => { conn.on('data', handleSync); startG(true); });
+};
 function handleSync(data) {
     if (data.type === "SYNC") {
         topCard = data.topCard; currentColor = data.currentColor; stackCount = data.stackCount;
@@ -158,14 +173,6 @@ function handleSync(data) {
         renderGame();
     }
 }
-
-peer = new Peer();
-peer.on('open', id => document.getElementById("myPeerId").innerText = id);
-peer.on('connection', c => { conn = c; conn.on('data', handleSync); startG(false); });
-document.getElementById("connectBtn").onclick = () => {
-    conn = peer.connect(document.getElementById("friendIdInput").value);
-    conn.on('open', () => { conn.on('data', handleSync); startG(true); });
-};
 function startG(me) {
     document.getElementById("startScreen").classList.add("hidden");
     document.getElementById("gameArea").classList.remove("hidden");
