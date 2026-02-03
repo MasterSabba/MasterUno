@@ -1,47 +1,196 @@
-* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #1a472a; color: white; font-family: sans-serif; }
+/* --- RESET E COMPATIBILITÀ --- */
+* { 
+    box-sizing: border-box; 
+    -webkit-tap-highlight-color: transparent; 
+    user-select: none; /* Impedisce selezioni fastidiose su iPad */
+}
+
+html, body { 
+    margin: 0; padding: 0; 
+    width: 100%; height: 100%; 
+    overflow: hidden; 
+    background: #1a472a; 
+    color: white !important; /* Forza il bianco contro il blu di iPad */
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+}
+
 .hidden { display: none !important; }
 
-/* Menu Iniziale centrato */
-#startScreen { position: fixed; inset: 0; background: #1a472a; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; text-align: center; }
-#myIdContainer { width: 100%; margin-bottom: 20px; }
-#myPeerId { display: block; font-size: 32px; color: #f1c40f; margin-top: 5px; letter-spacing: 3px; }
-
-button { padding: 15px; width: 220px; margin: 10px auto; border-radius: 12px; border: none; background: #f1c40f; font-weight: bold; cursor: pointer; display: block; box-shadow: 0 4px 0 #b88e00; }
-input { padding: 12px; border-radius: 8px; border: 2px solid #f1c40f; width: 220px; text-align: center; margin: 10px auto; display: block; }
-
-#gameArea { width: 100vw; height: 100vh; display: flex; flex-direction: column; justify-content: space-between; padding: 10px; position: relative; }
-#turnIndicator { text-align: center; font-size: 22px; font-weight: bold; padding: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
-
-/* Notifica Toast */
-#toastNotification { position: fixed; top: 15%; left: 50%; transform: translateX(-50%); background: #e67e22; color: white; padding: 12px 25px; border-radius: 30px; font-weight: bold; z-index: 2000; border: 2px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.4); }
-
-.hand { display: flex; align-items: center; justify-content: center; width: 100%; height: 140px; position: relative; }
-.badge { position: absolute; left: 10px; background: #f1c40f; color: black; padding: 5px 10px; border-radius: 8px; font-weight: bold; border: 2px solid white; }
-
-.card, .card-back, .card-slot { 
-    width: 75px; height: 110px; border-radius: 10px; border: 2px solid white;
-    background-size: cover; background-position: center; margin: 0 -15px; 
-    position: relative; display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: transform 0.2s;
+/* --- SCHERMATA INIZIALE (VERDE) --- */
+#startScreen { 
+    position: fixed; inset: 0; 
+    background: #1a472a; 
+    display: flex; flex-direction: column; 
+    align-items: center; justify-content: center; 
+    z-index: 1000; text-align: center; 
 }
-.card span { font-weight: bold; font-size: 14px; text-shadow: 1px 1px 2px black; color: white; }
-.card-back { background: #000 !important; color: #f1c40f; font-size: 10px; text-align: center; font-weight: bold; }
 
+#myIdContainer { width: 100%; margin-bottom: 20px; }
+
+#myPeerId { 
+    display: block; 
+    font-size: 32px; 
+    color: #f1c40f !important; 
+    margin-top: 10px; 
+    letter-spacing: 3px; 
+    font-weight: bold;
+}
+
+button { 
+    padding: 15px; width: 220px; 
+    margin: 10px auto; border-radius: 12px; 
+    border: none; background: #f1c40f; 
+    color: #000; font-weight: bold; 
+    cursor: pointer; display: block; 
+    box-shadow: 0 4px 0 #b88e00; 
+    font-size: 16px;
+}
+
+button:active { transform: translateY(2px); box-shadow: 0 2px 0 #b88e00; }
+
+input { 
+    padding: 12px; border-radius: 8px; 
+    border: 2px solid #f1c40f; width: 220px; 
+    text-align: center; margin: 10px auto; 
+    display: block; font-size: 16px;
+}
+
+/* --- AREA DI GIOCO --- */
+#gameArea { 
+    width: 100vw; height: 100vh; 
+    display: flex; flex-direction: column; 
+    justify-content: space-between; 
+    padding: 15px; position: relative; 
+}
+
+#turnIndicator { 
+    text-align: center; font-size: clamp(18px, 4vw, 28px); 
+    font-weight: bold; padding: 10px; 
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5); 
+}
+
+/* Notifica Toast (Animata) */
+#toastNotification { 
+    position: fixed; top: 15%; left: 50%; 
+    transform: translateX(-50%); 
+    background: #e67e22; color: white; 
+    padding: 12px 25px; border-radius: 30px; 
+    font-weight: bold; z-index: 2000; 
+    border: 2px solid white; 
+    box-shadow: 0 5px 15px rgba(0,0,0,0.4); 
+}
+
+/* --- LE MANI E LE CARTE --- */
+.hand { 
+    display: flex; align-items: center; 
+    justify-content: center; width: 100%; 
+    height: 160px; position: relative; 
+}
+
+.badge { 
+    position: absolute; left: 10px; 
+    background: #f1c40f; color: black; 
+    padding: 6px 12px; border-radius: 8px; 
+    font-weight: bold; border: 2px solid white; 
+    z-index: 10;
+}
+
+/* Fix Dimensioni: Automatiche per iPad/PC */
+.card, .card-back, .card-slot { 
+    width: 85px; height: 125px; 
+    border-radius: 10px; border: 2px solid white;
+    background-size: cover; background-position: center; 
+    margin: 0 -18px; /* Sovrapposizione per risparmiare spazio */
+    position: relative; display: flex; 
+    align-items: center; justify-content: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3); 
+    transition: transform 0.2s, margin 0.2s;
+    background-color: #2d3436;
+}
+
+/* Zoom su iPad e PC */
+@media (min-width: 768px) {
+    .card, .card-back, .card-slot {
+        width: 110px; height: 160px;
+        margin: 0 -25px;
+    }
+}
+
+.card.clickable:hover { 
+    transform: translateY(-20px); 
+    z-index: 100; 
+    margin: 0 5px; /* Si allarga quando la punti */
+}
+
+.card span { 
+    font-weight: bold; font-size: 20px; 
+    text-shadow: 2px 2px 3px black; 
+    color: white !important; 
+}
+
+.card-back { 
+    background: #000 !important; 
+    color: #f1c40f !important; 
+    font-size: 12px; text-align: center; 
+    font-weight: bold; border: 3px solid #f1c40f;
+}
+
+/* --- COLORI CARTE --- */
 .red { background-color: #d63031; }
 .blue { background-color: #0984e3; }
 .green { background-color: #27ae60; }
-.yellow { background-color: #f1c40f; color: black; }
+.yellow { background-color: #f1c40f; }
 .wild, .wild4 { background-color: #2d3436; }
 
-#centerArea { display: flex; gap: 30px; justify-content: center; align-items: center; flex-grow: 1; }
+/* --- CENTRO TAVOLO --- */
+#centerArea { 
+    display: flex; gap: 40px; 
+    justify-content: center; 
+    align-items: center; flex-grow: 1; 
+}
 
-#masterUnoBtn { position: absolute; right: 20px; bottom: 130px; background: #e67e22; border: 2px solid white; padding: 10px 20px; border-radius: 25px; font-size: 13px; color: white; font-weight: bold; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+.card-slot { margin: 0; transform: none !important; }
 
-/* Selettore Colore centrato */
-#colorPicker { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 5000; }
-#colorPicker h3 { margin-bottom: 20px; letter-spacing: 2px; }
-.pick-grid { display: flex; gap: 20px; justify-content: center; align-items: center; }
-.pick { width: 70px; height: 70px; border-radius: 50%; cursor: pointer; border: 4px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+/* Pulsante MasterUno */
+#masterUnoBtn { 
+    position: absolute; right: 20px; 
+    bottom: 140px; background: #e67e22; 
+    border: 2px solid white; padding: 12px 24px; 
+    border-radius: 30px; font-size: 14px; 
+    color: white; font-weight: bold; 
+    z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.3); 
+}
 
-#endScreen { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; text-align: center; }
+/* --- SELETTORE COLORE (MODAL) --- */
+#colorPicker { 
+    position: fixed; inset: 0; 
+    background: rgba(0,0,0,0.85); 
+    display: flex; flex-direction: column; 
+    align-items: center; justify-content: center; 
+    z-index: 5000; 
+}
+
+#colorPicker h3 { margin-bottom: 25px; letter-spacing: 2px; color: white; }
+
+.pick-grid { display: flex; gap: 25px; justify-content: center; }
+
+.pick { 
+    width: 80px; height: 80px; 
+    border-radius: 50%; cursor: pointer; 
+    border: 4px solid white; 
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5); 
+    transition: transform 0.2s;
+}
+
+.pick:hover { transform: scale(1.1); }
+
+/* --- SCHERMATA FINALE --- */
+#endScreen { 
+    position: fixed; inset: 0; 
+    background: rgba(0,0,0,0.9); 
+    display: flex; flex-direction: column; 
+    align-items: center; justify-content: center; 
+    z-index: 9999; text-align: center; 
+}
+
+#endMessage { font-size: 48px; margin-bottom: 20px; }
