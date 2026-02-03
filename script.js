@@ -57,14 +57,23 @@ function renderGame() {
 function playCard(i) {
     if (!isMyTurn) return;
     const card = playerHand[i];
-    if (stackCount > 0 && card.value !== topCard.value) return;
-    if (stackCount === 0 && card.color !== currentColor && card.value !== topCard.value && !card.color.includes("wild")) return;
+    const canStack = (stackCount > 0 && card.value === topCard.value);
+    const normalPlay = (stackCount === 0 && (card.color === currentColor || card.value === topCard.value || card.color.includes("wild")));
 
-    playerHand.splice(i, 1);
-    topCard = card;
-    if (card.value === "draw2") stackCount += 2; else if (card.value === "+4") stackCount += 4;
-    if (card.color.includes("wild")) { document.getElementById("colorPicker").classList.remove("hidden"); } 
-    else { currentColor = card.color; checkEnd(card.value === "skip" || card.value === "reverse"); }
+    if (canStack || normalPlay) {
+        playerHand.splice(i, 1);
+        topCard = card;
+        if (card.value === "draw2") stackCount += 2; else if (card.value === "+4") stackCount += 4;
+        
+        if (card.color.includes("wild")) {
+            document.getElementById("colorPicker").classList.remove("hidden");
+        } else {
+            currentColor = card.color;
+            // Se è skip o reverse, il turno RESTA a me
+            const extra = (card.value === "skip" || card.value === "reverse");
+            checkEnd(extra);
+        }
+    }
 }
 
 function checkEnd(extra) {
@@ -80,8 +89,8 @@ function checkEnd(extra) {
     if (!isMyTurn && !conn) setTimeout(botTurn, 1000);
 }
 
-function sendSync(won = false, masterAlert = false) {
-    if (conn && conn.open) conn.send({ type: "SYNC", topCard, currentColor, stackCount, oppHandSize: won ? 0 : playerHand.length, isNextTurn: !isMyTurn, masterAlert: masterAlert });
+function sendSync(won = false, alert = false) {
+    if (conn && conn.open) conn.send({ type: "SYNC", topCard, currentColor, stackCount, oppHandSize: won ? 0 : playerHand.length, isNextTurn: !isMyTurn, masterAlert: alert });
 }
 
 function setupConn() {
@@ -91,7 +100,7 @@ function setupConn() {
             topCard = d.topCard; currentColor = d.currentColor; stackCount = d.stackCount;
             isMyTurn = d.isNextTurn; opponentHand = new Array(d.oppHandSize).fill({});
             renderGame();
-            if(d.oppHandSize === 0) { setTimeout(() => showEndScreen("bot"), 500); }
+            if(d.oppHandSize === 0) showEndScreen("bot");
         }
     });
 }
@@ -120,7 +129,8 @@ document.getElementById("connectBtn").onclick = () => {
 function startG(me) {
     document.getElementById("startScreen").classList.add("hidden");
     document.getElementById("gameArea").classList.remove("hidden");
-    createDeck(); drawCard(playerHand, 7); drawCard(opponentHand, 7);
+    createDeck(); playerHand = []; opponentHand = [];
+    drawCard(playerHand, 7); drawCard(opponentHand, 7);
     topCard = deck.pop(); while(topCard.color.includes("wild")) topCard = deck.pop();
     currentColor = topCard.color; isMyTurn = me; renderGame();
 }
@@ -132,14 +142,13 @@ document.getElementById("deck").onclick = () => {
     sendSync(); renderGame(); if(!conn) setTimeout(botTurn, 1000);
 };
 
-document.getElementById("masterUnoBtn").onclick = () => { 
-    saidMasterUno = true; 
-    showToast("📢 MASTERUNO!"); 
-    sendSync(false, true); // Avvisa l'avversario
-    renderGame(); 
-};
+document.getElementById("masterUnoBtn").onclick = () => { saidMasterUno = true; showToast("📢 MASTERUNO!"); sendSync(false, true); renderGame(); };
 
-window.setWildColor = (c) => { currentColor = c; document.getElementById("colorPicker").classList.add("hidden"); checkEnd(false); };
+window.setWildColor = (c) => { 
+    currentColor = c; 
+    document.getElementById("colorPicker").classList.add("hidden"); 
+    checkEnd(false); 
+};
 
 function botTurn() {
     const idx = opponentHand.findIndex(c => (stackCount > 0 ? c.value === topCard.value : (c.color === currentColor || c.value === topCard.value || c.color.includes("wild"))));
