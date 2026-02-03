@@ -14,7 +14,7 @@
             <h1>MasterUno 🃏</h1>
             <div class="id-section">
                 <p>IL TUO CODICE INVITO</p>
-                <div id="myPeerId">----</div>
+                <div id="myPeerId">CARICAMENTO...</div>
                 <button id="copyBtn">COPIA CODICE</button>
             </div>
             
@@ -28,27 +28,20 @@
     </div>
 
     <div id="gameArea" class="hidden">
-        <div id="toastNotification" class="hidden"></div>
-        <div id="turnIndicator">CARICAMENTO...</div>
-        
+        <div id="turnIndicator">TURNO...</div>
         <div id="opponentArea" class="hand-container">
             <div id="opponentBadge" class="badge">AVV: 0</div>
             <div id="opponentHand" class="hand"></div>
         </div>
-
         <div id="centerArea">
-            <div id="deck" class="card-slot clickable">
-                <div class="card-back-master">MASTER<br>UNO</div>
-            </div>
+            <div id="deck" class="card-slot clickable"><div class="card-back-master">MASTER<br>UNO</div></div>
             <div id="discardPile" class="card-slot"></div>
         </div>
-
         <div id="playerArea" class="hand-container">
             <div id="playerBadge" class="badge">TU: 0</div>
             <div id="playerHand" class="hand"></div>
             <button id="masterUnoBtn" class="hidden">MASTERUNO!</button>
         </div>
-
         <div id="colorPicker" class="hidden">
             <div class="picker-content">
                 <h3>SCEGLI UN COLORE</h3>
@@ -59,13 +52,6 @@
                     <div class="pick yellow" onclick="setWildColor('yellow')"></div>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <div id="endScreen" class="hidden">
-        <div class="main-box">
-            <h1 id="endMessage"></h1>
-            <button class="btn-yellow" onclick="location.reload()">NUOVA PARTITA</button>
         </div>
     </div>
     <script src="script.js"></script>
