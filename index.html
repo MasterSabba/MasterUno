@@ -3,30 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MasterUno Online</title>
+    <title>MasterUno Pro</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 </head>
 <body>
     <div id="startScreen">
         <h1>MasterUno 🃏</h1>
-        <div class="login-box">
-            <button id="playBotBtn">GIOCA CONTRO BOT</button>
-            <hr>
-            <p>Multiplayer Privato</p>
-            <div id="myIdContainer">
-                <p>Il tuo codice (tocca per copiare):</p>
-                <strong id="myPeerId">Caricamento...</strong>
-            </div>
-            <input type="text" id="friendIdInput" placeholder="Incolla codice amico">
-            <button id="connectBtn">CONNETTITI</button>
+        <button id="playBotBtn">GIOCA CONTRO BOT</button>
+        <div id="myIdContainer">
+            <p>Tocca il tuo codice per copiarlo:</p>
+            <strong id="myPeerId">...</strong>
         </div>
+        <input type="text" id="friendIdInput" placeholder="Codice amico">
+        <button id="connectBtn">CONNETTITI</button>
     </div>
 
     <div id="gameArea" class="hidden">
-        <div id="info">
-            Colore: <span id="colorDisplay">-</span> | Tu: <span id="playerCount">0</span> | Avv: <span id="oppCount">0</span>
-        </div>
+        <div id="info">COLORE: <span id="colorDisplay">-</span></div>
         
         <div id="opponentArea">
             <div id="opponentHand" class="hand"></div>
@@ -46,10 +40,10 @@
         <div id="colorPicker" class="hidden">
             <p>SCEGLI COLORE</p>
             <div class="pick-grid">
-                <button class="pick red" onclick="setWildColor('red')"></button>
-                <button class="pick blue" onclick="setWildColor('blue')"></button>
-                <button class="pick green" onclick="setWildColor('green')"></button>
-                <button class="pick yellow" onclick="setWildColor('yellow')"></button>
+                <div class="pick red" onclick="setWildColor('red')"></div>
+                <div class="pick blue" onclick="setWildColor('blue')"></div>
+                <div class="pick green" onclick="setWildColor('green')"></div>
+                <div class="pick yellow" onclick="setWildColor('yellow')"></div>
             </div>
         </div>
     </div>
