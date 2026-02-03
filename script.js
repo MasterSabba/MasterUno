@@ -35,7 +35,8 @@ function renderGame() {
     const oHand = document.getElementById("opponentHand");
     const disc = document.getElementById("discardPile");
 
-    pHand.innerHTML = "";
+    // Mano giocatore + contatore
+    pHand.innerHTML = `<div class="badge">${playerHand.length}</div>`;
     playerHand.forEach((card, i) => {
         const div = document.createElement("div");
         div.className = `card ${card.color}`;
@@ -45,7 +46,8 @@ function renderGame() {
         pHand.appendChild(div);
     });
 
-    oHand.innerHTML = "";
+    // Mano avversario + contatore
+    oHand.innerHTML = `<div class="badge">${opponentHand.length}</div>`;
     opponentHand.forEach(() => {
         const div = document.createElement("div");
         div.className = "card-back";
@@ -53,10 +55,7 @@ function renderGame() {
     });
 
     disc.innerHTML = `<div class="card ${topCard.color}" style="background-image: url('${getCardImg(topCard.color, topCard.value)}')"><span>${topCard.value}</span></div>`;
-    
-    document.getElementById("playerCount").innerText = playerHand.length;
-    document.getElementById("oppCount").innerText = opponentHand.length;
-    document.getElementById("colorDisplay").innerText = currentColor;
+    document.getElementById("colorDisplay").innerText = currentColor.toUpperCase();
 }
 
 function playCard(i) {
@@ -77,6 +76,15 @@ function playCard(i) {
     }
 }
 
+function setWildColor(c) {
+    currentColor = c;
+    document.getElementById("colorPicker").classList.add("hidden");
+    if (conn) conn.send({ type: "MOVE", card: topCard, color: currentColor });
+    isMyTurn = false;
+    renderGame();
+    if (!conn) setTimeout(botTurn, 1000);
+}
+
 function botTurn() {
     const idx = opponentHand.findIndex(c => c.color === currentColor || c.value === topCard.value || c.color.includes("wild"));
     if (idx !== -1) {
@@ -89,15 +97,6 @@ function botTurn() {
     renderGame();
 }
 
-function setWildColor(c) {
-    currentColor = c;
-    document.getElementById("colorPicker").classList.add("hidden");
-    if (conn) conn.send({ type: "MOVE", card: topCard, color: currentColor });
-    isMyTurn = false;
-    renderGame();
-    if (!conn) setTimeout(botTurn, 1000);
-}
-
 document.getElementById("deck").onclick = () => {
     if (!isMyTurn) return;
     drawCard(playerHand);
@@ -107,19 +106,15 @@ document.getElementById("deck").onclick = () => {
     if (!conn) setTimeout(botTurn, 1000);
 };
 
-// MULTIPLAYER PEERJS
+// PeerJS Setup
 peer = new Peer();
 peer.on('open', id => { 
     document.getElementById("myPeerId").innerText = id;
-    document.getElementById("myPeerId").onclick = () => {
-        navigator.clipboard.writeText(id);
-        alert("Codice copiato!");
-    };
+    document.getElementById("myPeerId").onclick = () => { navigator.clipboard.writeText(id); alert("Copiato!"); };
 });
 peer.on('connection', c => { conn = c; setupConn(); startG(false); });
 document.getElementById("connectBtn").onclick = () => {
-    const id = document.getElementById("friendIdInput").value;
-    conn = peer.connect(id);
+    conn = peer.connect(document.getElementById("friendIdInput").value);
     setupConn();
     conn.on('open', () => startG(true));
 };
