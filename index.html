@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
     <title>MasterUno Pro</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
@@ -12,33 +11,43 @@
 <body>
     <div id="startScreen">
         <h1>MasterUno 🃏</h1>
-        <div id="myIdContainer">
-            <p>IL TUO CODICE INVITO:</p>
-            <strong id="myPeerId">...</strong>
+        
+        <div class="setup-card">
+            <p>IL TUO CODICE INVITO</p>
+            <div id="myPeerId">----</div>
             <button id="copyBtn">COPIA CODICE</button>
         </div>
-        <button id="playBotBtn">GIOCA CONTRO BOT</button>
-        <div style="margin: 15px; opacity: 0.5;">— OPPURE —</div>
-        <input type="text" id="friendIdInput" placeholder="Inserisci codice amico">
-        <button id="connectBtn">CONNETTI AMICO</button>
+
+        <div class="actions">
+            <button id="playBotBtn" class="primary">GIOCA CONTRO BOT</button>
+            <div class="divider"><span>OPPURE</span></div>
+            <input type="text" id="friendIdInput" placeholder="Inserisci codice amico">
+            <button id="connectBtn" class="secondary">CONNETTI AMICO</button>
+        </div>
     </div>
 
     <div id="gameArea" class="hidden">
         <div id="toastNotification" class="hidden"></div>
         <div id="turnIndicator">CARICAMENTO...</div>
+        
         <div id="opponentArea" class="hand-container">
             <div id="opponentHand" class="hand"></div>
         </div>
+
         <div id="centerArea">
-            <div id="deck" class="card-slot clickable"><div class="card-back">MASTER<br>UNO</div></div>
+            <div id="deck" class="card-slot clickable">
+                <div class="card-back">MASTER<br>UNO</div>
+            </div>
             <div id="discardPile" class="card-slot"></div>
         </div>
+
         <div id="playerArea" class="hand-container">
             <div id="playerHand" class="hand"></div>
             <button id="masterUnoBtn" class="hidden">MASTERUNO!</button>
         </div>
+
         <div id="colorPicker" class="hidden">
-            <h3>SCEGLI UN COLORE</h3>
+            <h3>SCEGLI COLORE</h3>
             <div class="pick-grid">
                 <div class="pick red" onclick="setWildColor('red')"></div>
                 <div class="pick blue" onclick="setWildColor('blue')"></div>
