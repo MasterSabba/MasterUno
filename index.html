@@ -10,13 +10,12 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
 <body>
-
     <div id="startScreen">
         <h1>MasterUno 🃏</h1>
         <div id="myIdContainer">
             <p>IL TUO CODICE INVITO:</p>
             <strong id="myPeerId">...</strong>
-            <button onclick="copyMyId()" id="copyBtn" style="width: auto; padding: 5px 15px; font-size: 12px; margin-top: 10px;">COPIA CODICE</button>
+            <button id="copyBtn">COPIA CODICE</button>
         </div>
         <button id="playBotBtn">GIOCA CONTRO BOT</button>
         <div style="margin: 15px; opacity: 0.5;">— OPPURE —</div>
@@ -27,23 +26,17 @@
     <div id="gameArea" class="hidden">
         <div id="toastNotification" class="hidden"></div>
         <div id="turnIndicator">CARICAMENTO...</div>
-        
         <div id="opponentArea" class="hand-container">
             <div id="opponentHand" class="hand"></div>
         </div>
-
         <div id="centerArea">
-            <div id="deck" class="card-slot clickable">
-                <div class="card-back">MASTER<br>UNO</div>
-            </div>
+            <div id="deck" class="card-slot clickable"><div class="card-back">MASTER<br>UNO</div></div>
             <div id="discardPile" class="card-slot"></div>
         </div>
-
         <div id="playerArea" class="hand-container">
             <div id="playerHand" class="hand"></div>
             <button id="masterUnoBtn" class="hidden">MASTERUNO!</button>
         </div>
-
         <div id="colorPicker" class="hidden">
             <h3>SCEGLI UN COLORE</h3>
             <div class="pick-grid">
@@ -59,7 +52,6 @@
         <h1 id="endMessage"></h1>
         <button onclick="location.reload()">NUOVA PARTITA</button>
     </div>
-
     <script src="script.js"></script>
 </body>
 </html>
