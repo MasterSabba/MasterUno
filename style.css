@@ -1,34 +1,27 @@
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #1a472a; color: white; }
-body { font-family: 'Arial Black', sans-serif; }
+html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #1a472a; color: white; font-family: sans-serif; }
 .hidden { display: none !important; }
 
-/* Turno Indicator */
-#turnIndicator { width: 100%; text-align: center; padding: 10px; font-size: 22px; text-shadow: 2px 2px 4px black; border-bottom: 2px solid rgba(255,255,255,0.2); }
+#turnIndicator { width: 100%; text-align: center; padding: 10px; font-size: 20px; font-weight: bold; background: rgba(0,0,0,0.3); }
 
-#gameArea { width: 100vw; height: 100vh; display: flex; flex-direction: column; justify-content: space-between; padding: 10px; position: relative; }
+#gameArea { width: 100vw; height: 100vh; display: flex; flex-direction: column; justify-content: space-between; padding: 10px; }
 
-.hand { display: flex; align-items: center; justify-content: center; width: 100%; height: 150px; position: relative; }
+.hand { display: flex; align-items: center; justify-content: center; width: 100%; height: 140px; position: relative; }
 
 .badge { 
     position: absolute; left: 10px; background: #f1c40f; color: #000; 
-    padding: 8px; border-radius: 12px; font-size: 16px; font-weight: bold; 
-    border: 3px solid white; min-width: 70px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.5); z-index: 10;
+    padding: 8px; border-radius: 10px; font-size: 14px; font-weight: bold; 
+    border: 2px solid white; min-width: 60px; text-align: center; z-index: 20;
 }
 
 .card, .card-back, .card-slot { 
-    width: 80px; height: 120px; border-radius: 10px; border: 3px solid white;
-    background-size: cover; background-repeat: no-repeat; background-position: center;
-    margin: 0 -15px; position: relative; display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: transform 0.2s;
+    width: 75px; height: 110px; border-radius: 8px; border: 2px solid white;
+    background-size: cover; background-position: center; margin: 0 -15px; 
+    position: relative; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.4);
 }
 
-/* Scritta MasterUno dietro le carte */
-.card-back { background: #000 !important; border-color: #fff !important; flex-direction: column; }
-.card-back::after { content: "MASTER UNO"; color: #f1c40f; font-size: 10px; letter-spacing: 1px; transform: rotate(-45deg); font-weight: bold; }
-
-.clickable { cursor: pointer; }
-.card span { font-size: 12px; text-align: center; word-break: break-all; width: 100%; padding: 4px; pointer-events: none; }
+.card-back { background: #000 !important; color: #f1c40f; font-size: 9px; text-align: center; font-weight: bold; }
 
 .red { background-color: #d63031; }
 .blue { background-color: #0984e3; }
@@ -36,12 +29,17 @@ body { font-family: 'Arial Black', sans-serif; }
 .yellow { background-color: #f1c40f; color: black; }
 .wild, .wild4 { background-color: #2d3436; color: #f1c40f; }
 
-#centerArea { display: flex; gap: 40px; justify-content: center; align-items: center; flex-grow: 1; }
+#centerArea { display: flex; gap: 30px; justify-content: center; align-items: center; flex-grow: 1; }
 
-/* Tasto MasterUno */
-#masterUnoBtn { position: absolute; right: 20px; bottom: 170px; background: #e67e22; color: white; border: 4px solid white; padding: 15px; border-radius: 50%; font-weight: bold; cursor: pointer; animation: pulse 1s infinite; z-index: 100; }
-@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+#masterUnoBtn { 
+    position: absolute; right: 20px; bottom: 160px; background: #e67e22; 
+    color: white; border: 3px solid white; padding: 12px; border-radius: 50%; 
+    font-weight: bold; font-size: 12px; z-index: 100; cursor: pointer;
+}
 
-/* Schermata Finale */
-#endScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
-#endMessage { font-size: 40px; text-align: center; margin-bottom: 20px; }
+#endScreen { 
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+    background: rgba(0,0,0,0.95); display: flex; flex-direction: column; 
+    align-items: center; justify-content: center; z-index: 10000; 
+}
+#endMessage { font-size: 32px; text-align: center; margin-bottom: 20px; }
