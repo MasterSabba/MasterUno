@@ -10,19 +10,25 @@
 </head>
 <body>
     <div id="startScreen">
-        <h1>MasterUno 🃏</h1>
-        
-        <div class="setup-card">
-            <p>IL TUO CODICE INVITO</p>
-            <div id="myPeerId">----</div>
-            <button id="copyBtn">COPIA CODICE</button>
-        </div>
+        <div class="main-box">
+            <h1>MasterUno 🃏</h1>
+            
+            <div class="id-section">
+                <p>IL TUO CODICE</p>
+                <div id="myPeerId">----</div>
+                <button id="copyBtn">COPIA CODICE</button>
+            </div>
 
-        <div class="actions">
-            <button id="playBotBtn" class="primary">GIOCA CONTRO BOT</button>
-            <div class="divider"><span>OPPURE</span></div>
-            <input type="text" id="friendIdInput" placeholder="Inserisci codice amico">
-            <button id="connectBtn" class="secondary">CONNETTI AMICO</button>
+            <hr class="spacer">
+
+            <div class="input-section">
+                <button id="playBotBtn" class="btn-primary">GIOCA CONTRO COMPUTER</button>
+                
+                <div class="or-divider">OPPURE SFIDA UN AMICO</div>
+                
+                <input type="text" id="friendIdInput" placeholder="Codice dell'amico">
+                <button id="connectBtn" class="btn-secondary">CONNETTI E GIOCA</button>
+            </div>
         </div>
     </div>
 
@@ -47,7 +53,7 @@
         </div>
 
         <div id="colorPicker" class="hidden">
-            <h3>SCEGLI COLORE</h3>
+            <h3>SCEGLI UN COLORE</h3>
             <div class="pick-grid">
                 <div class="pick red" onclick="setWildColor('red')"></div>
                 <div class="pick blue" onclick="setWildColor('blue')"></div>
@@ -58,8 +64,10 @@
     </div>
 
     <div id="endScreen" class="hidden">
-        <h1 id="endMessage"></h1>
-        <button onclick="location.reload()">NUOVA PARTITA</button>
+        <div class="main-box">
+            <h1 id="endMessage"></h1>
+            <button class="btn-primary" onclick="location.reload()">NUOVA PARTITA</button>
+        </div>
     </div>
     <script src="script.js"></script>
 </body>
