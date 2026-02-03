@@ -2,86 +2,76 @@
 
 html, body { 
     margin: 0; padding: 0; width: 100%; height: 100%; 
-    overflow: hidden; background: #1a472a !important; 
-    color: #ffffff !important; font-family: sans-serif;
-    -webkit-text-size-adjust: 100%;
+    overflow: hidden; background: #1a472a; 
+    color: white !important; font-family: sans-serif;
 }
 
 .hidden { display: none !important; }
 
-/* Badge sopra le carte per non essere coperti */
+/* SCHERMATA INIZIALE */
+#startScreen { position: fixed; inset: 0; background: #1a472a; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; text-align: center; }
+#myPeerId { display: block; font-size: 32px; color: #f1c40f !important; margin-top: 5px; letter-spacing: 3px; font-weight: bold; }
+button { padding: 15px; width: 220px; margin: 10px auto; border-radius: 12px; border: none; background: #f1c40f; color: black; font-weight: bold; cursor: pointer; display: block; }
+input { padding: 12px; border-radius: 8px; border: 2px solid #f1c40f; width: 220px; text-align: center; margin: 10px auto; display: block; }
+
+/* AREA DI GIOCO */
+#gameArea { width: 100vw; height: 100vh; display: flex; flex-direction: column; justify-content: space-between; padding: 10px; position: relative; }
+#turnIndicator { text-align: center; font-size: 22px; font-weight: bold; padding: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+
+/* CONTENITORI MANI */
+.hand { display: flex; align-items: center; justify-content: center; width: 100%; height: 140px; position: relative; }
+
+/* BADGE A SINISTRA (Fissi e sopra tutto) */
 .badge { 
     position: absolute; 
-    top: -35px; /* Spostato sopra il mazzo */
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(241, 196, 15, 0.9); 
+    left: 5px; 
+    background: #f1c40f; 
     color: black !important; 
-    padding: 4px 15px; 
-    border-radius: 20px; 
+    padding: 5px 10px; 
+    border-radius: 8px; 
     font-weight: bold; 
     border: 2px solid white; 
-    z-index: 100;
-    white-space: nowrap;
+    z-index: 500; /* Superiore alle carte */
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
 }
 
-/* Container Mani con spazio per i badge */
-.hand { 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    width: 100%; 
-    height: 160px; 
-    position: relative; 
-    margin: 40px 0; /* Spazio per i badge */
-}
-
-/* Stile Carte */
+/* CARTE COLORATE */
 .card, .card-back, .card-slot { 
-    width: 85px; height: 125px; 
-    border-radius: 12px; border: 3px solid white;
-    background-size: cover; background-position: center; 
-    margin: 0 -20px; 
-    position: relative; display: flex; 
-    align-items: center; justify-content: center;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+    width: 75px; height: 110px; border-radius: 10px; border: 2px solid white;
+    background-size: cover; background-position: center; margin: 0 -15px; 
+    position: relative; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: transform 0.2s;
 }
 
-/* STILE MASTERUNO (NERA CON BORDO BIANCO) */
+/* Colori delle carte attive */
+.red { background-color: #d63031 !important; }
+.blue { background-color: #0984e3 !important; }
+.green { background-color: #27ae60 !important; }
+.yellow { background-color: #f1c40f !important; }
+.wild, .wild4 { background-color: #2d3436 !important; }
+
+/* STILE RETRO CARTE (MASTERUNO) */
 .card-back { 
     background: #000000 !important; 
     color: #f1c40f !important; 
-    font-size: 11px; 
+    font-size: 10px; 
     text-align: center; 
     font-weight: bold; 
-    line-height: 1.2;
-    border: 3px solid #ffffff !important;
+    border: 2px solid #ffffff !important;
 }
 
-@media (min-width: 768px) {
-    .card, .card-back, .card-slot { width: 105px; height: 155px; margin: 0 -25px; }
-    .badge { top: -45px; font-size: 18px; }
-}
+.card span { font-weight: bold; font-size: 14px; text-shadow: 1px 1px 2px black; color: white !important; }
 
-.card span { font-weight: bold; font-size: 22px; color: white !important; text-shadow: 2px 2px 3px black; }
-
-/* Altri elementi */
-#gameArea { width: 100vw; height: 100vh; display: flex; flex-direction: column; justify-content: space-between; padding: 10px; }
+/* CENTRO */
 #centerArea { display: flex; gap: 30px; justify-content: center; align-items: center; flex-grow: 1; }
 .card-slot { margin: 0 !important; }
 
-#turnIndicator { text-align: center; font-size: 24px; font-weight: bold; margin-top: 10px; }
+/* MASTERUNO BUTTON */
+#masterUnoBtn { position: absolute; right: 20px; bottom: 130px; background: #e67e22 !important; border: 2px solid white; padding: 10px 20px; border-radius: 25px; font-size: 13px; color: white !important; font-weight: bold; z-index: 1000; }
 
-#masterUnoBtn { 
-    position: absolute; right: 20px; bottom: 150px; 
-    background: #e67e22 !important; border: 2px solid white; 
-    padding: 12px 24px; border-radius: 30px; color: white !important; 
-    font-weight: bold; z-index: 1000;
-}
+/* SELETTORE COLORE */
+#colorPicker { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 5000; }
+.pick-grid { display: flex; gap: 20px; }
+.pick { width: 70px; height: 70px; border-radius: 50%; border: 4px solid white; cursor: pointer; }
 
-#startScreen { position: fixed; inset: 0; background: #1a472a; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; }
-#myPeerId { font-size: 35px; color: #f1c40f !important; font-weight: bold; margin: 10px 0; }
-button { padding: 15px; width: 220px; margin: 10px; border-radius: 12px; border: none; background: #f1c40f; color: black; font-weight: bold; cursor: pointer; }
-input { padding: 12px; border-radius: 8px; border: 2px solid #f1c40f; width: 220px; text-align: center; margin-bottom: 10px; }
-
-#toastNotification { position: fixed; top: 15%; left: 50%; transform: translateX(-50%); background: #e67e22; padding: 15px 30px; border-radius: 50px; z-index: 3000; border: 2px solid white; font-weight: bold; }
+#toastNotification { position: fixed; top: 15%; left: 50%; transform: translateX(-50%); background: #e67e22; color: white; padding: 12px 25px; border-radius: 30px; font-weight: bold; z-index: 6000; border: 2px solid white; }
