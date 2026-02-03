@@ -1,38 +1,47 @@
-// ... (tutte le variabili iniziali uguali) ...
+// ... (codice iniziale del deck e variabili uguale a prima) ...
 
-function renderGame() {
-    document.getElementById("turnIndicator").innerText = isMyTurn ? "🟢 TOCCA A TE" : "🔴 TURNO AVVERSARIO";
-    document.getElementById("masterUnoBtn").classList.toggle("hidden", !(playerHand.length === 1 && !saidMasterUno));
+function playCard(i) {
+    if (!isMyTurn) return;
+    const card = playerHand[i];
+    
+    const canStack = (stackCount > 0 && (card.value === topCard.value || card.value === "+4"));
+    const normalPlay = (stackCount === 0 && (card.color === currentColor || card.value === topCard.value || card.color.includes("wild")));
 
-    // Aggiornamento Badge
-    document.getElementById("playerBadge").innerText = `TU: ${playerHand.length}`;
-    document.getElementById("opponentBadge").innerText = `AVV: ${opponentHand.length}`;
+    if (canStack || normalPlay) {
+        playerHand.splice(i, 1);
+        topCard = card;
+        
+        if (card.value === "draw2") stackCount += 2; 
+        else if (card.value === "+4") stackCount += 4;
 
-    const pHand = document.getElementById("playerHand");
-    pHand.innerHTML = "";
-    playerHand.forEach((card, i) => {
-        const div = document.createElement("div");
-        div.className = `card ${card.color} clickable`;
-        const img = card.color.includes("wild") ? (card.value === "+4" ? "wild_draw4" : "wild") : `${card.color}_${card.value}`;
-        div.style.backgroundImage = `url('https://raw.githubusercontent.com/IgorZayats/uno/master/assets/cards/${img}.png')`;
-        div.onclick = () => playCard(i);
-        pHand.appendChild(div);
-    });
-
-    const oHand = document.getElementById("opponentHand");
-    oHand.innerHTML = "";
-    opponentHand.forEach(() => { oHand.innerHTML += `<div class="card-back-simple">UNO</div>`; });
-
-    const topImg = topCard.color.includes("wild") ? (topCard.value === "+4" ? "wild_draw4" : "wild") : `${topCard.color}_${topCard.value}`;
-    const glow = currentColor === "yellow" ? "#f1c40f" : (currentColor === "blue" ? "#0984e3" : (currentColor === "green" ? "#27ae60" : "#d63031"));
-    document.getElementById("discardPile").innerHTML = `<div class="card ${topCard.color}" style="background-image: url('https://raw.githubusercontent.com/IgorZayats/uno/master/assets/cards/${topImg}.png'); border-color: ${glow}; box-shadow: 0 0 20px ${glow}"></div>`;
+        if (card.color.includes("wild")) {
+            // MOSTRA IL PICKER
+            document.getElementById("colorPicker").classList.remove("hidden");
+            renderGame(); // Aggiorna per togliere la carta dalla mano
+        } else {
+            currentColor = card.color;
+            checkEnd(card.value === "skip" || card.value === "reverse");
+        }
+    }
 }
 
-// Assicurati che setWildColor sia globale per l'onclick in HTML
-window.setWildColor = (c) => {
+// Funzione globale per il click sui cerchi colorati
+window.setWildColor = function(c) {
     currentColor = c;
     document.getElementById("colorPicker").classList.add("hidden");
+    // Dopo aver scelto il colore, il turno passa o continua se era una carta speciale
     checkEnd(false);
 };
 
-// ... (il resto della logica playCard, botTurn, ecc. rimane quella corretta dell'ultima volta)
+function renderGame() {
+    // Aggiorna Badge
+    document.getElementById("playerBadge").innerText = `TU: ${playerHand.length}`;
+    document.getElementById("opponentBadge").innerText = `AVV: ${opponentHand.length}`;
+    
+    // ... (restante codice per disegnare le carte in mano uguale a prima) ...
+
+    // Pozzo scarti: svuota e metti solo l'ultima
+    const discard = document.getElementById("discardPile");
+    const topImg = topCard.color.includes("wild") ? (topCard.value === "+4" ? "wild_draw4" : "wild") : `${topCard.color}_${topCard.value}`;
+    discard.innerHTML = `<div class="card ${topCard.color}" style="background-image: url('https://raw.githubusercontent.com/IgorZayats/uno/master/assets/cards/${topImg}.png')"></div>`;
+}
