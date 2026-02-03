@@ -2,48 +2,44 @@
 html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #1a472a; color: white; font-family: 'Arial Black', sans-serif; }
 .hidden { display: none !important; }
 
-/* Schermata Iniziale Classica */
-#startScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
-#startScreen h1 { color: #f1c40f; font-size: 40px; margin-bottom: 30px; }
-#myIdContainer { background: #333; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 2px solid #f1c40f; }
-button { padding: 15px 30px; font-weight: bold; border-radius: 10px; border: none; background: #f1c40f; cursor: pointer; margin: 10px; width: 250px; }
-input { padding: 12px; border-radius: 10px; border: none; width: 250px; text-align: center; }
+/* Prima pagina verde come richiesto */
+#startScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1a472a; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+#startScreen h1 { font-size: 45px; text-shadow: 3px 3px 0px #000; margin-bottom: 20px; }
 
-#gameArea { width: 100vw; height: 100vh; display: flex; flex-direction: column; justify-content: space-between; padding: 15px; }
+#myIdContainer { background: rgba(0,0,0,0.2); padding: 10px; border-radius: 10px; margin-bottom: 15px; text-align: center; }
+#myPeerId { font-size: 24px; color: #f1c40f; letter-spacing: 2px; }
 
-/* Turno e Contatori */
-#turnIndicator { text-align: center; font-size: 24px; padding: 10px; text-shadow: 2px 2px 4px black; }
-.hand { display: flex; align-items: center; justify-content: center; width: 100%; height: 160px; position: relative; }
+button { padding: 12px; font-weight: bold; border-radius: 8px; border: none; background: #f1c40f; cursor: pointer; margin: 5px; width: 220px; box-shadow: 0 4px 0 #b88e00; }
+button:active { transform: translateY(2px); box-shadow: 0 2px 0 #b88e00; }
+input { padding: 12px; border-radius: 8px; border: 2px solid #f1c40f; width: 220px; text-align: center; background: white; color: black; margin-bottom: 10px; }
 
-.badge { 
-    position: absolute; left: 20px; background: #f1c40f; color: #000; padding: 10px; 
-    border-radius: 15px; font-size: 18px; border: 3px solid white; min-width: 70px; text-align: center; 
-}
+#gameArea { width: 100vw; height: 100vh; display: flex; flex-direction: column; justify-content: space-between; padding: 10px; }
 
-/* Carte con testi centrati */
+#turnIndicator { text-align: center; font-size: 20px; padding: 5px; text-shadow: 2px 2px 4px black; }
+
+.hand { display: flex; align-items: center; justify-content: center; width: 100%; height: 150px; position: relative; }
+.badge { position: absolute; left: 10px; background: #f1c40f; color: #000; padding: 5px 10px; border-radius: 8px; font-size: 14px; border: 2px solid white; z-index: 10; }
+
 .card, .card-back, .card-slot { 
-    width: 85px; height: 130px; border-radius: 12px; border: 3px solid white;
-    background-size: cover; background-position: center; margin: 0 -15px; 
+    width: 80px; height: 120px; border-radius: 10px; border: 2px solid white;
+    background-size: cover; background-position: center; margin: 0 -12px; 
     position: relative; display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
-.card span { font-size: 14px; font-weight: bold; text-align: center; width: 100%; display: block; color: white; text-shadow: 1px 1px 2px black; pointer-events: none; }
+.card span { font-size: 14px; font-weight: bold; text-align: center; color: white; text-shadow: 1px 1px 2px black; pointer-events: none; }
+.card-back { background: #000 !important; color: #f1c40f; font-size: 10px; text-align: center; }
 
-.card-back { background: #000 !important; color: #f1c40f; font-size: 10px; line-height: 1.2; text-align: center; }
-
-/* Colori */
 .red { background-color: #d63031; }
 .blue { background-color: #0984e3; }
 .green { background-color: #27ae60; }
 .yellow { background-color: #f1c40f; color: black; }
 .wild, .wild4 { background-color: #2d3436; }
 
-#centerArea { display: flex; gap: 40px; justify-content: center; align-items: center; flex-grow: 1; }
+#centerArea { display: flex; gap: 30px; justify-content: center; align-items: center; flex-grow: 1; }
 
-#masterUnoBtn { position: absolute; right: 20px; bottom: 180px; background: #e67e22; border: 4px solid white; padding: 15px; border-radius: 50%; font-weight: bold; z-index: 100; box-shadow: 0 0 20px orange; }
+/* Pulsante MasterUno minimal e vicino alla mano */
+#masterUnoBtn { position: absolute; right: 15px; bottom: 120px; background: #e67e22; border: 2px solid white; padding: 8px 12px; border-radius: 5px; font-size: 12px; z-index: 100; font-weight: bold; color: white; cursor: pointer; }
 
-#colorPicker { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 20px; z-index: 5000; text-align: center; box-shadow: 0 0 100px black; color: black; }
-.pick-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
-.pick { width: 70px; height: 70px; border-radius: 50%; cursor: pointer; border: 4px solid #333; }
-
-#endScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10000; }
+#colorPicker { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 15px; z-index: 5000; text-align: center; box-shadow: 0 0 50px rgba(0,0,0,0.8); color: black; }
+.pick-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
+.pick { width: 60px; height: 60px; border-radius: 50%; cursor: pointer; border: 3px solid #333; }
