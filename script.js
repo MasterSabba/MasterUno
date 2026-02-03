@@ -9,7 +9,6 @@ function showToast(text) {
     setTimeout(() => toast.classList.add("hidden"), 2500);
 }
 
-// FIX COPIA CODICE
 document.getElementById("copyBtn").onclick = () => {
     const text = document.getElementById("myPeerId").innerText;
     const el = document.createElement('textarea');
@@ -41,7 +40,7 @@ function renderGame() {
         div.className = `card ${card.color} clickable`;
         const img = card.color.includes("wild") ? (card.value === "+4" ? "wild_draw4" : "wild") : `${card.color}_${card.value}`;
         div.style.backgroundImage = `url('https://raw.githubusercontent.com/IgorZayats/uno/master/assets/cards/${img}.png')`;
-        div.innerHTML = `<span>${card.color.includes("wild") ? "" : card.value.toUpperCase()}</span>`;
+        div.innerHTML = `<span>${card.color.includes("wild") ? (card.value === "+4" ? "+4" : "🎨") : card.value.toUpperCase()}</span>`;
         div.onclick = () => playCard(i);
         pHand.appendChild(div);
     });
@@ -51,13 +50,14 @@ function renderGame() {
     opponentHand.forEach(() => { oHand.innerHTML += `<div class="card-back">MASTER<br>UNO</div>`; });
 
     const topImg = topCard.color.includes("wild") ? (topCard.value === "+4" ? "wild_draw4" : "wild") : `${topCard.color}_${topCard.value}`;
-    document.getElementById("discardPile").innerHTML = `<div class="card ${topCard.color}" style="background-image: url('https://raw.githubusercontent.com/IgorZayats/uno/master/assets/cards/${topImg}.png')"><span>${topCard.color.includes("wild") ? "" : topCard.value.toUpperCase()}</span></div>`;
+    const glow = currentColor === "yellow" ? "#f1c40f" : (currentColor === "blue" ? "#0984e3" : (currentColor === "green" ? "#27ae60" : "#d63031"));
+    document.getElementById("discardPile").innerHTML = `<div class="card ${topCard.color}" style="background-image: url('https://raw.githubusercontent.com/IgorZayats/uno/master/assets/cards/${topImg}.png'); border-color: ${glow}; box-shadow: 0 0 15px ${glow}"><span>${topCard.color.includes("wild") ? (topCard.value === "+4" ? "+4" : "🎨") : topCard.value.toUpperCase()}</span></div>`;
 }
 
 function playCard(i) {
     if (!isMyTurn) return;
     const card = playerHand[i];
-    const canStack = (stackCount > 0 && card.value === topCard.value);
+    const canStack = (stackCount > 0 && (card.value === topCard.value || card.value === "+4"));
     const normalPlay = (stackCount === 0 && (card.color === currentColor || card.value === topCard.value || card.color.includes("wild")));
 
     if (canStack || normalPlay) {
@@ -69,18 +69,15 @@ function playCard(i) {
             document.getElementById("colorPicker").classList.remove("hidden");
         } else {
             currentColor = card.color;
-            // Se è skip o reverse, il turno RESTA a me
-            const extra = (card.value === "skip" || card.value === "reverse");
-            checkEnd(extra);
+            checkEnd(card.value === "skip" || card.value === "reverse");
         }
     }
 }
 
 function checkEnd(extra) {
     if (playerHand.length === 0) {
-        if (!saidMasterUno) {
-            showToast("❌ NO MASTERUNO! +2"); drawCard(playerHand, 2); isMyTurn = false;
-        } else { showEndScreen("player"); sendSync(true); return; }
+        if (!saidMasterUno) { showToast("❌ NO MASTERUNO! +2"); drawCard(playerHand, 2); isMyTurn = false; } 
+        else { showEndScreen("player"); sendSync(true); return; }
     } else {
         isMyTurn = stackCount > 0 ? false : extra;
         if (playerHand.length > 1) saidMasterUno = false;
@@ -151,18 +148,27 @@ window.setWildColor = (c) => {
 };
 
 function botTurn() {
-    const idx = opponentHand.findIndex(c => (stackCount > 0 ? c.value === topCard.value : (c.color === currentColor || c.value === topCard.value || c.color.includes("wild"))));
+    const idx = opponentHand.findIndex(c => (stackCount > 0 ? (c.value === topCard.value || c.value === "+4") : (c.color === currentColor || c.value === topCard.value || c.color.includes("wild"))));
     if (idx !== -1) {
         const card = opponentHand.splice(idx, 1)[0];
         topCard = card;
         if (card.value === "draw2") stackCount += 2; else if (card.value === "+4") stackCount += 4;
         currentColor = card.color.includes("wild") ? colors[Math.floor(Math.random()*4)] : card.color;
         if (opponentHand.length === 0) { showEndScreen("bot"); return; }
-        isMyTurn = (card.value === "skip" || card.value === "reverse") ? false : true;
+        
+        // LOGICA BOT: Se tira Skip o Reverse, gioca di nuovo subito
+        const isExtra = (card.value === "skip" || card.value === "reverse");
+        if (isExtra) {
+            renderGame();
+            setTimeout(botTurn, 1000);
+        } else {
+            isMyTurn = true;
+            renderGame();
+        }
     } else {
         if (stackCount > 0) { drawCard(opponentHand, stackCount); stackCount = 0; }
         else drawCard(opponentHand);
         isMyTurn = true;
+        renderGame();
     }
-    renderGame();
 }
