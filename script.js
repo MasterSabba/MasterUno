@@ -54,11 +54,11 @@ function renderGame() {
         oHand.appendChild(div);
     });
 
-    const glowColor = currentColor === "yellow" ? "#f1c40f" : currentColor;
-    disc.innerHTML = `<div class="card ${topCard.color}" style="background-image: url('${getCardImg(topCard.color, topCard.value)}'); box-shadow: 0 0 35px 12px ${glowColor}"><span>${topCard.value}</span></div>`;
+    const glowColor = currentColor === "yellow" ? "#f1c40f" : (currentColor === "blue" ? "#0984e3" : currentColor);
+    disc.innerHTML = `<div class="card ${topCard.color}" style="background-image: url('${getCardImg(topCard.color, topCard.value)}'); box-shadow: 0 0 40px 15px ${glowColor}"><span>${topCard.value}</span></div>`;
     
     let statusText = currentColor.toUpperCase();
-    if (stackCount > 0) statusText += ` - PESCA +${stackCount}!`;
+    if (stackCount > 0) statusText += ` - ATTENZIONE: +${stackCount} IN ARRIVO!`;
     infoCol.innerText = statusText;
     infoCol.style.color = glowColor;
 }
@@ -67,6 +67,7 @@ function playCard(i) {
     if (!isMyTurn) return;
     const card = playerHand[i];
 
+    // Se c'è un accumulo, puoi solo rispondere con la stessa carta (+2 su +2, +4 su +4)
     const canStack = (stackCount > 0 && card.value === topCard.value);
     const normalPlay = (stackCount === 0 && (card.color === currentColor || card.value === topCard.value || card.color.includes("wild")));
 
@@ -74,7 +75,6 @@ function playCard(i) {
         playerHand.splice(i, 1);
         topCard = card;
 
-        // Qui carichiamo l'accumulo
         if (card.value === "draw2") stackCount += 2;
         else if (card.value === "+4") stackCount += 4;
 
@@ -82,8 +82,9 @@ function playCard(i) {
             document.getElementById("colorPicker").classList.remove("hidden");
         } else {
             currentColor = card.color;
-            let skip = (card.value === "skip" || card.value === "reverse" || card.value === "draw2" || card.value === "+4");
-            endTurn(skip);
+            // IMPORTANTE: Se tiri +2, +4, skip o reverse, l'altro NON salta il turno se deve rispondere all'accumulo
+            // Quindi passiamo sempre il turno all'avversario per dargli la chance di difendersi
+            endTurn(false); 
         }
     }
 }
@@ -91,7 +92,7 @@ function playCard(i) {
 function setWildColor(c) {
     currentColor = c;
     document.getElementById("colorPicker").classList.add("hidden");
-    endTurn(topCard.value === "+4");
+    endTurn(false);
 }
 
 function endTurn(skipNext) {
@@ -112,6 +113,9 @@ function endTurn(skipNext) {
 }
 
 function botTurn() {
+    if (isMyTurn) return;
+
+    // Il bot cerca una carta per rispondere
     const idx = opponentHand.findIndex(c => {
         if (stackCount > 0) return c.value === topCard.value;
         return c.color === currentColor || c.value === topCard.value || c.color.includes("wild");
@@ -124,37 +128,52 @@ function botTurn() {
         else if (card.value === "+4") stackCount += 4;
         
         currentColor = card.color.includes("wild") ? colors[Math.floor(Math.random()*4)] : card.color;
-        let skipBot = (card.value === "skip" || card.value === "reverse" || card.value === "draw2" || card.value === "+4");
         
         if (opponentHand.length === 0) { alert("IL BOT HA VINTO!"); location.reload(); return; }
-        if (skipBot) setTimeout(botTurn, 1000); else isMyTurn = true;
+        
+        // Se il bot ha tirato una carta che NON è un accumulo e non è skip/reverse, tocca a te
+        let botSkipsYou = (card.value === "skip" || card.value === "reverse");
+        if (botSkipsYou) {
+            renderGame();
+            setTimeout(botTurn, 1000);
+        } else {
+            isMyTurn = true;
+            renderGame();
+        }
     } else {
-        // Se il BOT non ha carte per rispondere all'accumulo, PESCA LUI
-        if (stackCount > 0) { drawCard(opponentHand, stackCount); stackCount = 0; }
-        else { drawCard(opponentHand); }
+        // IL BOT NON HA CARTE: PESCA L'ACCUMULO
+        if (stackCount > 0) {
+            drawCard(opponentHand, stackCount);
+            stackCount = 0;
+        } else {
+            drawCard(opponentHand);
+        }
         isMyTurn = true;
+        renderGame();
     }
-    renderGame();
 }
 
 document.getElementById("deck").onclick = () => {
     if (!isMyTurn) return;
+    
     if (stackCount > 0) {
-        // PESCA IL GIOCATORE le carte accumulate
+        // Se clicchi sul mazzo mentre c'è un +2/+4, peschi tutto e passi il turno
         drawCard(playerHand, stackCount);
         stackCount = 0;
+        isMyTurn = false;
     } else {
+        // Pesca normale
         drawCard(playerHand);
+        isMyTurn = false;
     }
     
     if (conn) conn.send({ type: "SYNC", topCard, currentColor, stackCount, oppHandSize: playerHand.length, isNextTurn: false });
     
-    isMyTurn = false;
     renderGame();
-    if (!conn) setTimeout(botTurn, 1000);
+    if (!isMyTurn && !conn) setTimeout(botTurn, 1000);
 };
 
-// MULTIPLAYER PEERJS
+// --- PEERJS MULTIPLAYER ---
 peer = new Peer();
 peer.on('open', id => { document.getElementById("myPeerId").innerText = id; });
 peer.on('connection', c => { conn = c; conn.on('data', handleSync); startG(false); });
