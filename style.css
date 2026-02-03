@@ -1,77 +1,36 @@
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-html, body { 
-    margin: 0; padding: 0; width: 100%; height: 100%; 
-    overflow: hidden; background: #1a472a; 
-    color: white !important; font-family: sans-serif;
-}
-
+html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #1a472a !important; color: white !important; font-family: sans-serif; }
 .hidden { display: none !important; }
 
-/* SCHERMATA INIZIALE */
-#startScreen { position: fixed; inset: 0; background: #1a472a; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; text-align: center; }
-#myPeerId { display: block; font-size: 32px; color: #f1c40f !important; margin-top: 5px; letter-spacing: 3px; font-weight: bold; }
-button { padding: 15px; width: 220px; margin: 10px auto; border-radius: 12px; border: none; background: #f1c40f; color: black; font-weight: bold; cursor: pointer; display: block; }
-input { padding: 12px; border-radius: 8px; border: 2px solid #f1c40f; width: 220px; text-align: center; margin: 10px auto; display: block; }
+#startScreen { position: fixed; inset: 0; background: #1a472a; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; }
+#myPeerId { display: block; font-size: 32px; color: #f1c40f !important; margin: 10px 0; letter-spacing: 3px; font-weight: bold; }
+#copyBtn { width: auto; padding: 8px 20px; font-size: 14px; background: #f1c40f; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; }
 
-/* AREA DI GIOCO */
 #gameArea { width: 100vw; height: 100vh; display: flex; flex-direction: column; justify-content: space-between; padding: 10px; position: relative; }
 #turnIndicator { text-align: center; font-size: 22px; font-weight: bold; padding: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
 
-/* CONTENITORI MANI */
 .hand { display: flex; align-items: center; justify-content: center; width: 100%; height: 140px; position: relative; }
+.badge { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); background: #f1c40f; color: black !important; padding: 6px 12px; border-radius: 8px; font-weight: bold; border: 2px solid white; z-index: 500; }
 
-/* BADGE A SINISTRA (Fissi e sopra tutto) */
-.badge { 
-    position: absolute; 
-    left: 5px; 
-    background: #f1c40f; 
-    color: black !important; 
-    padding: 5px 10px; 
-    border-radius: 8px; 
-    font-weight: bold; 
-    border: 2px solid white; 
-    z-index: 500; /* Superiore alle carte */
-    box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
-}
+.card, .card-back, .card-slot { width: 75px; height: 110px; border-radius: 10px; border: 2px solid white; background-size: cover; background-position: center; margin: 0 -15px; position: relative; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: transform 0.2s; }
+@media (min-width: 768px) { .card, .card-back, .card-slot { width: 100px; height: 145px; margin: 0 -20px; } }
 
-/* CARTE COLORATE */
-.card, .card-back, .card-slot { 
-    width: 75px; height: 110px; border-radius: 10px; border: 2px solid white;
-    background-size: cover; background-position: center; margin: 0 -15px; 
-    position: relative; display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: transform 0.2s;
-}
+.card-back { background: #000 !important; color: #f1c40f !important; font-size: 10px; text-align: center; font-weight: bold; border: 2px solid white !important; }
+.card span { font-weight: bold; font-size: 14px; text-shadow: 1px 1px 2px black; color: white !important; }
 
-/* Colori delle carte attive */
+/* Colori Carte */
 .red { background-color: #d63031 !important; }
 .blue { background-color: #0984e3 !important; }
 .green { background-color: #27ae60 !important; }
 .yellow { background-color: #f1c40f !important; }
 .wild, .wild4 { background-color: #2d3436 !important; }
 
-/* STILE RETRO CARTE (MASTERUNO) */
-.card-back { 
-    background: #000000 !important; 
-    color: #f1c40f !important; 
-    font-size: 10px; 
-    text-align: center; 
-    font-weight: bold; 
-    border: 2px solid #ffffff !important;
-}
-
-.card span { font-weight: bold; font-size: 14px; text-shadow: 1px 1px 2px black; color: white !important; }
-
-/* CENTRO */
 #centerArea { display: flex; gap: 30px; justify-content: center; align-items: center; flex-grow: 1; }
-.card-slot { margin: 0 !important; }
+#masterUnoBtn { position: absolute; right: 20px; bottom: 130px; background: #e67e22 !important; border: 2px solid white; padding: 12px 24px; border-radius: 30px; color: white !important; font-weight: bold; z-index: 1000; }
 
-/* MASTERUNO BUTTON */
-#masterUnoBtn { position: absolute; right: 20px; bottom: 130px; background: #e67e22 !important; border: 2px solid white; padding: 10px 20px; border-radius: 25px; font-size: 13px; color: white !important; font-weight: bold; z-index: 1000; }
-
-/* SELETTORE COLORE */
-#colorPicker { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 5000; }
+#colorPicker, #endScreen { position: fixed; inset: 0; background: rgba(0,0,0,0.92); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
 .pick-grid { display: flex; gap: 20px; }
-.pick { width: 70px; height: 70px; border-radius: 50%; border: 4px solid white; cursor: pointer; }
+.pick { width: 75px; height: 75px; border-radius: 50%; border: 4px solid white; cursor: pointer; }
 
-#toastNotification { position: fixed; top: 15%; left: 50%; transform: translateX(-50%); background: #e67e22; color: white; padding: 12px 25px; border-radius: 30px; font-weight: bold; z-index: 6000; border: 2px solid white; }
+#toastNotification { position: fixed; top: 15%; left: 50%; transform: translateX(-50%); background: #e67e22; color: white; padding: 12px 25px; border-radius: 30px; z-index: 10000; border: 2px solid white; font-weight: bold; }
+button { padding: 15px; width: 220px; border-radius: 12px; border: none; background: #f1c40f; color: black; font-weight: bold; cursor: pointer; }
