@@ -1,8 +1,7 @@
-
 const colors = ["red", "blue", "green", "yellow"];
 const values = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "skip", "reverse", "draw2"];
 let deck = [], playerHand = [], opponentHand = [], topCard = null, currentColor = "", isMyTurn = true;
-let stackCount = 0; // Per accumulare i +2 e +4
+let stackCount = 0; 
 let peer, conn;
 
 function getCardImg(c, v) {
@@ -38,39 +37,39 @@ function renderGame() {
     const disc = document.getElementById("discardPile");
     const infoCol = document.getElementById("colorDisplay");
 
-    pHand.innerHTML = `<div class="badge">TU<br>${playerHand.length}</div>`;
+    // Badge separati dal flusso delle carte
+    pHand.innerHTML = `<div class="badge">TU: ${playerHand.length}</div>`;
     playerHand.forEach((card, i) => {
         const div = document.createElement("div");
-        div.className = `card ${card.color}`;
+        div.className = `card ${card.color} clickable`;
         div.style.backgroundImage = `url('${getCardImg(card.color, card.value)}')`;
         div.innerHTML = `<span>${card.value}</span>`;
         div.onclick = () => playCard(i);
         pHand.appendChild(div);
     });
 
-    oHand.innerHTML = `<div class="badge">AVV<br>${opponentHand.length}</div>`;
+    oHand.innerHTML = `<div class="badge">AVV: ${opponentHand.length}</div>`;
     opponentHand.forEach(() => {
         const div = document.createElement("div");
         div.className = "card-back";
         oHand.appendChild(div);
     });
 
-    // Mostra il colore attuale sul mazzo scarti con un'ombra
-    disc.innerHTML = `<div class="card ${topCard.color}" style="background-image: url('${getCardImg(topCard.color, topCard.value)}'); box-shadow: 0 0 20px 10px ${currentColor}"><span>${topCard.value}</span></div>`;
+    // Aura luminosa sul mazzo scarti per indicare il colore
+    const glowColor = currentColor === "yellow" ? "#f1c40f" : currentColor;
+    disc.innerHTML = `<div class="card ${topCard.color}" style="background-image: url('${getCardImg(topCard.color, topCard.value)}'); box-shadow: 0 0 25px 8px ${glowColor}"><span>${topCard.value}</span></div>`;
     
-    infoCol.innerText = currentColor.toUpperCase();
-    infoCol.style.color = currentColor;
-
-    if (stackCount > 0) {
-        infoCol.innerText += ` (PESCA +${stackCount}!)`;
-    }
+    let statusText = currentColor.toUpperCase();
+    if (stackCount > 0) statusText += ` - ATTENZIONE: PESCA +${stackCount}!`;
+    infoCol.innerText = statusText;
+    infoCol.style.color = glowColor;
 }
 
 function playCard(i) {
     if (!isMyTurn) return;
     const card = playerHand[i];
 
-    // Logica di scarto normale + logica di accumulo (stacking)
+    // Logica Stacking: se c'è un +2 in corso, puoi solo rispondere con un +2
     const canStack = (stackCount > 0 && card.value === topCard.value);
     const normalPlay = (stackCount === 0 && (card.color === currentColor || card.value === topCard.value || card.color.includes("wild")));
 
@@ -85,7 +84,8 @@ function playCard(i) {
             document.getElementById("colorPicker").classList.remove("hidden");
         } else {
             currentColor = card.color;
-            let skip = (card.value === "skip" || card.value === "reverse" || card.value === "draw2");
+            // Se tiri una carta speciale, l'altro salta il turno (isMyTurn resta true)
+            let skip = (card.value === "skip" || card.value === "reverse" || card.value === "draw2" || card.value === "+4");
             endTurn(skip);
         }
     }
@@ -98,7 +98,7 @@ function setWildColor(c) {
 }
 
 function endTurn(skipNext) {
-    if (playerHand.length === 0) { alert("HAI VINTO!"); location.reload(); }
+    if (playerHand.length === 0) { alert("HAI VINTO!"); location.reload(); return; }
     
     if (conn) {
         conn.send({ 
@@ -129,15 +129,11 @@ function botTurn() {
         currentColor = card.color.includes("wild") ? colors[Math.floor(Math.random()*4)] : card.color;
         let skipBot = (card.value === "skip" || card.value === "reverse" || card.value === "draw2" || card.value === "+4");
         
-        if (opponentHand.length === 0) { alert("IL BOT HA VINTO!"); location.reload(); }
+        if (opponentHand.length === 0) { alert("IL BOT HA VINTO!"); location.reload(); return; }
         if (skipBot) setTimeout(botTurn, 1000); else isMyTurn = true;
     } else {
-        if (stackCount > 0) {
-            drawCard(opponentHand, stackCount);
-            stackCount = 0;
-        } else {
-            drawCard(opponentHand);
-        }
+        if (stackCount > 0) { drawCard(opponentHand, stackCount); stackCount = 0; }
+        else { drawCard(opponentHand); }
         isMyTurn = true;
     }
     renderGame();
@@ -159,21 +155,13 @@ document.getElementById("deck").onclick = () => {
     if (!conn) setTimeout(botTurn, 1000);
 };
 
-// MULTIPLAYER PEERJS MIGLIORATO
+// MULTIPLAYER PEERJS
 peer = new Peer();
 peer.on('open', id => { document.getElementById("myPeerId").innerText = id; });
-peer.on('connection', c => { 
-    conn = c; 
-    conn.on('data', handleSync); 
-    startG(false); 
-});
-
+peer.on('connection', c => { conn = c; conn.on('data', handleSync); startG(false); });
 document.getElementById("connectBtn").onclick = () => {
     conn = peer.connect(document.getElementById("friendIdInput").value);
-    conn.on('open', () => {
-        conn.on('data', handleSync);
-        startG(true);
-    });
+    conn.on('open', () => { conn.on('data', handleSync); startG(true); });
 };
 
 function handleSync(data) {
@@ -182,7 +170,6 @@ function handleSync(data) {
         currentColor = data.currentColor;
         stackCount = data.stackCount;
         isMyTurn = data.isNextTurn;
-        // Sincronizza il numero di carte dell'avversario
         opponentHand = new Array(data.oppHandSize).fill({}); 
         renderGame();
     }
