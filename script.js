@@ -1,7 +1,7 @@
 const colors = ["red", "blue", "green", "yellow"];
 const values = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "skip", "reverse", "draw2"];
 let deck = [], playerHand = [], opponentHand = [], topCard = null, currentColor = "";
-let isMyTurn = true, peer, conn;
+let isMyTurn = true, hasSaidUno = false, peer, conn;
 
 const initPeer = () => {
     const myId = Math.random().toString(36).substr(2, 5).toUpperCase();
@@ -24,19 +24,8 @@ function setupConn() {
 function createDeck() {
     deck = [];
     colors.forEach(c => values.forEach(v => { deck.push({color:c, value:v}); deck.push({color:c, value:v}); }));
-    for(let i=0; i<4; i++){ deck.push({color:"wild", value:"wild"}); deck.push({color:"wild4", value:"+4"}); }
+    for(let i=0; i<4; i++){ deck.push({color:"wild", value:"W"}); deck.push({color:"wild4", value:"+4"}); }
     deck.sort(() => Math.random() - 0.5);
-}
-
-function startG(me) {
-    document.getElementById("startScreen").classList.add("hidden");
-    document.getElementById("gameArea").classList.remove("hidden");
-    createDeck();
-    playerHand = []; opponentHand = [];
-    for(let i=0; i<7; i++) { playerHand.push(deck.pop()); opponentHand.push(deck.pop()); }
-    topCard = deck.pop();
-    while(topCard.color.includes("wild")) topCard = deck.pop();
-    currentColor = topCard.color; isMyTurn = me; renderGame();
 }
 
 function renderGame() {
@@ -44,12 +33,16 @@ function renderGame() {
     document.getElementById("opponentBadge").innerText = `AVVERSARIO: ${opponentHand.length}`;
     document.getElementById("turnIndicator").innerText = isMyTurn ? "🟢 IL TUO TURNO" : "🔴 TURNO AVVERSARIO";
 
+    // Mostra/Nascondi pulsante MasterUno
+    const unoBtn = document.getElementById("masterUnoBtn");
+    if(playerHand.length === 2 && isMyTurn) unoBtn.classList.remove("hidden");
+    else unoBtn.classList.add("hidden");
+
     const pHand = document.getElementById("playerHand"); pHand.innerHTML = "";
     playerHand.forEach((card, i) => {
         const div = document.createElement("div");
         div.className = `card ${card.color}`;
-        const img = card.color.includes("wild") ? (card.value === "+4" ? "wild_draw4" : "wild") : `${card.color}_${card.value}`;
-        div.style.backgroundImage = `url('https://raw.githubusercontent.com/IgorZayats/uno/master/assets/cards/${img}.png')`;
+        div.innerText = card.value === "draw2" ? "+2" : (card.value === "reverse" ? "⇄" : (card.value === "skip" ? "Ø" : card.value));
         div.onclick = () => playCard(i);
         pHand.appendChild(div);
     });
@@ -60,24 +53,44 @@ function renderGame() {
     });
 
     const discard = document.getElementById("discardPile");
-    const topImg = topCard.color.includes("wild") ? (topCard.value === "+4" ? "wild_draw4" : "wild") : `${topCard.color}_${topCard.value}`;
-    discard.innerHTML = `<div class="card ${topCard.color}" style="background-image: url('https://raw.githubusercontent.com/IgorZayats/uno/master/assets/cards/${topImg}.png'); margin:0;"></div>`;
+    discard.innerHTML = `<div class="card ${currentColor}" style="margin:0;">${topCard.value === "draw2" ? "+2" : topCard.value}</div>`;
 }
 
 function playCard(i) {
     if (!isMyTurn) return;
     const card = playerHand[i];
     if (card.color === currentColor || card.value === topCard.value || card.color.includes("wild")) {
+        // Controllo se ha dimenticato di dire MasterUno
+        if(playerHand.length === 2 && !hasSaidUno) {
+            alert("NON HAI DETTO MASTERUNO! Pesca 2 carte.");
+            playerHand.push(deck.pop()); playerHand.push(deck.pop());
+            isMyTurn = false; finishTurn(); return;
+        }
         playerHand.splice(i, 1); topCard = card;
-        if (card.color.includes("wild")) { document.getElementById("colorPicker").classList.remove("hidden"); }
+        hasSaidUno = false; // Reset per la prossima volta
+        if (card.color.includes("wild")) document.getElementById("colorPicker").classList.remove("hidden");
         else { currentColor = card.color; finishTurn(); }
         renderGame();
     }
 }
 
-window.setWildColor = (c) => {
-    currentColor = c; document.getElementById("colorPicker").classList.add("hidden"); finishTurn();
+document.getElementById("masterUnoBtn").onclick = () => {
+    hasSaidUno = true;
+    alert("HAI DETTO MASTERUNO!");
+    document.getElementById("masterUnoBtn").classList.add("hidden");
 };
+
+// ... Resto delle funzioni (startG, botTurn, setWildColor, finishTurn) ...
+// (Per brevità non riscrivo startG e botTurn che sono identiche a prima, ma vanno incluse nel file completo)
+
+function startG(me) {
+    document.getElementById("startScreen").classList.add("hidden");
+    document.getElementById("gameArea").classList.remove("hidden");
+    createDeck(); playerHand = []; opponentHand = [];
+    for(let i=0; i<7; i++) { playerHand.push(deck.pop()); opponentHand.push(deck.pop()); }
+    topCard = deck.pop(); while(topCard.color.includes("wild")) topCard = deck.pop();
+    currentColor = topCard.color; isMyTurn = me; renderGame();
+}
 
 function finishTurn() {
     if (playerHand.length === 0) { confetti(); alert("VITTORIA!"); location.reload(); return; }
@@ -98,7 +111,4 @@ function botTurn() {
 document.getElementById("playBotBtn").onclick = () => startG(true);
 document.getElementById("deck").onclick = () => { if(isMyTurn) { if(deck.length === 0) createDeck(); playerHand.push(deck.pop()); finishTurn(); }};
 document.getElementById("copyBtn").onclick = () => { navigator.clipboard.writeText(document.getElementById("myPeerId").innerText); alert("Copiato!"); };
-document.getElementById("connectBtn").onclick = () => {
-    const id = document.getElementById("friendIdInput").value.toUpperCase();
-    if (id) { conn = peer.connect(id); conn.on('open', () => { setupConn(); startG(true); }); }
-};
+window.setWildColor = (c) => { currentColor = c; document.getElementById("colorPicker").classList.add("hidden"); finishTurn(); };
