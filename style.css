@@ -32,6 +32,8 @@ body { margin: 0; background: #1a472a; color: white; font-family: 'Arial Black',
 .btn-white { background: #fff; color: #1a472a; padding: 22px; border-radius: 18px; font-weight: 900; width: 100%; box-shadow: 0 8px 0 #ccc; text-transform: uppercase; cursor: pointer; font-size: 16px; }
 input { background: rgba(255,255,255,0.1); border: 2px solid #f1c40f; padding: 18px; border-radius: 15px; color: white; text-align: center; font-size: 18px; width: 100%; }
 
+/* Fine interfaccia grafica */
+
 /* GIOCO E ZOOM IPAD */
 #gameArea { height: 100vh; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 20px 0; }
 
