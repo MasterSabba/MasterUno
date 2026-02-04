@@ -33,13 +33,13 @@ function isValidMove(card) {
     return card.color === currentColor || card.value === topCard.value || card.color.includes("wild");
 }
 
-/* --- 3. GESTIONE TURNI --- */
+/* --- 3. GESTIONE TURNI E AZIONI --- */
 function playCard(i) {
     if (!isMyTurn) return;
     const card = playerHand[i];
     if (isValidMove(card)) {
         if(playerHand.length === 2 && !hasSaidUno) {
-            alert("NON HAI DETTO MASTERUNO! +2");
+            showToast("NON HAI DETTO MASTERUNO! +2 🃏");
             playerHand.push(deck.pop(), deck.pop());
             isMyTurn = false; renderGame(); setTimeout(botTurn, 1000); return;
         }
@@ -72,13 +72,32 @@ function botTurn() {
         currentColor = card.color.includes("wild") ? colors[Math.floor(Math.random()*4)] : card.color;
         endTurn();
     } else {
-        if (drawStack > 0) { for(let i=0; i<drawStack; i++) opponentHand.push(deck.pop()); drawStack = 0; }
-        else opponentHand.push(deck.pop());
+        if (drawStack > 0) { 
+            for(let i=0; i<drawStack; i++) opponentHand.push(deck.pop()); 
+            drawStack = 0; 
+            showToast("IL BOT PESCA LE CARTE! 🃏");
+        } else {
+            opponentHand.push(deck.pop());
+        }
         isMyTurn = true; renderGame();
     }
 }
 
 /* --- 4. INTERFACCIA E RENDERING --- */
+function showToast(message) {
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        document.body.appendChild(container);
+    }
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerText = message;
+    container.appendChild(toast);
+    setTimeout(() => { toast.remove(); }, 2000);
+}
+
 function renderGame() {
     if (playerHand.length === 0) { showEndScreen(true); return; }
     if (opponentHand.length === 0) { showEndScreen(false); return; }
@@ -102,6 +121,10 @@ function renderGame() {
     const discard = document.getElementById("discardPile");
     const topV = getDisplayVal(topCard.value);
     discard.innerHTML = `<div class="card ${currentColor}" data-val="${topV}" style="margin:0;">${topV}</div>`;
+
+    const unoBtn = document.getElementById("masterUnoBtn");
+    if(playerHand.length === 2 && isMyTurn) unoBtn.classList.remove("hidden");
+    else unoBtn.classList.add("hidden");
 }
 
 function showEndScreen(win) {
@@ -113,7 +136,7 @@ function showEndScreen(win) {
     setTimeout(() => location.reload(), 4000);
 }
 
-/* --- 5. INIZIALIZZAZIONE --- */
+/* --- 5. INIZIALIZZAZIONE ED EVENTI --- */
 const initPeer = () => {
     const id = Math.random().toString(36).substr(2, 5).toUpperCase();
     peer = new Peer(id);
@@ -132,11 +155,31 @@ function startG(me) {
 }
 
 document.getElementById("playBotBtn").onclick = () => startG(true);
+
 document.getElementById("deck").onclick = () => {
     if (!isMyTurn) return;
-    if (drawStack > 0) { for(let i=0; i<drawStack; i++) playerHand.push(deck.pop()); drawStack = 0; }
-    else playerHand.push(deck.pop());
+    if (drawStack > 0) { 
+        for(let i=0; i<drawStack; i++) playerHand.push(deck.pop()); 
+        drawStack = 0; 
+        showToast("HAI PESCATO LE CARTE! 🃏");
+    } else {
+        playerHand.push(deck.pop());
+    }
     isMyTurn = false; renderGame(); setTimeout(botTurn, 1000);
 };
-window.setWildColor = (c) => { currentColor = c; document.getElementById("colorPicker").classList.add("hidden"); endTurn(); };
-document.getElementById("copyBtn").onclick = () => { navigator.clipboard.writeText(document.getElementById("myPeerId").innerText); alert("ID COPIATO!"); };
+
+window.setWildColor = (c) => { 
+    currentColor = c; 
+    document.getElementById("colorPicker").classList.add("hidden"); 
+    endTurn(); 
+};
+
+document.getElementById("copyBtn").onclick = () => { 
+    navigator.clipboard.writeText(document.getElementById("myPeerId").innerText); 
+    showToast("ID COPIATO! 📋"); 
+};
+
+document.getElementById("masterUnoBtn").onclick = () => { 
+    hasSaidUno = true; 
+    showToast("MASTERUNO! 🔥"); 
+};
