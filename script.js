@@ -27,10 +27,7 @@ function createDeck() {
         deck.push({color:c, value:v}); 
         if(v !== "0") deck.push({color:c, value:v}); 
     }));
-    for(let i=0; i<4; i++){ 
-        deck.push({color:"wild", value:"W"}); 
-        deck.push({color:"wild4", value:"+4"}); 
-    }
+    for(let i=0; i<4; i++){ deck.push({color:"wild", value:"W"}); deck.push({color:"wild4", value:"+4"}); }
     deck.sort(() => Math.random() - 0.5);
 }
 
@@ -42,10 +39,10 @@ function showAutoAlert(txt) {
 }
 
 function renderGame() {
-    if (playerHand.length === 0 && deck.length < 100) { // Controllo vittoria
+    // Controllo Vittoria
+    if (playerHand.length === 0 && deck.length < 100) {
         confetti();
-        alert("🎉 VITTORIA! SEI IL MASTER DI UNO!");
-        location.reload();
+        setTimeout(() => { alert("VITTORIA! 🎉"); location.reload(); }, 500);
         return;
     }
 
@@ -53,6 +50,7 @@ function renderGame() {
     document.getElementById("opponentBadge").innerText = `AVVERSARIO: ${opponentHand.length}`;
     document.getElementById("turnIndicator").innerText = isMyTurn ? "🟢 IL TUO TURNO" : "🔴 TURNO AVVERSARIO";
 
+    // Pulsante MasterUno
     const unoBtn = document.getElementById("masterUnoBtn");
     const canPlay = playerHand.some(c => c.color === currentColor || c.value === topCard.value || c.color.includes("wild"));
     if(playerHand.length === 2 && isMyTurn && canPlay) unoBtn.classList.remove("hidden");
@@ -80,11 +78,13 @@ function applyEffects(card, isBot) {
     let skip = false;
     if (card.value === "draw2") { for(let i=0; i<2; i++) (isBot?playerHand:opponentHand).push(deck.pop()); skip = true; }
     else if (card.value === "skip" || card.value === "reverse") skip = true;
-    else if (card.value === "+4") { for(let i=0; i<4; i++) (isBot?playerHand:opponentHand).push(deck.pop()); skip = true; }
+    else if (card.value === "wild4" || card.value === "+4") { for(let i=0; i<4; i++) (isBot?playerHand:opponentHand).push(deck.pop()); skip = true; }
 
-    if (skip) { isMyTurn = !isBot; renderGame(); if(isBot) setTimeout(botTurn, 1000); }
-    else { isMyTurn = isBot; renderGame(); if(!isMyTurn) setTimeout(botTurn, 1200); }
-    
+    if (skip) { isMyTurn = !isBot; } 
+    else { isMyTurn = isBot; }
+
+    renderGame();
+    if (!isMyTurn) setTimeout(botTurn, 1200);
     if(conn && conn.open) conn.send({type:"SYNC", topCard, currentColor, oppHandSize: playerHand.length, isNextTurn: isMyTurn});
 }
 
@@ -107,7 +107,6 @@ function playCard(i) {
 window.setWildColor = (c) => {
     currentColor = c;
     document.getElementById("colorPicker").classList.add("hidden");
-    showAutoAlert("NUOVO COLORE: " + c.toUpperCase());
     applyEffects(topCard, false);
 };
 
@@ -118,7 +117,7 @@ function botTurn() {
         const card = opponentHand.splice(idx, 1)[0]; topCard = card;
         if (card.color.includes("wild")) currentColor = colors[Math.floor(Math.random()*4)];
         else currentColor = card.color;
-        if (opponentHand.length === 0) { alert("IL BOT HA VINTO!"); location.reload(); }
+        if (opponentHand.length === 0) { alert("IL BOT HA VINTO!"); location.reload(); return; }
         applyEffects(card, true);
     } else { opponentHand.push(deck.pop()); isMyTurn = true; renderGame(); }
 }
