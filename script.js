@@ -3,45 +3,55 @@ const values = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "skip", "rever
 let deck = [], playerHand = [], opponentHand = [], topCard = null, currentColor = "";
 let isMyTurn = true, hasSaidUno = false, peer, conn, drawStack = 0;
 
+// Inizializzazione e Alert Automatico
 const initPeer = () => {
-    const myId = Math.random().toString(36).substr(2, 5).toUpperCase();
-    peer = new Peer(myId);
-    peer.on('open', id => document.getElementById("myPeerId").innerText = id);
+    const id = Math.random().toString(36).substr(2, 5).toUpperCase();
+    peer = new Peer(id);
+    peer.on('open', res => document.getElementById("myPeerId").innerText = res);
     peer.on('connection', c => { conn = c; conn.on('open', () => { setupConn(); startG(false); }); });
 };
 initPeer();
 
 function showAutoAlert(txt) {
-    const a = document.createElement("div");
-    a.id = "autoAlert"; a.innerText = txt;
+    const a = document.createElement("div"); a.id = "autoAlert"; a.innerText = txt;
     document.body.appendChild(a);
     setTimeout(() => { a.style.opacity = "0"; setTimeout(() => a.remove(), 500); }, 1500);
 }
 
 function createDeck() {
     deck = [];
-    colors.forEach(c => values.forEach(v => { deck.push({color:c, value:v}); if(v !== "0") deck.push({color:c, value:v}); }));
+    colors.forEach(c => values.forEach(v => { deck.push({color:c, value:v}); if(v!=="0") deck.push({color:c, value:v}); }));
     for(let i=0; i<4; i++){ deck.push({color:"wild", value:"W"}); deck.push({color:"wild4", value:"+4"}); }
     deck.sort(() => Math.random() - 0.5);
 }
 
 function renderGame() {
-    if (playerHand.length === 0 && deck.length < 100) { confetti(); alert("VITTORIA! 🎉"); location.reload(); return; }
+    // Grafica Vittoria Migliorata
+    if (playerHand.length === 0 && deck.length < 100) {
+        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+        showAutoAlert("👑 VITTORIA SUPREMA!");
+        setTimeout(() => { alert("HAI VINTO LA PARTITA!"); location.reload(); }, 2000);
+        return;
+    }
+
     document.getElementById("playerBadge").innerText = `CARTE: ${playerHand.length}`;
     document.getElementById("opponentBadge").innerText = `BOT: ${opponentHand.length}`;
     
     let turnTxt = isMyTurn ? "🟢 IL TUO TURNO" : "🔴 TURNO AVVERSARIO";
-    if (drawStack > 0) turnTxt = `⚠️ ATTENZIONE: +${drawStack}!`;
+    if (drawStack > 0) turnTxt = `⚠️ DEVI RISPONDERE (+${drawStack})!`;
     document.getElementById("turnIndicator").innerText = turnTxt;
 
+    // Pulsante MasterUno Intelligente: solo se hai 2 carte E puoi giocarne una
     const unoBtn = document.getElementById("masterUnoBtn");
-    if(playerHand.length === 2 && isMyTurn) unoBtn.classList.remove("hidden");
+    const canPlay = playerHand.some(c => isValidMove(c));
+    if(playerHand.length === 2 && isMyTurn && canPlay) unoBtn.classList.remove("hidden");
     else unoBtn.classList.add("hidden");
 
+    // Rendering Mani
     const pHand = document.getElementById("playerHand"); pHand.innerHTML = "";
     playerHand.forEach((card, i) => {
         const div = document.createElement("div");
-        const v = card.value === "draw2" ? "+2" : (card.value === "wild4" ? "+4" : (card.value === "skip" ? "Ø" : (card.value === "reverse" ? "⇄" : card.value)));
+        const v = getDisplayVal(card.value);
         div.className = `card ${card.color}`;
         div.innerText = v; div.setAttribute('data-val', v);
         div.onclick = () => playCard(i);
@@ -52,26 +62,32 @@ function renderGame() {
     opponentHand.forEach(() => { oHand.innerHTML += `<div class="card-back-classic" style="margin: 0 -22px;">MASTER<br>UNO</div>`; });
 
     const discard = document.getElementById("discardPile");
-    const topV = topCard.value === "draw2" ? "+2" : (topCard.value === "wild4" ? "+4" : (topCard.value === "skip" ? "Ø" : topCard.value));
+    const topV = getDisplayVal(topCard.value);
     discard.innerHTML = `<div class="card ${currentColor}" data-val="${topV}" style="margin:0;">${topV}</div>`;
+}
+
+function getDisplayVal(v) {
+    if(v === "draw2") return "+2";
+    if(v === "wild4") return "+4";
+    if(v === "skip") return "Ø";
+    if(v === "reverse") return "⇄";
+    if(v === "W") return "W";
+    return v;
+}
+
+function isValidMove(card) {
+    if (drawStack > 0) return card.value === "draw2" || card.value === "wild4";
+    return card.color === currentColor || card.value === topCard.value || card.color.includes("wild");
 }
 
 function playCard(i) {
     if (!isMyTurn) return;
     const card = playerHand[i];
 
-    // Logica Accumulo: se c'è uno stack, puoi giocare solo un altro +2 o +4
-    if (drawStack > 0) {
-        if (card.value !== "draw2" && card.value !== "wild4") {
-            showAutoAlert("DEVI RISPONDERE AL + O PESCARE!");
-            return;
-        }
-    }
-
-    if (card.color === currentColor || card.value === topCard.value || card.color.includes("wild")) {
+    if (isValidMove(card)) {
         if(playerHand.length === 2 && !hasSaidUno) {
-            showAutoAlert("PENALITÀ MASTERUNO! +2");
-            for(let j=0; j<2; j++) playerHand.push(deck.pop());
+            showAutoAlert("ERRORE! +2 CARTE");
+            playerHand.push(deck.pop(), deck.pop());
             isMyTurn = false; renderGame(); setTimeout(botTurn, 1000); return;
         }
 
@@ -94,8 +110,8 @@ function playCard(i) {
 
 function endTurn() {
     isMyTurn = !isMyTurn;
-    if (topCard.value === "skip" || topCard.value === "reverse") {
-        showAutoAlert("SALTA IL TURNO!");
+    if ((topCard.value === "skip" || topCard.value === "reverse") && drawStack === 0) {
+        showAutoAlert("SALTO TURNO!");
         isMyTurn = !isMyTurn;
     }
     renderGame();
@@ -104,31 +120,24 @@ function endTurn() {
 
 function botTurn() {
     if (isMyTurn) return;
-    
-    // Se il bot deve subire un +2/+4, cerca se ne ha uno per ribattere
-    let idx = -1;
-    if (drawStack > 0) {
-        idx = opponentHand.findIndex(c => c.value === "draw2" || c.value === "wild4");
-    } else {
-        idx = opponentHand.findIndex(c => c.color === currentColor || c.value === topCard.value || c.color.includes("wild"));
-    }
+    let idx = opponentHand.findIndex(c => isValidMove(c));
 
     if (idx !== -1) {
         const card = opponentHand.splice(idx, 1)[0];
         topCard = card;
         if (card.value === "draw2") drawStack += 2;
         if (card.value === "wild4") drawStack += 4;
-        
         currentColor = card.color.includes("wild") ? colors[Math.floor(Math.random()*4)] : card.color;
+        if (opponentHand.length === 0) { alert("IL BOT HA VINTO!"); location.reload(); return; }
         endTurn();
-    } else if (drawStack > 0) {
-        // Il bot non ha carte per ribattere, pesca tutto lo stack
-        showAutoAlert(`BOT PESCA ${drawStack} CARTE!`);
-        for(let i=0; i<drawStack; i++) opponentHand.push(deck.pop());
-        drawStack = 0;
-        isMyTurn = true;
     } else {
-        opponentHand.push(deck.pop());
+        if (drawStack > 0) {
+            showAutoAlert(`BOT PESCA ${drawStack}!`);
+            for(let i=0; i<drawStack; i++) opponentHand.push(deck.pop());
+            drawStack = 0;
+        } else {
+            opponentHand.push(deck.pop());
+        }
         isMyTurn = true;
     }
     renderGame();
@@ -137,15 +146,13 @@ function botTurn() {
 document.getElementById("deck").onclick = () => {
     if (!isMyTurn) return;
     if (drawStack > 0) {
-        showAutoAlert(`HAI PESCATO ${drawStack} CARTE`);
+        showAutoAlert(`PESCHI ${drawStack} CARTE`);
         for(let i=0; i<drawStack; i++) playerHand.push(deck.pop());
         drawStack = 0;
     } else {
         playerHand.push(deck.pop());
     }
-    isMyTurn = false;
-    renderGame();
-    setTimeout(botTurn, 1000);
+    isMyTurn = false; renderGame(); setTimeout(botTurn, 1000);
 };
 
 window.setWildColor = (c) => {
