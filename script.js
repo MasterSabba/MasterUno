@@ -2,7 +2,8 @@
 const colors = ["red", "blue", "green", "yellow"];
 const values = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "skip", "reverse", "draw2"];
 let deck = [], playerHand = [], opponentHand = [], topCard = null, currentColor = "";
-let isMyTurn = true, hasSaidUno = false, drawStack = 0, peer, conn;
+let isMyTurn = true, hasSaidUno = false, drawStack = 0;
+let peer, conn, isMultiplayer = false;
 
 /* --- 2. LOGICA MAZZO E REGOLE --- */
 function createDeck() {
@@ -33,7 +34,7 @@ function isValidMove(card) {
     return card.color === currentColor || card.value === topCard.value || card.color.includes("wild");
 }
 
-/* --- 3. GESTIONE TURNI E AZIONI --- */
+/* --- 3. GESTIONE AZIONI E TURNI --- */
 function playCard(i) {
     if (!isMyTurn) return;
     const card = playerHand[i];
@@ -41,28 +42,43 @@ function playCard(i) {
         if(playerHand.length === 2 && !hasSaidUno) {
             showToast("NON HAI DETTO MASTERUNO! +2 🃏");
             playerHand.push(deck.pop(), deck.pop());
-            isMyTurn = false; renderGame(); setTimeout(botTurn, 1000); return;
+            isMyTurn = false; finishAction(); return;
         }
         playerHand.splice(i, 1);
         topCard = card;
         hasSaidUno = false;
         if (card.value === "draw2") drawStack += 2;
         if (card.value === "wild4") drawStack += 4;
-        if (card.color.includes("wild")) document.getElementById("colorPicker").classList.remove("hidden");
-        else { currentColor = card.color; endTurn(); }
+        
+        if (card.color.includes("wild")) {
+            document.getElementById("colorPicker").classList.remove("hidden");
+        } else {
+            currentColor = card.color;
+            finishAction();
+        }
         renderGame();
     }
 }
 
-function endTurn() {
+// Chiama questa funzione ogni volta che una mossa è completata
+function finishAction() {
     isMyTurn = !isMyTurn;
-    if ((topCard.value === "skip" || topCard.value === "reverse") && drawStack === 0) isMyTurn = !isMyTurn;
+    // Logica Salto (Skip/Reverse)
+    if ((topCard.value === "skip" || topCard.value === "reverse") && drawStack === 0) {
+        isMyTurn = !isMyTurn;
+    }
+    
     renderGame();
-    if (!isMyTurn) setTimeout(botTurn, 1200);
+    
+    if (isMultiplayer && conn) {
+        sendMove();
+    } else if (!isMyTurn) {
+        setTimeout(botTurn, 1200);
+    }
 }
 
 function botTurn() {
-    if (isMyTurn) return;
+    if (isMyTurn || isMultiplayer) return;
     let idx = opponentHand.findIndex(c => isValidMove(c));
     if (idx !== -1) {
         const card = opponentHand.splice(idx, 1)[0];
@@ -70,7 +86,7 @@ function botTurn() {
         if (card.value === "draw2") drawStack += 2;
         if (card.value === "wild4") drawStack += 4;
         currentColor = card.color.includes("wild") ? colors[Math.floor(Math.random()*4)] : card.color;
-        endTurn();
+        finishAction();
     } else {
         if (drawStack > 0) { 
             for(let i=0; i<drawStack; i++) opponentHand.push(deck.pop()); 
@@ -83,7 +99,7 @@ function botTurn() {
     }
 }
 
-/* --- 4. INTERFACCIA E RENDERING --- */
+/* --- 4. INTERFACCIA E SYNC MULTIPLAYER --- */
 function showToast(message) {
     let container = document.getElementById('toast-container');
     if (!container) {
@@ -103,7 +119,7 @@ function renderGame() {
     if (opponentHand.length === 0) { showEndScreen(false); return; }
 
     document.getElementById("playerBadge").innerText = `TU: ${playerHand.length}`;
-    document.getElementById("opponentBadge").innerText = `BOT: ${opponentHand.length}`;
+    document.getElementById("opponentBadge").innerText = `AVVERSARIO: ${opponentHand.length}`;
     document.getElementById("turnIndicator").innerText = isMyTurn ? "🟢 IL TUO TURNO" : "🔴 TURNO AVVERSARIO";
 
     const pHand = document.getElementById("playerHand"); pHand.innerHTML = "";
@@ -127,6 +143,18 @@ function renderGame() {
     else unoBtn.classList.add("hidden");
 }
 
+function sendMove() {
+    conn.send({
+        type: 'MOVE',
+        plHand: playerHand,
+        oppHand: opponentHand,
+        top: topCard,
+        color: currentColor,
+        stack: drawStack,
+        deck: deck
+    });
+}
+
 function showEndScreen(win) {
     const screen = document.createElement("div");
     screen.id = "endScreen";
@@ -136,13 +164,44 @@ function showEndScreen(win) {
     setTimeout(() => location.reload(), 4000);
 }
 
-/* --- 5. INIZIALIZZAZIONE ED EVENTI --- */
+/* --- 5. CONNESSIONE E AVVIO --- */
 const initPeer = () => {
     const id = Math.random().toString(36).substr(2, 5).toUpperCase();
     peer = new Peer(id);
     peer.on('open', res => document.getElementById("myPeerId").innerText = res);
+    peer.on('connection', c => {
+        conn = c;
+        isMultiplayer = true;
+        setupChat();
+        showToast("GIOCATORE CONNESSO!");
+    });
 };
 initPeer();
+
+function setupChat() {
+    conn.on('data', data => {
+        if (data.type === 'START') {
+            deck = data.deck;
+            playerHand = data.oppHand;
+            opponentHand = data.plHand;
+            topCard = data.top;
+            currentColor = data.top.color;
+            isMyTurn = data.turn;
+            document.getElementById("startScreen").classList.add("hidden");
+            document.getElementById("gameArea").classList.remove("hidden");
+            renderGame();
+        } else if (data.type === 'MOVE') {
+            playerHand = data.oppHand;
+            opponentHand = data.plHand;
+            topCard = data.top;
+            currentColor = data.color;
+            drawStack = data.stack;
+            deck = data.deck;
+            isMyTurn = true;
+            renderGame();
+        }
+    });
+}
 
 function startG(me) {
     document.getElementById("startScreen").classList.add("hidden");
@@ -151,35 +210,59 @@ function startG(me) {
     playerHand = []; opponentHand = [];
     for(let i=0; i<7; i++){ playerHand.push(deck.pop()); opponentHand.push(deck.pop()); }
     topCard = deck.pop(); while(topCard.color.includes("wild")) topCard = deck.pop();
-    currentColor = topCard.color; isMyTurn = me; renderGame();
+    currentColor = topCard.color;
+    isMyTurn = me;
+
+    if (isMultiplayer && conn) {
+        conn.send({
+            type: 'START',
+            deck: deck,
+            plHand: playerHand,
+            oppHand: opponentHand,
+            top: topCard,
+            turn: !me
+        });
+    }
+    renderGame();
 }
 
-document.getElementById("playBotBtn").onclick = () => startG(true);
+// EVENTI PULSANTI
+document.getElementById("playBotBtn").onclick = () => { isMultiplayer = false; startG(true); };
+
+document.getElementById("connectBtn").onclick = () => {
+    const friendId = document.getElementById("friendIdInput").value.trim().toUpperCase();
+    if (friendId) {
+        conn = peer.connect(friendId);
+        isMultiplayer = true;
+        setupChat();
+        conn.on('open', () => { showToast("CONNESSO!"); startG(true); });
+    }
+};
 
 document.getElementById("deck").onclick = () => {
     if (!isMyTurn) return;
     if (drawStack > 0) { 
         for(let i=0; i<drawStack; i++) playerHand.push(deck.pop()); 
         drawStack = 0; 
-        showToast("HAI PESCATO LE CARTE! 🃏");
+        showToast("HAI PESCATO LE CARTE!");
     } else {
         playerHand.push(deck.pop());
     }
-    isMyTurn = false; renderGame(); setTimeout(botTurn, 1000);
+    isMyTurn = false;
+    if (isMultiplayer) sendMove();
+    renderGame();
+    if (!isMultiplayer) setTimeout(botTurn, 1000);
 };
 
 window.setWildColor = (c) => { 
     currentColor = c; 
     document.getElementById("colorPicker").classList.add("hidden"); 
-    endTurn(); 
+    finishAction(); 
 };
 
-document.getElementById("copyBtn").onclick = () => { 
-    navigator.clipboard.writeText(document.getElementById("myPeerId").innerText); 
-    showToast("ID COPIATO! 📋"); 
+document.getElementById("copyBtn").onclick = () => {
+    navigator.clipboard.writeText(document.getElementById("myPeerId").innerText);
+    showToast("ID COPIATO!");
 };
 
-document.getElementById("masterUnoBtn").onclick = () => { 
-    hasSaidUno = true; 
-    showToast("MASTERUNO! 🔥"); 
-};
+document.getElementById("masterUnoBtn").onclick = () => { hasSaidUno = true; showToast("MASTERUNO! 🔥"); };
