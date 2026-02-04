@@ -3,7 +3,14 @@ const values = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "skip", "rever
 let deck = [], playerHand = [], opponentHand = [], topCard = null, currentColor = "";
 let isMyTurn = true, hasSaidUno = false, drawStack = 0;
 
-// Reindirizzamento e Coriandoli
+function getDisplayVal(v) {
+    if (v === "draw2") return "+2";
+    if (v === "wild4") return "+4";
+    if (v === "skip") return "Ø";
+    if (v === "reverse") return "⇄";
+    return v;
+}
+
 function showEndScreen(win) {
     const screen = document.createElement("div");
     screen.id = "endScreen";
@@ -11,44 +18,49 @@ function showEndScreen(win) {
     document.body.appendChild(screen);
 
     if (win) {
-        const duration = 3 * 1000;
-        const end = Date.now() + duration;
+        let end = Date.now() + 3000;
         (function frame() {
-            confetti({ particleCount: 7, angle: 60, spread: 55, origin: { x: 0 } });
-            confetti({ particleCount: 7, angle: 120, spread: 55, origin: { x: 1 } });
+            confetti({ particleCount: 10, spread: 100, origin: { y: 0.6 } });
             if (Date.now() < end) requestAnimationFrame(frame);
         }());
     }
     setTimeout(() => location.reload(), 4000);
 }
 
-function getDisplayVal(v) {
-    if (v === "draw2") return "+2";
-    if (v === "wild4" || v === "+4") return "+4";
-    if (v === "skip") return "Ø";
-    if (v === "reverse") return "⇄"; // Icona originale
-    return v;
+// FIX LOGICA +4 STACKING
+function isValidMove(card) {
+    if (drawStack > 0) {
+        return card.value === "draw2" || card.value === "wild4";
+    }
+    return card.color === currentColor || card.value === topCard.value || card.color.includes("wild");
 }
-
-// ... Resto della logica SYNC, Peer, CreateDeck (uguale a prima con fix +4) ...
 
 function playCard(i) {
     if (!isMyTurn) return;
     const card = playerHand[i];
-    
-    // Logica Stacking +4/+2
-    if (drawStack > 0 && card.value !== "draw2" && card.value !== "wild4") return;
 
-    if (card.color === currentColor || card.value === topCard.value || card.color.includes("wild")) {
+    if (isValidMove(card)) {
+        if(playerHand.length === 2 && !hasSaidUno) {
+            alert("NON HAI DETTO MASTERUNO! +2");
+            playerHand.push(deck.pop(), deck.pop());
+            isMyTurn = false; renderGame(); setTimeout(botTurn, 1000); return;
+        }
+
         playerHand.splice(i, 1);
         topCard = card;
+        hasSaidUno = false;
+
         if (card.value === "draw2") drawStack += 2;
         if (card.value === "wild4") drawStack += 4;
-        
-        if (card.color.includes("wild")) document.getElementById("colorPicker").classList.remove("hidden");
-        else { currentColor = card.color; endTurn(); }
+
+        if (card.color.includes("wild")) {
+            document.getElementById("colorPicker").classList.remove("hidden");
+        } else {
+            currentColor = card.color;
+            endTurn();
+        }
         renderGame();
     }
 }
 
-// Inserire qui le funzioni standard createDeck(), startG(), botTurn() inviate nei messaggi precedenti.
+// Inserire qui le restanti funzioni (createDeck, botTurn, initPeer) come prima.
