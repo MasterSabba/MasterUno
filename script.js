@@ -30,7 +30,19 @@ function getDisplayVal(v) {
 }
 
 function isValidMove(card) {
-    if (drawStack > 0) return card.value === "draw2" || card.value === "wild4";
+    // SE C'È UNA "BOMBA" IN CORSO (+2 o +4 accumulati)
+    if (drawStack > 0) {
+        // Se a terra c'è un +2: puoi rispondere con un altro +2 o un +4
+        if (topCard.value === "draw2") {
+            return card.value === "draw2" || card.value === "wild4";
+        }
+        // Se a terra c'è un +4: puoi rispondere SOLO con un altro +4
+        if (topCard.value === "wild4") {
+            return card.value === "wild4";
+        }
+    }
+    
+    // REGOLE STANDARD (Se non ci sono accumuli)
     return card.color === currentColor || card.value === topCard.value || card.color.includes("wild");
 }
 
