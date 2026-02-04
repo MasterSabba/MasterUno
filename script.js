@@ -33,7 +33,6 @@ function renderGame() {
     document.getElementById("opponentBadge").innerText = `AVVERSARIO: ${opponentHand.length}`;
     document.getElementById("turnIndicator").innerText = isMyTurn ? "🟢 IL TUO TURNO" : "🔴 TURNO AVVERSARIO";
 
-    // Mostra/Nascondi pulsante MasterUno
     const unoBtn = document.getElementById("masterUnoBtn");
     if(playerHand.length === 2 && isMyTurn) unoBtn.classList.remove("hidden");
     else unoBtn.classList.add("hidden");
@@ -60,14 +59,13 @@ function playCard(i) {
     if (!isMyTurn) return;
     const card = playerHand[i];
     if (card.color === currentColor || card.value === topCard.value || card.color.includes("wild")) {
-        // Controllo se ha dimenticato di dire MasterUno
         if(playerHand.length === 2 && !hasSaidUno) {
             alert("NON HAI DETTO MASTERUNO! Pesca 2 carte.");
             playerHand.push(deck.pop()); playerHand.push(deck.pop());
             isMyTurn = false; finishTurn(); return;
         }
         playerHand.splice(i, 1); topCard = card;
-        hasSaidUno = false; // Reset per la prossima volta
+        hasSaidUno = false;
         if (card.color.includes("wild")) document.getElementById("colorPicker").classList.remove("hidden");
         else { currentColor = card.color; finishTurn(); }
         renderGame();
@@ -79,9 +77,6 @@ document.getElementById("masterUnoBtn").onclick = () => {
     alert("HAI DETTO MASTERUNO!");
     document.getElementById("masterUnoBtn").classList.add("hidden");
 };
-
-// ... Resto delle funzioni (startG, botTurn, setWildColor, finishTurn) ...
-// (Per brevità non riscrivo startG e botTurn che sono identiche a prima, ma vanno incluse nel file completo)
 
 function startG(me) {
     document.getElementById("startScreen").classList.add("hidden");
