@@ -1,80 +1,88 @@
-/* RESET E BASE */
+/* --- 1. BASE E INTERFACCIA (MENU INIZIALE) --- */
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; border: none; }
 body { margin: 0; background: #1a472a; color: white; font-family: 'Arial Black', sans-serif; overflow: hidden; width: 100vw; height: 100vh; }
 .hidden { display: none !important; }
 
-/* SCHERMATA INIZIALE BOMBA */
 #startScreen { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle, #2d5a3f 0%, #1a472a 100%); z-index: 2000; }
 
 .main-box { 
-    background: rgba(0,0,0,0.9); 
-    padding: 60px 40px; 
-    border-radius: 40px; 
-    text-align: center; 
-    width: 92%; 
-    max-width: 440px; 
-    display: flex; 
-    flex-direction: column; 
-    gap: 50px; 
-    border: 4px solid #f1c40f; 
+    background: rgba(0,0,0,0.9); padding: 60px 40px; border-radius: 40px; 
+    text-align: center; width: 92%; max-width: 440px; display: flex; 
+    flex-direction: column; gap: 50px; border: 4px solid #f1c40f; 
     box-shadow: 0 20px 60px rgba(0,0,0,0.6);
 }
-
 .main-box > div, .main-box > h1 { margin: 0; display: flex; flex-direction: column; gap: 15px; }
 
-/* BOTTONI E INPUT */
+.logo-title { color: #f1c40f; font-size: 40px; }
+.peer-display { font-size: 24px; color: #f1c40f; margin-bottom: 5px; }
 .btn-yellow { background: #f1c40f; color: #000; padding: 22px; border-radius: 18px; font-weight: 900; cursor: pointer; box-shadow: 0 8px 0 #b7950b; width: 100%; text-transform: uppercase; font-size: 18px; }
 .btn-white { background: #fff; color: #1a472a; padding: 22px; border-radius: 18px; font-weight: 900; width: 100%; box-shadow: 0 8px 0 #ccc; text-transform: uppercase; cursor: pointer; font-size: 16px; }
 input { background: rgba(255,255,255,0.1); border: 2px solid #f1c40f; padding: 18px; border-radius: 15px; color: white; text-align: center; font-size: 18px; width: 100%; }
 
-/* LAYOUT GIOCO */
+/* --- 2. TAVOLO DA GIOCO E CARTE --- */
 #gameArea { height: 100vh; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 20px 0; }
-#turnIndicator { margin-top: 5px; font-size: 18px; font-weight: 900; letter-spacing: 1px; }
+#turnIndicator { font-size: 18px; font-weight: 900; letter-spacing: 1px; }
 .game-row { width: 100%; display: flex; flex-direction: column; align-items: center; position: relative; }
 .gold-badge { background: #f1c40f; color: #000; padding: 6px 12px; border-radius: 8px; border: 2px solid #fff; font-weight: 900; font-size: 11px; position: absolute; left: 15px; top: 50%; transform: translateY(-50%); z-index: 50; }
 
-/* DESIGN CARTE */
 .hand { display: flex; justify-content: center; width: 100%; min-height: 120px; }
 .card { 
     width: 80px; height: 115px; border-radius: 12px; border: 3px solid #fff; 
-    margin: 0 -22px; box-shadow: 0 6px 12px rgba(0,0,0,0.4); 
+    margin: 0 -22px; box-shadow: 0 8px 15px rgba(0,0,0,0.4); 
     display: flex; align-items: center; justify-content: center;
     font-size: 34px; font-weight: 900; color: white; position: relative;
 }
-
-/* NUMERI E ICONE ANGOLI */
 .card::before { content: attr(data-val); position: absolute; top: 4px; left: 6px; font-size: 13px; }
 .card::after { content: attr(data-val); position: absolute; bottom: 4px; right: 6px; font-size: 13px; transform: rotate(180deg); }
 
-/* COLORI CARTE */
 .red { background-color: #d63031; } .blue { background-color: #0984e3; } 
 .green { background-color: #27ae60; } .yellow { background-color: #f1c40f; color: #000 !important; }
 .wild, .wild4 { background-color: #2d3436; }
 
-/* AREA CENTRALE */
 #centerArea { display: flex; gap: 40px; align-items: center; justify-content: center; margin: 15px 0; }
 .card-back-classic { width: 85px; height: 120px; background: #000; border: 4px solid #fff; border-radius: 15px; color: #f1c40f; display: flex; align-items: center; justify-content: center; font-weight: 900; text-align: center; font-size: 11px; }
 
-/* CAMBIO COLORE */
-#colorPicker { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(2px); }
+/* --- 3. EFFETTI E POST-GIOCO --- */
+#colorPicker { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(4px); }
 .picker-box { background: rgba(34,34,34,0.95); padding: 30px; border-radius: 25px; border: 4px solid #f1c40f; text-align: center; }
 .pick-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 15px; }
 .pick { width: 85px; height: 85px; border-radius: 50%; border: 4px solid #fff; cursor: pointer; }
 
-/* SCHERMATA FINALE VITTORIA/SCONFITTA */
-#endScreen { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 5000; text-align: center; }
-.end-title { font-size: 50px; font-weight: 900; text-transform: uppercase; }
-.win-text { color: #f1c40f; text-shadow: 0 0 20px #f1c40f; }
-.lose-text { color: #e74c3c; text-shadow: 0 0 20px #e74c3c; }
+#endScreen { position: fixed; inset: 0; background: black; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10000; }
+.end-title { font-size: 60px; font-weight: 900; text-transform: uppercase; text-shadow: 0 0 20px #f1c40f; color: #f1c40f; }
 
-/* ALERT E TASTO MASTERUNO */
 #masterUnoBtn { background: #e74c3c; color: white; padding: 14px 28px; border-radius: 50px; font-weight: 900; border: 3px solid white; position: fixed; bottom: 160px; right: 20px; animation: pulse 1s infinite; z-index: 200; }
-#autoAlert { position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%); background: #f1c40f; color: #000; padding: 15px 35px; border-radius: 50px; font-weight: 900; z-index: 10000; border: 3px solid #fff; }
 
-/* ANIMAZIONI E RESPONSIVE */
-@keyframes pulse { 0% {transform: scale(1);} 50% {transform: scale(1.08);} 100% {transform: scale(1);} }
+@keyframes pulse { 0% {transform: scale(1);} 50% {transform: scale(1.1);} 100% {transform: scale(1);} }
+@media (min-width: 768px) { #gameArea { zoom: 1.15; } .main-box { max-width: 550px; gap: 60px; } }
+/* MESSAGGI AUTOMATICI (TOAST) */
+#toast-container {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 11000;
+    pointer-events: none;
+}
 
-@media (min-width: 768px) {
-    #gameArea { zoom: 1.15; }
-    .main-box { max-width: 550px; gap: 60px; }
+.toast {
+    background: #f1c40f;
+    color: #000;
+    padding: 15px 30px;
+    border-radius: 50px;
+    font-weight: 900;
+    border: 3px solid #fff;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    animation: slideIn 0.3s ease-out, fadeOut 0.5s ease-in 1.5s forwards;
+}
+
+@keyframes slideIn {
+    from { transform: translateY(-100px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes fadeOut {
+    to { opacity: 0; transform: translateY(-20px); }
 }
