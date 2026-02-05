@@ -30,19 +30,10 @@ function getDisplayVal(v) {
 }
 
 function isValidMove(card) {
-    // SE C'È UNA "BOMBA" IN CORSO (+2 o +4 accumulati)
     if (drawStack > 0) {
-        // Se a terra c'è un +2: puoi rispondere con un altro +2 o un +4
-        if (topCard.value === "draw2") {
-            return card.value === "draw2" || card.value === "wild4";
-        }
-        // Se a terra c'è un +4: puoi rispondere SOLO con un altro +4
-        if (topCard.value === "wild4") {
-            return card.value === "wild4";
-        }
+        if (topCard.value === "draw2") return card.value === "draw2" || card.value === "wild4";
+        if (topCard.value === "wild4") return card.value === "wild4";
     }
-    
-    // REGOLE STANDARD (Se non ci sono accumuli)
     return card.color === currentColor || card.value === topCard.value || card.color.includes("wild");
 }
 
@@ -50,15 +41,18 @@ function isValidMove(card) {
 function playCard(i) {
     if (!isMyTurn) return;
     const card = playerHand[i];
+
     if (isValidMove(card)) {
         if(playerHand.length === 2 && !hasSaidUno) {
             showToast("NON HAI DETTO MASTERUNO! +2 🃏");
             playerHand.push(deck.pop(), deck.pop());
-            isMyTurn = false; finishAction(); return;
+            finishAction(); return;
         }
+
         playerHand.splice(i, 1);
         topCard = card;
         hasSaidUno = false;
+
         if (card.value === "draw2") drawStack += 2;
         if (card.value === "wild4") drawStack += 4;
         
@@ -69,15 +63,25 @@ function playCard(i) {
             finishAction();
         }
         renderGame();
+    } else {
+        if (drawStack > 0) showToast("DEVI RISPONDERE AL +" + (topCard.value === "wild4" ? "4!" : "2!"));
     }
 }
 
-// Chiama questa funzione ogni volta che una mossa è completata
 function finishAction() {
+    // Controllo vittoria immediata prima di passare il turno
+    if (playerHand.length === 0) {
+        renderGame();
+        if (isMultiplayer) conn.send({ type: 'END' });
+        showEndScreen(true);
+        return;
+    }
+
     isMyTurn = !isMyTurn;
-    // Logica Salto (Skip/Reverse)
+    // Salto turno
     if ((topCard.value === "skip" || topCard.value === "reverse") && drawStack === 0) {
         isMyTurn = !isMyTurn;
+        showToast("TURNO SALTATO! 🚫");
     }
     
     renderGame();
@@ -111,7 +115,7 @@ function botTurn() {
     }
 }
 
-/* --- 4. INTERFACCIA E SYNC MULTIPLAYER --- */
+/* --- 4. INTERFACCIA E SYNC --- */
 function showToast(message) {
     let container = document.getElementById('toast-container');
     if (!container) {
@@ -127,9 +131,6 @@ function showToast(message) {
 }
 
 function renderGame() {
-    if (playerHand.length === 0) { showEndScreen(true); return; }
-    if (opponentHand.length === 0) { showEndScreen(false); return; }
-
     document.getElementById("playerBadge").innerText = `TU: ${playerHand.length}`;
     document.getElementById("opponentBadge").innerText = `AVVERSARIO: ${opponentHand.length}`;
     document.getElementById("turnIndicator").innerText = isMyTurn ? "🟢 IL TUO TURNO" : "🔴 TURNO AVVERSARIO";
@@ -138,8 +139,10 @@ function renderGame() {
     playerHand.forEach((card, i) => {
         const div = document.createElement("div");
         const v = getDisplayVal(card.value);
-        div.className = `card ${card.color}`; div.innerText = v;
-        div.setAttribute('data-val', v); div.onclick = () => playCard(i);
+        div.className = `card ${card.color}`;
+        div.innerText = v;
+        div.setAttribute('data-val', v);
+        div.onclick = () => playCard(i);
         pHand.appendChild(div);
     });
 
@@ -156,15 +159,18 @@ function renderGame() {
 }
 
 function sendMove() {
-    conn.send({
-        type: 'MOVE',
-        plHand: playerHand,
-        oppHand: opponentHand,
-        top: topCard,
-        color: currentColor,
-        stack: drawStack,
-        deck: deck
-    });
+    if (conn && conn.open) {
+        conn.send({
+            type: 'MOVE',
+            plHand: playerHand,
+            oppHand: opponentHand,
+            top: topCard,
+            color: currentColor,
+            stack: drawStack,
+            deck: deck,
+            turn: !isMyTurn // Sincronizza il turno dell'altro
+        });
+    }
 }
 
 function showEndScreen(win) {
@@ -173,18 +179,16 @@ function showEndScreen(win) {
     screen.innerHTML = `<h1 class="end-title">${win ? "HAI VINTO!" : "HAI PERSO!"}</h1>`;
     document.body.appendChild(screen);
     if (win) confetti({ particleCount: 200, spread: 70, origin: { y: 0.6 } });
-    setTimeout(() => location.reload(), 4000);
+    setTimeout(() => location.reload(), 5000);
 }
 
-/* --- 5. CONNESSIONE E AVVIO --- */
+/* --- 5. CONNESSIONE --- */
 const initPeer = () => {
     const id = Math.random().toString(36).substr(2, 5).toUpperCase();
     peer = new Peer(id);
     peer.on('open', res => document.getElementById("myPeerId").innerText = res);
     peer.on('connection', c => {
-        conn = c;
-        isMultiplayer = true;
-        setupChat();
+        conn = c; isMultiplayer = true; setupChat();
         showToast("GIOCATORE CONNESSO!");
     });
 };
@@ -209,15 +213,17 @@ function setupChat() {
             currentColor = data.color;
             drawStack = data.stack;
             deck = data.deck;
-            isMyTurn = true;
+            isMyTurn = data.turn;
             renderGame();
+        } else if (data.type === 'UNO') {
+            showToast("L'AVVERSARIO HA DETTO MASTERUNO! 🔥");
+        } else if (data.type === 'END') {
+            showEndScreen(false); // Se lui manda END, io ho perso
         }
     });
 }
 
 function startG(me) {
-    document.getElementById("startScreen").classList.add("hidden");
-    document.getElementById("gameArea").classList.remove("hidden");
     createDeck();
     playerHand = []; opponentHand = [];
     for(let i=0; i<7; i++){ playerHand.push(deck.pop()); opponentHand.push(deck.pop()); }
@@ -226,27 +232,20 @@ function startG(me) {
     isMyTurn = me;
 
     if (isMultiplayer && conn) {
-        conn.send({
-            type: 'START',
-            deck: deck,
-            plHand: playerHand,
-            oppHand: opponentHand,
-            top: topCard,
-            turn: !me
-        });
+        conn.send({ type: 'START', deck: deck, plHand: playerHand, oppHand: opponentHand, top: topCard, turn: !me });
     }
+    document.getElementById("startScreen").classList.add("hidden");
+    document.getElementById("gameArea").classList.remove("hidden");
     renderGame();
 }
 
-// EVENTI PULSANTI
+// PULSANTI
 document.getElementById("playBotBtn").onclick = () => { isMultiplayer = false; startG(true); };
-
 document.getElementById("connectBtn").onclick = () => {
     const friendId = document.getElementById("friendIdInput").value.trim().toUpperCase();
     if (friendId) {
         conn = peer.connect(friendId);
-        isMultiplayer = true;
-        setupChat();
+        isMultiplayer = true; setupChat();
         conn.on('open', () => { showToast("CONNESSO!"); startG(true); });
     }
 };
@@ -272,9 +271,13 @@ window.setWildColor = (c) => {
     finishAction(); 
 };
 
+document.getElementById("masterUnoBtn").onclick = () => { 
+    hasSaidUno = true; 
+    showToast("MASTERUNO! 🔥"); 
+    if (isMultiplayer) conn.send({ type: 'UNO' });
+};
+
 document.getElementById("copyBtn").onclick = () => {
     navigator.clipboard.writeText(document.getElementById("myPeerId").innerText);
     showToast("ID COPIATO!");
 };
-
-document.getElementById("masterUnoBtn").onclick = () => { hasSaidUno = true; showToast("MASTERUNO! 🔥"); };
