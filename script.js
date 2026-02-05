@@ -2,9 +2,9 @@ const colors = ["red", "blue", "green", "yellow"];
 const values = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "skip", "reverse", "draw2"];
 let deck = [], playerHand = [], opponentHand = [], topCard = null, currentColor = "";
 let isMyTurn = true, hasSaidUno = false, drawStack = 0, peer, conn, isMultiplayer = false;
-let gameActive = true; 
+let gameActive = true;
 
-// Creazione del mazzo con ricarica automatica
+// --- LOGICA MAZZO ---
 function createDeck() {
     deck = [];
     colors.forEach(c => { 
@@ -24,10 +24,12 @@ function isValidMove(card) {
     if (drawStack > 0) {
         if (topCard.value === "draw2") return card.value === "draw2";
         if (topCard.value === "wild4") return card.value === "wild4";
+        return false;
     }
     return card.color === currentColor || card.value === topCard.value || card.color.includes("wild");
 }
 
+// --- GESTIONE FINE PARTITA ---
 function checkVictory() {
     if (playerHand.length === 0) { gameActive = false; if(isMultiplayer) conn.send({type:'END'}); showEndScreen(true); return true; }
     if (opponentHand.length === 0) { gameActive = false; showEndScreen(false); return true; }
@@ -43,17 +45,11 @@ function showEndScreen(win) {
         t.className = "end-title " + (win ? "win-text" : "lose-text");
         if (win) {
             confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, zIndex: 6000 });
-            let end = Date.now() + 4000;
-            (function frame() {
-                if (gameActive) return;
-                confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, zIndex: 6000, colors:['#f1c40f','#ffffff'] });
-                confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, zIndex: 6000, colors:['#f1c40f','#ffffff'] });
-                if (Date.now() < end) requestAnimationFrame(frame);
-            }());
         }
-    }, 2000);
+    }, 1500);
 }
 
+// --- AZIONI DI GIOCO ---
 function playCard(i) {
     if (!isMyTurn || !gameActive) return;
     const card = playerHand[i];
@@ -62,7 +58,7 @@ function playCard(i) {
             showToast("NON HAI DETTO MASTERUNO! +2 🃏");
             if (deck.length < 2) createDeck();
             playerHand.push(deck.pop(), deck.pop());
-            finishAction(); return;
+            isMyTurn = false; finishAction(); return;
         }
         playerHand.splice(i, 1);
         topCard = card;
@@ -71,14 +67,22 @@ function playCard(i) {
         if (card.value === "wild4") drawStack += 4;
         
         if (card.color.includes("wild")) {
-            document.getElementById("colorPicker").classList.remove("hidden");
             renderGame();
+            document.getElementById("colorPicker").classList.remove("hidden");
+            // Il turno si ferma finché non viene chiamato setWildColor
         } else { 
             currentColor = card.color; 
             finishAction(); 
         }
     }
 }
+
+window.setWildColor = (c) => { 
+    currentColor = c; 
+    document.getElementById("colorPicker").classList.add("hidden"); 
+    renderGame();
+    finishAction(); 
+};
 
 function botTurn() {
     if (!gameActive) return;
@@ -100,18 +104,17 @@ function botTurn() {
 }
 
 function finishAction() {
-    renderGame();
     if (checkVictory()) return;
     
-    // Logica Salto Turno
     let skip = (topCard.value === "skip" || topCard.value === "reverse") && drawStack === 0;
     if (!skip) isMyTurn = !isMyTurn;
     
+    renderGame();
     if (isMultiplayer) sendMove();
     else if (!isMyTurn) setTimeout(botTurn, 1200);
-    renderGame();
 }
 
+// --- GRAFICA ---
 function renderGame() {
     document.getElementById("playerBadge").innerText = `TU: ${playerHand.length}`;
     document.getElementById("opponentBadge").innerText = `AVVERSARIO: ${opponentHand.length}`;
@@ -129,11 +132,12 @@ function renderGame() {
 
     const discard = document.getElementById("discardPile");
     const vTop = (topCard.value === "draw2" ? "+2" : topCard.value === "wild4" ? "+4" : topCard.value === "skip" ? "Ø" : topCard.value === "reverse" ? "⇄" : topCard.value);
-    discard.className = ""; discard.innerHTML = `<div class="card ${currentColor}" data-val="${vTop}">${vTop}</div>`;
+    discard.innerHTML = `<div class="card ${currentColor}" data-val="${vTop}">${vTop}</div>`;
     
     document.getElementById("masterUnoBtn").className = (playerHand.length === 2 && isMyTurn && gameActive) ? "" : "hidden";
 }
 
+// --- MULTIPLAYER (PEERJS) ---
 const initPeer = () => {
     peer = new Peer(Math.random().toString(36).substr(2, 5).toUpperCase());
     peer.on('open', id => document.getElementById("myPeerId").innerText = id);
@@ -145,11 +149,10 @@ function setupChat() {
     conn.on('data', d => {
         if (d.type === 'START') {
             gameActive = true; deck = d.deck; playerHand = d.oppHand; opponentHand = d.plHand;
-            topCard = d.top; currentColor = d.color; isMyTurn = d.turn;
+            topCard = d.top; currentColor = d.color; isMyTurn = d.turn; drawStack = 0;
             document.querySelectorAll("#startScreen, #endScreen").forEach(s => s.classList.add("hidden"));
             document.getElementById("gameArea").classList.remove("hidden"); renderGame();
         } else if (d.type === 'MOVE') {
-            // Se l'avversario rimane con 1 carta, mostra l'alert
             if (d.plHand.length === 1) showToast("L'AVVERSARIO DICE: MASTERUNO! 🔥");
             playerHand = d.oppHand; opponentHand = d.plHand; topCard = d.top;
             currentColor = d.color; drawStack = d.stack; deck = d.deck; isMyTurn = d.turn; renderGame();
@@ -170,12 +173,7 @@ function startG(me) {
 
 function sendMove() { if (conn && conn.open) conn.send({ type: 'MOVE', plHand: playerHand, oppHand: opponentHand, top: topCard, color: currentColor, stack: drawStack, deck: deck, turn: !isMyTurn }); }
 
-window.setWildColor = (c) => { 
-    currentColor = c; 
-    document.getElementById("colorPicker").classList.add("hidden"); 
-    finishAction(); 
-};
-
+// --- BOTTONI E UI ---
 document.getElementById("playBotBtn").onclick = () => { isMultiplayer = false; startG(true); };
 document.getElementById("connectBtn").onclick = () => {
     let id = document.getElementById("friendIdInput").value.trim().toUpperCase();
