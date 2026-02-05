@@ -26,14 +26,12 @@ input { background: rgba(255,255,255,0.1); border: 2px solid #f1c40f; padding: 1
 /* TAVOLO DA GIOCO */
 #gameArea { height: 100vh; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 20px 0; }
 
-/* FIX BADGE: Posizionati sopra le carte per non sovrapporsi */
+/* FIX BADGE: Sopra le carte */
 .gold-badge { 
     background: #f1c40f; color: #000; padding: 6px 12px; border-radius: 8px; 
     font-weight: 900; font-size: 11px; position: absolute; left: 15px; 
-    top: -25px; /* Spostato in alto rispetto alla mano */
-    z-index: 50; 
+    top: -20px; z-index: 50; 
 }
-
 .game-row { position: relative; width: 100%; display: flex; justify-content: center; }
 
 .hand { display: flex; justify-content: center; width: 100%; min-height: 120px; }
