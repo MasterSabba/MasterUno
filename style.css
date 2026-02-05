@@ -19,7 +19,7 @@ body { margin: 0; background: #1a472a; color: white; font-family: 'Arial Black',
 .win-text { color: #f1c40f; text-shadow: 0 0 20px #f1c40f; }
 .lose-text { color: #e74c3c; text-shadow: 0 0 20px #e74c3c; }
 .btn-yellow { background: #f1c40f; color: #000; padding: 20px; border-radius: 18px; font-weight: 900; cursor: pointer; box-shadow: 0 6px 0 #b7950b; text-transform: uppercase; }
-.btn-white { background: #fff; color: #1a472a; padding: 20px; border-radius: 18px; font-weight: 900; box-shadow: 0 6px 0 #ccc; text-transform: uppercase; cursor: pointer; }
+.btn-white { background: #fff; color: #1a472a; padding: 20px; border-radius: 18px; font-weight: 900; box-shadow: 0 6px 0 #ccc; text-transform: uppercase; cursor: pointer; margin-top: 20px; }
 input { background: rgba(255,255,255,0.1); border: 2px solid #f1c40f; padding: 18px; border-radius: 15px; color: white; text-align: center; font-size: 18px; }
 
 /* TAVOLO DA GIOCO CON ZOOM */
