@@ -41,7 +41,7 @@ function playCard(i) {
 
 function finishAction() {
     if (playerHand.length === 0) { 
-        gameActive = false; 
+        gameActive = false; // IL GIOCO SI FERMA ALL'ISTANTE
         renderGame(); 
         if(isMultiplayer) conn.send({type:'END'});
         showEndScreen(true); return; 
@@ -70,10 +70,33 @@ function botTurn() {
     }
 }
 
+function showEndScreen(win) {
+    // 1. Aspetta 2 secondi (mentre il gioco è già bloccato)
+    setTimeout(() => {
+        const s = document.getElementById("endScreen");
+        const t = document.getElementById("endTitle");
+        
+        // 2. Escono scritta e menu
+        s.classList.remove("hidden");
+        t.innerText = win ? "HAI VINTO!" : "HAI PERSO!";
+        t.className = "end-title " + (win ? "win-text" : "lose-text");
+
+        // 3. Esplodono i coriandoli insieme alla scritta
+        if (win) {
+            let end = Date.now() + 5000;
+            (function frame() {
+                confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#f1c40f', '#ffffff'] });
+                confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#f1c40f', '#ffffff'] });
+                if (Date.now() < end) requestAnimationFrame(frame);
+            }());
+        }
+    }, 2000); 
+}
+
 function renderGame() {
     document.getElementById("playerBadge").innerText = `TU: ${playerHand.length}`;
     document.getElementById("opponentBadge").innerText = `AVVERSARIO: ${opponentHand.length}`;
-    document.getElementById("turnIndicator").innerText = isMyTurn ? "🟢 TURNO TUO" : "🔴 TURNO AVVERSARIO";
+    document.getElementById("turnIndicator").innerText = isMyTurn ? "🟢 TURNO TUO" : "🔴 TURNO LORO";
     const pHand = document.getElementById("playerHand"); pHand.innerHTML = "";
     playerHand.forEach((c, i) => {
         const d = document.createElement("div"); const v = (c.value === "draw2" ? "+2" : c.value === "wild4" ? "+4" : c.value === "skip" ? "Ø" : c.value === "reverse" ? "⇄" : c.value);
@@ -85,25 +108,6 @@ function renderGame() {
     const vTop = (topCard.value === "draw2" ? "+2" : topCard.value === "wild4" ? "+4" : topCard.value === "skip" ? "Ø" : topCard.value === "reverse" ? "⇄" : topCard.value);
     discard.innerHTML = `<div class="card ${currentColor}" data-val="${vTop}">${vTop}</div>`;
     document.getElementById("masterUnoBtn").className = (playerHand.length === 2 && isMyTurn && gameActive) ? "" : "hidden";
-}
-
-function showEndScreen(win) {
-    // RITARDATO DI 2 SECONDI
-    setTimeout(() => {
-        const s = document.getElementById("endScreen");
-        const t = document.getElementById("endTitle");
-        s.classList.remove("hidden");
-        t.innerText = win ? "HAI VINTO!" : "HAI PERSO!";
-        t.className = "end-title " + (win ? "win-text" : "lose-text");
-        if (win) {
-            let end = Date.now() + 5000;
-            (function frame() {
-                confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#f1c40f', '#ffffff'] });
-                confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#f1c40f', '#ffffff'] });
-                if (Date.now() < end) requestAnimationFrame(frame);
-            }());
-        }
-    }, 2000);
 }
 
 const initPeer = () => {
