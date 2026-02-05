@@ -3,6 +3,7 @@ const values = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "skip", "rever
 let deck = [], playerHand = [], opponentHand = [], topCard = null, currentColor = "";
 let isMyTurn = true, hasSaidUno = false, drawStack = 0, peer, conn, isMultiplayer = false, gameActive = true;
 
+// --- INIZIALIZZAZIONE MAZZO ---
 function createDeck() {
     deck = [];
     colors.forEach(c => { values.forEach(v => { deck.push({color: c, value: v}); if(v !== "0") deck.push({color: c, value: v}); }); });
@@ -10,16 +11,7 @@ function createDeck() {
     deck.sort(() => Math.random() - 0.5);
 }
 
-function isValidMove(card) {
-    if (drawStack > 0) {
-        if (topCard.value === "draw2") return card.value === "draw2";
-        if (topCard.value === "wild4") return card.value === "wild4";
-        return false;
-    }
-    return card.color === currentColor || card.value === topCard.value || card.color.includes("wild");
-}
-
-// --- FUNZIONE ALERT (TOAST) ---
+// --- SISTEMA ALERT (TOAST) ---
 function showToast(m) {
     let container = document.getElementById('toast-container');
     if (!container) {
@@ -31,16 +23,27 @@ function showToast(m) {
     t.className = 'toast';
     t.innerText = m;
     container.appendChild(t);
-    setTimeout(() => t.remove(), 2500);
+    setTimeout(() => {
+        t.style.opacity = '0';
+        setTimeout(() => t.remove(), 500);
+    }, 2500);
 }
 
-// --- GIOCATA ---
+// --- LOGICA DI GIOCO ---
+function isValidMove(card) {
+    if (drawStack > 0) {
+        if (topCard.value === "draw2") return card.value === "draw2";
+        if (topCard.value === "wild4") return card.value === "wild4";
+        return false;
+    }
+    return card.color === currentColor || card.value === topCard.value || card.color.includes("wild");
+}
+
 function playCard(i) {
     if (!isMyTurn || !gameActive) return;
     const card = playerHand[i];
     
     if (isValidMove(card)) {
-        // Controllo MasterUno
         if(playerHand.length === 2 && !hasSaidUno) {
             showToast("NON HAI DETTO MASTERUNO! +2 🃏");
             for(let j=0; j<2; j++) if(deck.length > 0) playerHand.push(deck.pop());
@@ -59,7 +62,6 @@ function playCard(i) {
         if (card.color.includes("wild")) {
             renderGame();
             document.getElementById("colorPicker").classList.remove("hidden");
-            // IL GIOCO SI FERMA QUI: aspetta setWildColor
         } else { 
             currentColor = card.color; 
             finishAction(); 
@@ -67,11 +69,10 @@ function playCard(i) {
     }
 }
 
-// --- SELEZIONE COLORE ---
 window.setWildColor = (c) => { 
     currentColor = c; 
     document.getElementById("colorPicker").classList.add("hidden"); 
-    showToast("COLORE SCELTO: " + c.toUpperCase());
+    showToast("COLORE SCELTO: " + c.toUpperCase() + " ✨");
     finishAction(); 
 };
 
@@ -80,7 +81,6 @@ function finishAction() {
     if (playerHand.length === 0) { showEndScreen(true); return; }
     if (opponentHand.length === 0) { showEndScreen(false); return; }
 
-    // Cambio Turno
     let skip = (topCard.value === "skip" || topCard.value === "reverse") && drawStack === 0;
     if (!skip) isMyTurn = !isMyTurn;
 
@@ -106,6 +106,7 @@ function botTurn() {
         if (drawStack > 0) { 
             for(let i=0; i<drawStack; i++) if(deck.length > 0) opponentHand.push(deck.pop()); 
             drawStack = 0; 
+            showToast("IL BOT PESCA E PASSA 🃏");
         } else {
             if(deck.length > 0) opponentHand.push(deck.pop());
         }
@@ -114,7 +115,7 @@ function botTurn() {
     }
 }
 
-// --- INTERFACCIA ---
+// --- RENDERING ---
 function renderGame() {
     document.getElementById("playerBadge").innerText = `TU: ${playerHand.length}`;
     document.getElementById("opponentBadge").innerText = `AVVERSARIO: ${opponentHand.length}`;
@@ -141,10 +142,11 @@ function renderGame() {
     if(btnUno) btnUno.className = (playerHand.length === 2 && isMyTurn && gameActive) ? "" : "hidden";
 }
 
-// --- PESCA ---
+// --- PESCA GIOCATORE ---
 document.getElementById("deck").onclick = () => {
     if (!isMyTurn || !gameActive) return;
     if (drawStack > 0) { 
+        showToast("PESCHI " + drawStack + " CARTE 🃏");
         for(let i=0; i<drawStack; i++) if(deck.length > 0) playerHand.push(deck.pop()); 
         drawStack = 0; 
     } else {
@@ -156,7 +158,7 @@ document.getElementById("deck").onclick = () => {
     renderGame();
 };
 
-// --- PEERJS ---
+// --- NETWORKING (PEERJS) ---
 const initPeer = () => {
     peer = new Peer(Math.random().toString(36).substr(2, 5).toUpperCase());
     peer.on('open', id => { if(document.getElementById("myPeerId")) document.getElementById("myPeerId").innerText = id; });
@@ -190,10 +192,19 @@ function startG(me) {
 }
 
 function sendMove() { if (conn && conn.open) conn.send({ type: 'MOVE', plHand: playerHand, oppHand: opponentHand, top: topCard, color: currentColor, stack: drawStack, deck: deck, turn: !isMyTurn }); }
-function showEndScreen(win) { gameActive = false; setTimeout(() => { const s = document.getElementById("endScreen"); const t = document.getElementById("endTitle"); s.classList.remove("hidden"); t.innerText = win ? "HAI VINTO!" : "HAI PERSO!"; t.className = "end-title " + (win ? "win-text" : "lose-text"); if (win) confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, zIndex: 6000 }); }, 1000); }
 
+// --- UI BUTTONS ---
+document.getElementById("copyBtn").onclick = () => { 
+    const idText = document.getElementById("myPeerId").innerText;
+    navigator.clipboard.writeText(idText).then(() => { showToast("ID COPIATO: " + idText + " 📋"); });
+};
 document.getElementById("playBotBtn").onclick = () => { isMultiplayer = false; startG(true); };
-document.getElementById("connectBtn").onclick = () => { let id = document.getElementById("friendIdInput").value.trim().toUpperCase(); if (id) { conn = peer.connect(id); isMultiplayer = true; setupChat(); conn.on('open', () => startG(true)); } };
-document.getElementById("masterUnoBtn").onclick = () => { hasSaidUno = true; showToast("MASTERUNO! 🔥"); };
+document.getElementById("connectBtn").onclick = () => { 
+    let id = document.getElementById("friendIdInput").value.trim().toUpperCase(); 
+    if (id) { conn = peer.connect(id); isMultiplayer = true; setupChat(); conn.on('open', () => startG(true)); } 
+};
+document.getElementById("masterUnoBtn").onclick = () => { hasSaidUno = true; showToast("HAI DETTO: MASTERUNO! 🔥"); };
 document.getElementById("playAgainBtn").onclick = () => startG(true);
 document.getElementById("exitBtn").onclick = () => location.reload();
+
+function showEndScreen(win) { gameActive = false; setTimeout(() => { const s = document.getElementById("endScreen"); const t = document.getElementById("endTitle"); s.classList.remove("hidden"); t.innerText = win ? "HAI VINTO!" : "HAI PERSO!"; t.className = "end-title " + (win ? "win-text" : "lose-text"); if (win) confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, zIndex: 6000 }); }, 1000); }
