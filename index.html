@@ -2,56 +2,71 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MasterUno Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>MasterUno - Bomba Edition</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
 <body>
+
     <div id="startScreen">
         <div class="main-box">
-            <h1>MasterUno 🃏</h1>
-            <div class="id-section">
-                <p>IL TUO CODICE INVITO</p>
-                <div id="myPeerId">GENERAZIONE...</div>
-                <button id="copyBtn" class="btn-yellow">COPIA CODICE</button>
+            <h1 class="logo-title">MASTER UNO</h1>
+            <div class="menu-section">
+                <div id="myPeerId" class="peer-display">----</div>
+                <div id="copyBtn" class="btn-yellow">Copia il tuo ID</div>
             </div>
-            <div class="input-section">
-                <button id="playBotBtn" class="btn-yellow">GIOCA CONTRO COMPUTER</button>
-                <div class="or-divider">SFIDA UN AMICO</div>
-                <input type="text" id="friendIdInput" placeholder="Inserisci codice amico">
-                <button id="connectBtn" class="btn-white">CONNETTI E GIOCA</button>
+            <div class="menu-section">
+                <input type="text" id="friendIdInput" placeholder="Inserisci ID Amico">
+                <div id="connectBtn" class="btn-white">Connettiti e Gioca</div>
+            </div>
+            <div class="menu-section">
+                <div id="playBotBtn" class="btn-yellow">Gioca contro Computer</div>
             </div>
         </div>
     </div>
+
     <div id="gameArea" class="hidden">
         <div id="turnIndicator">CARICAMENTO...</div>
-        <div id="opponentArea" class="game-row">
+        <div class="game-row">
             <div id="opponentBadge" class="gold-badge">AVVERSARIO: 7</div>
             <div id="opponentHand" class="hand"></div>
         </div>
         <div id="centerArea">
-            <div id="deck" class="card-slot clickable"><div class="card-back-classic">MASTER<br>UNO</div></div>
-            <div id="discardPile" class="card-slot"></div>
+            <div id="deck" class="card-back-classic">MAZZO</div>
+            <div id="discardPile"></div>
         </div>
-        <div id="playerArea" class="game-row">
+        <div class="game-row">
+            <div id="playerBadge" class="gold-badge">TU: 7</div>
             <div id="playerHand" class="hand"></div>
-            <div id="playerBadge" class="gold-badge">LE TUE CARTE: 7</div>
-            <button id="masterUnoBtn" class="hidden">MASTERUNO!</button>
         </div>
-        <div id="colorPicker" class="hidden">
-            <div class="picker-box">
-                <h3>SCEGLI IL COLORE</h3>
-                <div class="pick-grid">
-                    <div class="pick red" onclick="setWildColor('red')"></div>
-                    <div class="pick blue" onclick="setWildColor('blue')"></div>
-                    <div class="pick green" onclick="setWildColor('green')"></div>
-                    <div class="pick yellow" onclick="setWildColor('yellow')"></div>
-                </div>
+        <button id="masterUnoBtn" class="hidden">MASTER UNO!</button>
+    </div>
+
+    <div id="colorPicker" class="hidden">
+        <div class="picker-box">
+            <h3>Scegli Colore</h3>
+            <div class="pick-grid">
+                <div class="pick red" onclick="setWildColor('red')"></div>
+                <div class="pick blue" onclick="setWildColor('blue')"></div>
+                <div class="pick green" onclick="setWildColor('green')"></div>
+                <div class="pick yellow" onclick="setWildColor('yellow')"></div>
             </div>
         </div>
     </div>
+
+    <div id="endScreen" class="hidden">
+        <div class="main-box">
+            <h1 id="endTitle" class="end-title">VITTORIA!</h1>
+            <p id="endSubtitle">Ottima partita!</p>
+            <div class="menu-section">
+                <div id="playAgainBtn" class="btn-yellow">Gioca Ancora</div>
+                <div id="exitBtn" class="btn-white">Torna al Menu</div>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
