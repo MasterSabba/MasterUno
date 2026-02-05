@@ -1,11 +1,9 @@
-/* --- 1. CONFIGURAZIONE E VARIABILI --- */
 const colors = ["red", "blue", "green", "yellow"];
 const values = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "skip", "reverse", "draw2"];
 let deck = [], playerHand = [], opponentHand = [], topCard = null, currentColor = "";
 let isMyTurn = true, hasSaidUno = false, drawStack = 0, peer, conn, isMultiplayer = false;
-let gameActive = true; // IL BLOCCO DI SICUREZZA
+let gameActive = true; 
 
-/* --- 2. LOGICA DI GIOCO --- */
 function createDeck() {
     deck = [];
     colors.forEach(c => { values.forEach(v => { deck.push({color: c, value: v}); if(v !== "0") deck.push({color: c, value: v}); }); });
@@ -13,7 +11,6 @@ function createDeck() {
     deck.sort(() => Math.random() - 0.5);
 }
 
-// REGOLA: +2 risponde a +2, +4 risponde a +4
 function isValidMove(card) {
     if (drawStack > 0) {
         if (topCard.value === "draw2") return card.value === "draw2";
@@ -23,12 +20,11 @@ function isValidMove(card) {
 }
 
 function playCard(i) {
-    if (!isMyTurn || !gameActive) return; // CONTROLLO BLOCCO
+    if (!isMyTurn || !gameActive) return;
     const card = playerHand[i];
-
     if (isValidMove(card)) {
         if(playerHand.length === 2 && !hasSaidUno) {
-            showToast("NON HAI DETTO MASTERUNO! +2 🃏");
+            showToast("NON HAI DETTO MASTERUNO! +2");
             playerHand.push(deck.pop(), deck.pop());
             finishAction(); return;
         }
@@ -37,31 +33,21 @@ function playCard(i) {
         hasSaidUno = false;
         if (card.value === "draw2") drawStack += 2;
         if (card.value === "wild4") drawStack += 4;
-        
-        if (card.color.includes("wild")) {
-            document.getElementById("colorPicker").classList.remove("hidden");
-        } else {
-            currentColor = card.color;
-            finishAction();
-        }
+        if (card.color.includes("wild")) document.getElementById("colorPicker").classList.remove("hidden");
+        else { currentColor = card.color; finishAction(); }
         renderGame();
-    } else {
-        if (drawStack > 0) showToast("DEVI RISPONDERE CON UN " + (topCard.value === "wild4" ? "+4!" : "+2!"));
-    }
+    } else if (drawStack > 0) showToast("DEVI RISPONDERE CON UN " + (topCard.value === "wild4" ? "+4!" : "+2!"));
 }
 
 function finishAction() {
     if (playerHand.length === 0) { 
-        gameActive = false; // BLOCCA TUTTO
+        gameActive = false; 
         renderGame(); 
         if(isMultiplayer) conn.send({type:'END'});
         showEndScreen(true); return; 
     }
     isMyTurn = !isMyTurn;
-    if ((topCard.value === "skip" || topCard.value === "reverse") && drawStack === 0) {
-        isMyTurn = !isMyTurn;
-        showToast("TURNO SALTATO! 🚫");
-    }
+    if ((topCard.value === "skip" || topCard.value === "reverse") && drawStack === 0) isMyTurn = !isMyTurn;
     renderGame();
     if (isMultiplayer) sendMove();
     else if (!isMyTurn) setTimeout(botTurn, 1200);
@@ -78,35 +64,23 @@ function botTurn() {
         currentColor = card.color.includes("wild") ? colors[Math.floor(Math.random()*4)] : card.color;
         finishAction();
     } else {
-        if (drawStack > 0) { for(let i=0; i<drawStack; i++) opponentHand.push(deck.pop()); drawStack = 0; showToast("IL BOT PESCA CARTE!"); }
+        if (drawStack > 0) { for(let i=0; i<drawStack; i++) opponentHand.push(deck.pop()); drawStack = 0; }
         else opponentHand.push(deck.pop());
         isMyTurn = true; renderGame();
     }
 }
 
-/* --- 3. UI E EFFETTI --- */
-function showToast(m) {
-    let c = document.getElementById('toast-container') || document.createElement('div');
-    c.id = 'toast-container'; document.body.appendChild(c);
-    const t = document.createElement('div'); t.className = 'toast'; t.innerText = m;
-    c.appendChild(t); setTimeout(() => t.remove(), 2000);
-}
-
 function renderGame() {
     document.getElementById("playerBadge").innerText = `TU: ${playerHand.length}`;
     document.getElementById("opponentBadge").innerText = `AVVERSARIO: ${opponentHand.length}`;
-    document.getElementById("turnIndicator").innerText = isMyTurn ? "🟢 IL TUO TURNO" : "🔴 TURNO AVVERSARIO";
-    
+    document.getElementById("turnIndicator").innerText = isMyTurn ? "🟢 TURNO TUO" : "🔴 TURNO AVVERSARIO";
     const pHand = document.getElementById("playerHand"); pHand.innerHTML = "";
     playerHand.forEach((c, i) => {
-        const d = document.createElement("div"); 
-        const v = (c.value === "draw2" ? "+2" : c.value === "wild4" ? "+4" : c.value === "skip" ? "Ø" : c.value === "reverse" ? "⇄" : c.value);
+        const d = document.createElement("div"); const v = (c.value === "draw2" ? "+2" : c.value === "wild4" ? "+4" : c.value === "skip" ? "Ø" : c.value === "reverse" ? "⇄" : c.value);
         d.className = `card ${c.color}`; d.innerText = v; d.setAttribute('data-val', v); d.onclick = () => playCard(i); pHand.appendChild(d);
     });
-
     const oHand = document.getElementById("opponentHand"); oHand.innerHTML = "";
-    opponentHand.forEach(() => { oHand.innerHTML += `<div class="card-back-classic" style="margin:0 -25px">MASTER<br>UNO</div>`; });
-
+    opponentHand.forEach(() => { oHand.innerHTML += `<div class="card-back-classic" style="margin:0 -22px">MASTER<br>UNO</div>`; });
     const discard = document.getElementById("discardPile");
     const vTop = (topCard.value === "draw2" ? "+2" : topCard.value === "wild4" ? "+4" : topCard.value === "skip" ? "Ø" : topCard.value === "reverse" ? "⇄" : topCard.value);
     discard.innerHTML = `<div class="card ${currentColor}" data-val="${vTop}">${vTop}</div>`;
@@ -114,6 +88,7 @@ function renderGame() {
 }
 
 function showEndScreen(win) {
+    // RITARDATO DI 2 SECONDI
     setTimeout(() => {
         const s = document.getElementById("endScreen");
         const t = document.getElementById("endTitle");
@@ -128,41 +103,35 @@ function showEndScreen(win) {
                 if (Date.now() < end) requestAnimationFrame(frame);
             }());
         }
-    }, 3000);
+    }, 2000);
 }
 
-/* --- 4. MULTIPLAYER --- */
 const initPeer = () => {
     peer = new Peer(Math.random().toString(36).substr(2, 5).toUpperCase());
     peer.on('open', id => document.getElementById("myPeerId").innerText = id);
-    peer.on('connection', c => { conn = c; isMultiplayer = true; setupChat(); showToast("GIOCATORE CONNESSO!"); });
+    peer.on('connection', c => { conn = c; isMultiplayer = true; setupChat(); });
 };
 initPeer();
 
 function setupChat() {
     conn.on('data', d => {
         if (d.type === 'START' || d.type === 'RESTART') {
-            gameActive = true; // RE-SETTA IL BLOCCO
-            deck = d.deck; playerHand = d.oppHand; opponentHand = d.plHand;
+            gameActive = true; deck = d.deck; playerHand = d.oppHand; opponentHand = d.plHand;
             topCard = d.top; currentColor = d.top.color; isMyTurn = d.turn;
             document.querySelectorAll("#startScreen, #endScreen").forEach(s => s.classList.add("hidden"));
             document.getElementById("gameArea").classList.remove("hidden"); renderGame();
         } else if (d.type === 'MOVE') {
             playerHand = d.oppHand; opponentHand = d.plHand; topCard = d.top;
             currentColor = d.color; drawStack = d.stack; deck = d.deck; isMyTurn = d.turn; renderGame();
-        } else if (d.type === 'UNO') showToast("L'AVVERSARIO HA DETTO MASTERUNO! 🔥");
-        else if (d.type === 'END') { 
-            gameActive = false; // BLOCCA ANCHE PER L'AVVERSARIO
-            showEndScreen(false); 
-        }
+        } else if (d.type === 'UNO') showToast("L'AVVERSARIO HA DETTO MASTERUNO!");
+        else if (d.type === 'END') { gameActive = false; showEndScreen(false); }
     });
 }
 
 function sendMove() { if (conn && conn.open) conn.send({ type: 'MOVE', plHand: playerHand, oppHand: opponentHand, top: topCard, color: currentColor, stack: drawStack, deck: deck, turn: !isMyTurn }); }
 
 function startG(me) {
-    gameActive = true; // ATTIVA GIOCO
-    createDeck(); playerHand = []; opponentHand = [];
+    gameActive = true; createDeck(); playerHand = []; opponentHand = [];
     for(let i=0; i<7; i++){ playerHand.push(deck.pop()); opponentHand.push(deck.pop()); }
     topCard = deck.pop(); while(topCard.color.includes("wild")) topCard = deck.pop();
     currentColor = topCard.color; isMyTurn = me; drawStack = 0;
@@ -171,20 +140,25 @@ function startG(me) {
     document.getElementById("gameArea").classList.remove("hidden"); renderGame();
 }
 
-/* --- 5. EVENTI --- */
 document.getElementById("playBotBtn").onclick = () => { isMultiplayer = false; startG(true); };
 document.getElementById("connectBtn").onclick = () => {
     let id = document.getElementById("friendIdInput").value.trim().toUpperCase();
     if (id) { conn = peer.connect(id); isMultiplayer = true; setupChat(); conn.on('open', () => startG(true)); }
 };
 document.getElementById("deck").onclick = () => {
-    if (!isMyTurn || !gameActive) return; // CONTROLLO BLOCCO
+    if (!isMyTurn || !gameActive) return;
     if (drawStack > 0) { for(let i=0; i<drawStack; i++) playerHand.push(deck.pop()); drawStack = 0; }
     else playerHand.push(deck.pop());
     isMyTurn = false; if (isMultiplayer) sendMove(); renderGame(); if (!isMultiplayer) setTimeout(botTurn, 1000);
 };
 window.setWildColor = (c) => { currentColor = c; document.getElementById("colorPicker").classList.add("hidden"); finishAction(); };
-document.getElementById("copyBtn").onclick = () => { navigator.clipboard.writeText(document.getElementById("myPeerId").innerText); showToast("ID COPIATO! 📋"); };
+document.getElementById("copyBtn").onclick = () => { navigator.clipboard.writeText(document.getElementById("myPeerId").innerText); showToast("ID COPIATO!"); };
 document.getElementById("masterUnoBtn").onclick = () => { hasSaidUno = true; showToast("MASTERUNO! 🔥"); if (isMultiplayer) conn.send({ type: 'UNO' }); };
 document.getElementById("playAgainBtn").onclick = () => startG(true);
 document.getElementById("exitBtn").onclick = () => location.reload();
+function showToast(m) {
+    let c = document.getElementById('toast-container') || document.createElement('div');
+    c.id = 'toast-container'; document.body.appendChild(c);
+    const t = document.createElement('div'); t.className = 'toast'; t.innerText = m;
+    c.appendChild(t); setTimeout(() => t.remove(), 2000);
+}
