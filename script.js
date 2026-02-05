@@ -3,24 +3,17 @@ const colors = ["red", "blue", "green", "yellow"];
 const values = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "skip", "reverse", "draw2"];
 let deck = [], playerHand = [], opponentHand = [], topCard = null, currentColor = "";
 let isMyTurn = true, hasSaidUno = false, drawStack = 0, peer, conn, isMultiplayer = false;
+let gameActive = true; // IL BLOCCO DI SICUREZZA
 
-/* --- 2. LOGICA MAZZO E REGOLE --- */
+/* --- 2. LOGICA DI GIOCO --- */
 function createDeck() {
     deck = [];
-    colors.forEach(c => { 
-        values.forEach(v => { 
-            deck.push({color: c, value: v}); 
-            if(v !== "0") deck.push({color: c, value: v}); 
-        }); 
-    });
-    for(let i=0; i<4; i++){ 
-        deck.push({color: "wild", value: "W"}); 
-        deck.push({color: "wild4", value: "wild4"}); 
-    }
+    colors.forEach(c => { values.forEach(v => { deck.push({color: c, value: v}); if(v !== "0") deck.push({color: c, value: v}); }); });
+    for(let i=0; i<4; i++){ deck.push({color: "wild", value: "W"}); deck.push({color: "wild4", value: "wild4"}); }
     deck.sort(() => Math.random() - 0.5);
 }
 
-// REGOLA FERREA: +2 su +2, +4 su +4
+// REGOLA: +2 risponde a +2, +4 risponde a +4
 function isValidMove(card) {
     if (drawStack > 0) {
         if (topCard.value === "draw2") return card.value === "draw2";
@@ -29,9 +22,8 @@ function isValidMove(card) {
     return card.color === currentColor || card.value === topCard.value || card.color.includes("wild");
 }
 
-/* --- 3. GESTIONE AZIONI E TURNI --- */
 function playCard(i) {
-    if (!isMyTurn) return;
+    if (!isMyTurn || !gameActive) return; // CONTROLLO BLOCCO
     const card = playerHand[i];
 
     if (isValidMove(card)) {
@@ -54,14 +46,13 @@ function playCard(i) {
         }
         renderGame();
     } else {
-        if (drawStack > 0) {
-            showToast("DEVI RISPONDERE CON UN " + (topCard.value === "wild4" ? "+4!" : "+2!"));
-        }
+        if (drawStack > 0) showToast("DEVI RISPONDERE CON UN " + (topCard.value === "wild4" ? "+4!" : "+2!"));
     }
 }
 
 function finishAction() {
     if (playerHand.length === 0) { 
+        gameActive = false; // BLOCCA TUTTO
         renderGame(); 
         if(isMultiplayer) conn.send({type:'END'});
         showEndScreen(true); return; 
@@ -77,6 +68,7 @@ function finishAction() {
 }
 
 function botTurn() {
+    if (!gameActive) return;
     let idx = opponentHand.findIndex(c => isValidMove(c));
     if (idx !== -1) {
         const card = opponentHand.splice(idx, 1)[0];
@@ -86,18 +78,13 @@ function botTurn() {
         currentColor = card.color.includes("wild") ? colors[Math.floor(Math.random()*4)] : card.color;
         finishAction();
     } else {
-        if (drawStack > 0) { 
-            for(let i=0; i<drawStack; i++) opponentHand.push(deck.pop()); 
-            drawStack = 0; 
-            showToast("IL BOT PESCA LE CARTE! 🃏");
-        } else {
-            opponentHand.push(deck.pop());
-        }
+        if (drawStack > 0) { for(let i=0; i<drawStack; i++) opponentHand.push(deck.pop()); drawStack = 0; showToast("IL BOT PESCA CARTE!"); }
+        else opponentHand.push(deck.pop());
         isMyTurn = true; renderGame();
     }
 }
 
-/* --- 4. UI & EFFETTI --- */
+/* --- 3. UI E EFFETTI --- */
 function showToast(m) {
     let c = document.getElementById('toast-container') || document.createElement('div');
     c.id = 'toast-container'; document.body.appendChild(c);
@@ -114,18 +101,16 @@ function renderGame() {
     playerHand.forEach((c, i) => {
         const d = document.createElement("div"); 
         const v = (c.value === "draw2" ? "+2" : c.value === "wild4" ? "+4" : c.value === "skip" ? "Ø" : c.value === "reverse" ? "⇄" : c.value);
-        d.className = `card ${c.color}`; d.innerText = v; d.setAttribute('data-val', v); d.onclick = () => playCard(i); 
-        pHand.appendChild(d);
+        d.className = `card ${c.color}`; d.innerText = v; d.setAttribute('data-val', v); d.onclick = () => playCard(i); pHand.appendChild(d);
     });
 
     const oHand = document.getElementById("opponentHand"); oHand.innerHTML = "";
-    opponentHand.forEach(() => { oHand.innerHTML += `<div class="card-back-classic" style="margin:0 -22px">MASTER<br>UNO</div>`; });
+    opponentHand.forEach(() => { oHand.innerHTML += `<div class="card-back-classic" style="margin:0 -25px">MASTER<br>UNO</div>`; });
 
     const discard = document.getElementById("discardPile");
     const vTop = (topCard.value === "draw2" ? "+2" : topCard.value === "wild4" ? "+4" : topCard.value === "skip" ? "Ø" : topCard.value === "reverse" ? "⇄" : topCard.value);
     discard.innerHTML = `<div class="card ${currentColor}" data-val="${vTop}">${vTop}</div>`;
-
-    document.getElementById("masterUnoBtn").className = (playerHand.length === 2 && isMyTurn) ? "" : "hidden";
+    document.getElementById("masterUnoBtn").className = (playerHand.length === 2 && isMyTurn && gameActive) ? "" : "hidden";
 }
 
 function showEndScreen(win) {
@@ -146,7 +131,7 @@ function showEndScreen(win) {
     }, 3000);
 }
 
-/* --- 5. MULTIPLAYER --- */
+/* --- 4. MULTIPLAYER --- */
 const initPeer = () => {
     peer = new Peer(Math.random().toString(36).substr(2, 5).toUpperCase());
     peer.on('open', id => document.getElementById("myPeerId").innerText = id);
@@ -157,6 +142,7 @@ initPeer();
 function setupChat() {
     conn.on('data', d => {
         if (d.type === 'START' || d.type === 'RESTART') {
+            gameActive = true; // RE-SETTA IL BLOCCO
             deck = d.deck; playerHand = d.oppHand; opponentHand = d.plHand;
             topCard = d.top; currentColor = d.top.color; isMyTurn = d.turn;
             document.querySelectorAll("#startScreen, #endScreen").forEach(s => s.classList.add("hidden"));
@@ -165,46 +151,40 @@ function setupChat() {
             playerHand = d.oppHand; opponentHand = d.plHand; topCard = d.top;
             currentColor = d.color; drawStack = d.stack; deck = d.deck; isMyTurn = d.turn; renderGame();
         } else if (d.type === 'UNO') showToast("L'AVVERSARIO HA DETTO MASTERUNO! 🔥");
-        else if (d.type === 'END') showEndScreen(false);
+        else if (d.type === 'END') { 
+            gameActive = false; // BLOCCA ANCHE PER L'AVVERSARIO
+            showEndScreen(false); 
+        }
     });
 }
 
-function sendMove() { 
-    if (conn && conn.open) conn.send({ type: 'MOVE', plHand: playerHand, oppHand: opponentHand, top: topCard, color: currentColor, stack: drawStack, deck: deck, turn: !isMyTurn }); 
-}
+function sendMove() { if (conn && conn.open) conn.send({ type: 'MOVE', plHand: playerHand, oppHand: opponentHand, top: topCard, color: currentColor, stack: drawStack, deck: deck, turn: !isMyTurn }); }
 
 function startG(me) {
+    gameActive = true; // ATTIVA GIOCO
     createDeck(); playerHand = []; opponentHand = [];
     for(let i=0; i<7; i++){ playerHand.push(deck.pop()); opponentHand.push(deck.pop()); }
     topCard = deck.pop(); while(topCard.color.includes("wild")) topCard = deck.pop();
     currentColor = topCard.color; isMyTurn = me; drawStack = 0;
     if (isMultiplayer && conn) conn.send({ type: 'START', deck, plHand: playerHand, oppHand: opponentHand, top: topCard, turn: !me });
-    document.getElementById("startScreen").classList.add("hidden");
+    document.querySelectorAll("#startScreen, #endScreen").forEach(s => s.classList.add("hidden"));
     document.getElementById("gameArea").classList.remove("hidden"); renderGame();
 }
 
-/* --- 6. EVENTI --- */
+/* --- 5. EVENTI --- */
 document.getElementById("playBotBtn").onclick = () => { isMultiplayer = false; startG(true); };
 document.getElementById("connectBtn").onclick = () => {
     let id = document.getElementById("friendIdInput").value.trim().toUpperCase();
     if (id) { conn = peer.connect(id); isMultiplayer = true; setupChat(); conn.on('open', () => startG(true)); }
 };
 document.getElementById("deck").onclick = () => {
-    if (!isMyTurn) return;
-    if (drawStack > 0) { 
-        for(let i=0; i<drawStack; i++) playerHand.push(deck.pop()); 
-        drawStack = 0; 
-        showToast("HAI PESCATO LE CARTE! 🃏");
-    } else {
-        playerHand.push(deck.pop());
-    }
-    isMyTurn = false; 
-    if (isMultiplayer) sendMove(); 
-    renderGame(); 
-    if (!isMultiplayer) setTimeout(botTurn, 1000);
+    if (!isMyTurn || !gameActive) return; // CONTROLLO BLOCCO
+    if (drawStack > 0) { for(let i=0; i<drawStack; i++) playerHand.push(deck.pop()); drawStack = 0; }
+    else playerHand.push(deck.pop());
+    isMyTurn = false; if (isMultiplayer) sendMove(); renderGame(); if (!isMultiplayer) setTimeout(botTurn, 1000);
 };
 window.setWildColor = (c) => { currentColor = c; document.getElementById("colorPicker").classList.add("hidden"); finishAction(); };
 document.getElementById("copyBtn").onclick = () => { navigator.clipboard.writeText(document.getElementById("myPeerId").innerText); showToast("ID COPIATO! 📋"); };
 document.getElementById("masterUnoBtn").onclick = () => { hasSaidUno = true; showToast("MASTERUNO! 🔥"); if (isMultiplayer) conn.send({ type: 'UNO' }); };
-document.getElementById("playAgainBtn").onclick = () => { if (isMultiplayer) startG(true); else startG(true); };
+document.getElementById("playAgainBtn").onclick = () => startG(true);
 document.getElementById("exitBtn").onclick = () => location.reload();
