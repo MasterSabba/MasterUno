@@ -11,7 +11,6 @@ function createDeck() {
     deck.sort(() => Math.random() - 0.5);
 }
 
-// --- FEEDBACK ALERT (TOAST) ---
 function showToast(m) {
     let container = document.getElementById('toast-container');
     if (!container) { container = document.createElement('div'); container.id = 'toast-container'; document.body.appendChild(container); }
@@ -64,11 +63,14 @@ window.setWildColor = (c) => {
 
 function finishAction() {
     renderGame();
-    // CONTROLLO VITTORIA
+    
+    // CONTROLLO VITTORIA (INVIO IMMEDIATO)
     if (playerHand.length === 0) { 
         gameActive = false;
-        if(isMultiplayer && conn) conn.send({type: 'GAME_OVER_LOSS'}); // Invia segnale di sconfitta all'altro
-        showEndScreen(true); 
+        if(isMultiplayer && conn && conn.open) {
+            conn.send({ type: 'GAME_OVER_LOSS' }); // Dico all'altro che lui ha perso
+        }
+        setTimeout(() => showEndScreen(true), 500);
         return; 
     }
     
@@ -107,7 +109,6 @@ function renderGame() {
     document.getElementById("opponentBadge").innerText = `AVVERSARIO: ${opponentHand.length}`;
     document.getElementById("turnIndicator").innerText = isMyTurn ? "🟢 IL TUO TURNO" : "🔴 TURNO AVVERSARIO";
     
-    // Mano Giocatore
     const pHand = document.getElementById("playerHand"); pHand.innerHTML = "";
     playerHand.forEach((c, i) => {
         const d = document.createElement("div"); 
@@ -115,22 +116,15 @@ function renderGame() {
         d.className = `card ${c.color}`; d.innerText = v; d.setAttribute('data-val', v); d.onclick = () => playCard(i); pHand.appendChild(d);
     });
     
-    // Mano Avversario (Retro Carte con MASTER sopra e UNO sotto)
     const oHand = document.getElementById("opponentHand"); oHand.innerHTML = "";
     opponentHand.forEach(() => { 
-        oHand.innerHTML += `
-            <div class="card-back-classic" style="margin:0 -22px">
-                <span>MASTER</span>
-                <span>UNO</span>
-            </div>`; 
+        oHand.innerHTML += `<div class="card-back-classic" style="margin:0 -22px"><span>MASTER</span><span>UNO</span></div>`; 
     });
 
-    // Pila di scarto
     const discard = document.getElementById("discardPile");
     const vTop = (topCard.value === "draw2" ? "+2" : topCard.value === "wild4" ? "+4" : topCard.value === "skip" ? "Ø" : topCard.value === "reverse" ? "⇄" : topCard.value);
     discard.innerHTML = `<div class="card ${currentColor}" data-val="${vTop}">${vTop}</div>`;
     
-    // Pulsante MasterUno
     const btnUno = document.getElementById("masterUnoBtn");
     btnUno.classList.toggle("hidden", !(playerHand.length === 2 && isMyTurn && gameActive));
 }
@@ -168,8 +162,9 @@ function setupChat() {
             playerHand = d.oppHand; opponentHand = d.plHand; topCard = d.top;
             currentColor = d.color; drawStack = d.stack; deck = d.deck; isMyTurn = d.turn; renderGame();
         } else if (d.type === 'GAME_OVER_LOSS') {
+            // FIX: Quando ricevo questo, fermo tutto e mostro HAI PERSO
             gameActive = false;
-            showEndScreen(false); // L'avversario ha vinto, quindi io ho perso
+            showEndScreen(false); 
         }
     });
 }
