@@ -1,180 +1,152 @@
-let myNick = "";
-let players = [];
-let deck = [];
-let playerHand = [];
-let topCard = null;
-let currentColor = "";
-let currentPlayerIdx = 0;
-let drawStack = 0;
-let gameActive = false;
-let gameSettings = { rule07: false, ruleMulti: false, maxPlayers: 4 };
-
-// NAVIGAZIONE
-function showSettings() {
-    document.getElementById('startScreen').classList.add('hidden');
-    document.getElementById('settingsScreen').classList.remove('hidden');
-}
-function hideSettings() {
-    gameSettings.rule07 = document.getElementById('rule07').checked;
-    gameSettings.ruleMulti = document.getElementById('ruleMulti').checked;
-    gameSettings.maxPlayers = parseInt(document.getElementById('maxPlayersSelect').value);
-    document.getElementById('settingsScreen').classList.add('hidden');
-    document.getElementById('startScreen').classList.remove('hidden');
-}
-
-// SIMBOLI
-const getSym = (v) => {
-    if(v === "skip") return "🚫";
-    if(v === "reverse") return "🔄";
-    if(v === "draw2") return "+2";
-    return v;
+// Stato del Gioco
+let state = {
+    nick: "",
+    players: [],
+    deck: [],
+    hand: [],
+    topCard: null,
+    currentColor: "",
+    turn: 0,
+    stack: 0,
+    settings: { bots: 3, rule07: false }
 };
 
-// LOGIN
+// Funzioni di Navigazione (Le chiamo direttamente dall'HTML)
+function goTo(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+    document.getElementById(id).classList.remove('hidden');
+}
+
+function openSettings() { goTo('settingsScreen'); }
+function closeSettings() { 
+    state.settings.bots = parseInt(document.getElementById('botSelect').value);
+    state.settings.rule07 = document.getElementById('chk07').checked;
+    goTo('startScreen'); 
+}
+
+// Logica Iniziale
 document.getElementById('loginBtn').onclick = () => {
-    myNick = document.getElementById('nickInput').value.trim() || "Giocatore";
-    document.getElementById('loginScreen').classList.add('hidden');
-    document.getElementById('startScreen').classList.remove('hidden');
-    document.getElementById('welcomeText').innerText = "MasterUno: " + myNick;
+    state.nick = document.getElementById('nickInput').value || "Giocatore";
+    document.getElementById('welcomeText').innerText = "Ciao, " + state.nick;
+    goTo('startScreen');
 };
 
-// GIOCO
+// Inizio Partita
 document.getElementById('startGameBtn').onclick = () => {
-    gameActive = true;
-    createDeck();
-    
-    players = [{ nick: myNick, id: 'ME', hand: [] }];
-    for(let i=1; i < gameSettings.maxPlayers; i++) {
-        players.push({ nick: "Bot " + i, id: 'BOT'+i, isBot: true, hand: drawCards(7) });
-    }
-
-    playerHand = drawCards(7);
-    topCard = deck.pop();
-    while(topCard.value === "W" || topCard.value === "draw2") { topCard = deck.pop(); }
-    currentColor = topCard.color;
-
-    document.getElementById('startScreen').classList.add('hidden');
-    document.getElementById('gameArea').classList.remove('hidden');
-    renderGame();
+    initGame();
+    goTo('gameArea');
 };
 
-function createDeck() {
-    deck = [];
-    const colors = ["red", "blue", "green", "yellow"];
-    const values = ["0","1","2","3","4","5","6","7","8","9","skip","reverse","draw2"];
-    colors.forEach(c => {
-        values.forEach(v => {
-            deck.push({color: c, value: v});
-            if(v !== "0") deck.push({color: c, value: v});
-        });
-    });
-    for(let i=0; i<4; i++) deck.push({color:"wild", value:"W"});
-    deck.sort(() => Math.random() - 0.5);
-}
+function initGame() {
+    // Crea Mazzo
+    state.deck = [];
+    const colors = ['red', 'blue', 'green', 'yellow'];
+    const values = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'skip', 'reverse', 'draw2'];
+    colors.forEach(c => values.forEach(v => {
+        state.deck.push({c, v});
+        if(v !== '0') state.deck.push({c, v});
+    }));
+    for(let i=0; i<4; i++) state.deck.push({c:'wild', v:'W'});
+    state.deck.sort(() => Math.random() - 0.5);
 
-function drawCards(n) {
-    let res = [];
-    for(let i=0; i<n; i++) {
-        if(deck.length === 0) createDeck();
-        res.push(deck.pop());
+    // Distribuisci
+    state.players = [{ n: state.nick, h: [], isBot: false }];
+    for(let i=0; i < state.settings.bots; i++) {
+        state.players.push({ n: "Bot " + (i+1), h: draw(7), isBot: true });
     }
-    return res;
+    state.hand = draw(7);
+    
+    // Prima Carta
+    state.topCard = state.deck.pop();
+    while(state.topCard.c === 'wild') state.topCard = state.deck.pop();
+    state.currentColor = state.topCard.c;
+    state.turn = 0;
+    
+    render();
 }
 
-function renderGame() {
-    // 1. Scarto e Mazzo
-    document.getElementById('discardPile').innerHTML = `<div class="card ${currentColor}" data-symbol="${getSym(topCard.value)}">${getSym(topCard.value)}</div>`;
-    document.getElementById('deckArea').innerHTML = `<div class="card-back-deck" onclick="userDraw()">MAZZO</div>`;
+function draw(n) {
+    let cards = [];
+    for(let i=0; i<n; i++) if(state.deck.length) cards.push(state.deck.pop());
+    return cards;
+}
 
-    // 2. Altri Giocatori
-    const oppRow = document.getElementById('otherPlayers');
-    oppRow.innerHTML = "";
-    players.forEach(p => {
-        if(p.id !== 'ME') oppRow.innerHTML += `<div class="opp-badge">${p.nick}<br>🎴 ${p.hand.length}</div>`;
+const getSym = (v) => (v === 'skip' ? '🚫' : v === 'reverse' ? '🔄' : v === 'draw2' ? '+2' : v);
+
+function render() {
+    // Scarto e Mazzo
+    document.getElementById('discardPile').innerHTML = `
+        <div class="card ${state.currentColor}" data-symbol="${getSym(state.topCard.v)}">${getSym(state.topCard.v)}</div>
+    `;
+    
+    // Altri Giocatori
+    const opps = document.getElementById('otherPlayers');
+    opps.innerHTML = "";
+    state.players.forEach((p, i) => {
+        if(i !== 0) opps.innerHTML += `<div class="badge">${p.n}: ${p.h.length} 🎴</div>`;
     });
 
-    // 3. Mia Mano
+    // Mia Mano
     const handDiv = document.getElementById('playerHand');
     handDiv.innerHTML = "";
-    playerHand.forEach((c, i) => {
-        const d = document.createElement("div");
-        d.className = `card ${c.color}`;
-        d.setAttribute('data-symbol', getSym(c.value));
-        d.innerText = getSym(c.value);
-        d.onclick = () => playCard(i);
-        handDiv.appendChild(d);
+    state.hand.forEach((c, i) => {
+        const div = document.createElement('div');
+        div.className = `card ${c.c}`;
+        div.setAttribute('data-symbol', getSym(c.v));
+        div.innerText = getSym(c.v);
+        div.onclick = () => play(i);
+        handDiv.appendChild(div);
     });
 
-    const isMyTurn = (players[currentPlayerIdx].id === 'ME');
-    document.getElementById('turnIndicator').innerText = isMyTurn ? "🟢 TOCCA A TE" : "🔴 TURNO DI " + players[currentPlayerIdx].nick;
+    document.getElementById('turnIndicator').innerText = state.turn === 0 ? "TOCCA A TE" : "TURNO DI " + state.players[state.turn].n;
 }
 
-function playCard(idx) {
-    if(players[currentPlayerIdx].id !== 'ME') return;
-    const card = playerHand[idx];
-
-    if(drawStack > 0 && card.value !== "draw2") return;
-
-    if(card.color === currentColor || card.value === topCard.value || card.color === "wild") {
-        playerHand.splice(idx, 1);
-        topCard = card;
-        currentColor = card.color;
+function play(idx) {
+    if(state.turn !== 0) return;
+    const card = state.hand[idx];
+    
+    if(card.c === state.currentColor || card.v === state.topCard.v || card.c === 'wild') {
+        state.hand.splice(idx, 1);
+        state.topCard = card;
+        state.currentColor = card.c;
         
-        if(card.value === "draw2") drawStack += 2;
-        
-        if(card.color === "wild") {
+        if(card.c === 'wild') {
             document.getElementById('colorPicker').classList.remove('hidden');
         } else {
-            nextTurn(card.value === "skip");
+            next(card.v === 'skip');
         }
     }
 }
 
 function userDraw() {
-    if(players[currentPlayerIdx].id !== 'ME') return;
-    playerHand.push(...drawCards(drawStack || 1));
-    drawStack = 0;
-    nextTurn();
+    if(state.turn !== 0) return;
+    state.hand.push(...draw(1));
+    next();
 }
 
-function nextTurn(skip = false) {
-    currentPlayerIdx = (currentPlayerIdx + (skip ? 2 : 1)) % players.length;
-    let p = players[currentPlayerIdx];
-    
-    if(drawStack > 0) {
-        let pHand = (p.id === 'ME' ? playerHand : p.hand);
-        if(!pHand.some(c => c.value === "draw2")) {
-            pHand.push(...drawCards(drawStack));
-            drawStack = 0;
-            return nextTurn();
-        }
-    }
-
-    renderGame();
-    if(p.isBot && gameActive) setTimeout(botTurn, 1500);
+function next(skip = false) {
+    state.turn = (state.turn + (skip ? 2 : 1)) % state.players.length;
+    render();
+    if(state.players[state.turn].isBot) setTimeout(botTurn, 1000);
 }
 
 function botTurn() {
-    const bot = players[currentPlayerIdx];
-    let idx = bot.hand.findIndex(c => (drawStack > 0 ? c.value === "draw2" : (c.color === currentColor || c.value === topCard.value || c.color === "wild")));
+    let bot = state.players[state.turn];
+    let idx = bot.h.findIndex(c => c.c === state.currentColor || c.v === state.topCard.v || c.c === 'wild');
     
     if(idx !== -1) {
-        let card = bot.hand.splice(idx, 1)[0];
-        topCard = card;
-        currentColor = (card.color === "wild") ? "red" : card.color;
-        if(card.value === "draw2") drawStack += 2;
-        nextTurn(card.value === "skip");
+        let card = bot.h.splice(idx, 1)[0];
+        state.topCard = card;
+        state.currentColor = card.c === 'wild' ? ['red','blue','green','yellow'][Math.floor(Math.random()*4)] : card.c;
+        next(card.v === 'skip');
     } else {
-        bot.hand.push(...drawCards(Math.max(1, drawStack)));
-        drawStack = 0;
-        nextTurn();
+        bot.h.push(...draw(1));
+        next();
     }
 }
 
-function setWildColor(c) {
-    currentColor = c;
+function setWildColor(col) {
+    state.currentColor = col;
     document.getElementById('colorPicker').classList.add('hidden');
-    nextTurn();
+    next();
 }
-
-window.sendChat = (m) => { console.log("Emoji: " + m); };
