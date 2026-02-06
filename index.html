@@ -2,15 +2,14 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>MasterUno Ultimate</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MasterUno</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
 <body>
 
-    <div id="loginScreen">
+    <div id="loginScreen" class="screen">
         <div class="main-box">
             <h1 class="logo-title">MASTER UNO</h1>
             <input type="text" id="nickInput" placeholder="Inserisci Nickname...">
@@ -18,67 +17,63 @@
         </div>
     </div>
 
-    <div id="startScreen" class="hidden">
+    <div id="startScreen" class="screen hidden">
         <div class="main-box">
-            <div id="settingsBtn" class="settings-gear">⚙️</div>
             <h2 id="welcomeText"></h2>
-            <div id="myPeerId" class="peer-display">Generazione ID...</div>
-            <div id="copyBtn" class="btn-white">COPIA IL TUO ID</div>
-            <input type="text" id="hostIdInput" placeholder="Inserisci ID Host">
-            <div id="connectBtn" class="btn-white">CONNETTITI A AMICO</div>
-            <div id="statusText" style="margin-top:10px; color:#f1c40f">Giocatori: 1/4</div>
+            <div class="btn-yellow" onclick="showSettings()">IMPOSTAZIONI</div>
             <div id="startGameBtn" class="btn-yellow">INIZIA PARTITA</div>
         </div>
     </div>
 
-    <div id="settingsModal" class="hidden">
+    <div id="settingsScreen" class="screen hidden">
         <div class="main-box">
-            <h3>REGOLE</h3>
-            <div class="rule-box"><label><input type="checkbox" id="rule07"> Regola 0-7</label></div>
-            <div class="rule-box"><label><input type="checkbox" id="ruleMulti"> Combo Numeri</label></div>
-            <div class="rule-box">
-                <label>Giocatori: 
-                    <select id="maxPlayersSelect">
-                        <option value="2">2</option><option value="3">3</option><option value="4" selected>4</option>
-                    </select>
-                </label>
+            <h3>REGOLE GIOCO</h3>
+            <div class="setting-item">
+                <label>Regola 0-7</label>
+                <input type="checkbox" id="rule07">
             </div>
-            <div id="saveSettings" class="btn-yellow">SALVA</div>
+            <div class="setting-item">
+                <label>Combo Numeri</label>
+                <input type="checkbox" id="ruleMulti">
+            </div>
+            <div class="setting-item">
+                <label>Numero Bot:</label>
+                <select id="maxPlayersSelect">
+                    <option value="2">1 Bot</option>
+                    <option value="3">2 Bot</option>
+                    <option value="4" selected>3 Bot</option>
+                </select>
+            </div>
+            <div class="btn-yellow" onclick="hideSettings()">SALVA E TORNA</div>
         </div>
     </div>
 
-    <div id="gameArea" class="hidden">
+    <div id="gameArea" class="screen hidden">
         <div id="turnIndicator">TURNO DI...</div>
+        
         <div id="otherPlayers" class="opponents-row"></div>
         
         <div id="centerArea">
-            <div id="deck" class="card-back-classic" onclick="drawCard()">
-                <span>MASTER</span><span>UNO</span>
-            </div>
-            <div id="discardPile"></div>
-        </div>
+            <div id="deckArea"></div> <div id="discardPile"></div> </div>
 
         <div class="player-zone">
-            <div id="playerHand" class="hand"></div>
-            <button id="masterUnoBtn" class="hidden">MASTER UNO!</button>
-        </div>
-
-        <div id="chatBox">
-            <div id="chatMessages"></div>
-            <div class="emoji-row">
-                <span onclick="sendChat('🔥')">🔥</span><span onclick="sendChat('😂')">😂</span>
-                <span onclick="sendChat('🤫')">🤫</span><span onclick="sendChat('🃏')">🃏</span>
+            <div class="emoji-bar">
+                <span onclick="sendChat('🔥')">🔥</span>
+                <span onclick="sendChat('😂')">😂</span>
+                <span onclick="sendChat('🃏')">🃏</span>
             </div>
+            <div id="playerHand" class="hand"></div>
         </div>
     </div>
 
-    <div id="colorPicker" class="hidden">
-        <div class="picker-box">
-            <div class="pick-grid">
-                <div class="pick red" onclick="setWildColor('red')"></div>
-                <div class="pick blue" onclick="setWildColor('blue')"></div>
-                <div class="pick green" onclick="setWildColor('green')"></div>
-                <div class="pick yellow" onclick="setWildColor('yellow')"></div>
+    <div id="colorPicker" class="screen hidden" style="background:rgba(0,0,0,0.9)">
+        <div class="main-box">
+            <h3>SCEGLI COLORE</h3>
+            <div class="color-grid">
+                <div class="color-btn" style="background:red" onclick="setWildColor('red')"></div>
+                <div class="color-btn" style="background:blue" onclick="setWildColor('blue')"></div>
+                <div class="color-btn" style="background:green" onclick="setWildColor('green')"></div>
+                <div class="color-btn" style="background:yellow" onclick="setWildColor('yellow')"></div>
             </div>
         </div>
     </div>
