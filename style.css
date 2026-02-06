@@ -1,182 +1,170 @@
-/* --- RESET E BASICS --- */
-* { 
-    box-sizing: border-box; 
-    -webkit-tap-highlight-color: transparent; 
-    outline: none; 
-    border: none; 
+let peer, myNick, connections = [], players = [];
+let gameSettings = { rule07: false, ruleMulti: false, maxPlayers: 2 };
+let deck = [], playerHand = [], topCard = null, currentColor = "";
+let currentPlayerIdx = 0, isMyTurn = false, gameActive = false;
+
+// 1. LOGIN & PEER
+document.getElementById("loginBtn").onclick = () => {
+    myNick = document.getElementById("nickInput").value.trim();
+    if(!myNick) return alert("Inserisci un nome!");
+    document.getElementById("loginScreen").classList.add("hidden");
+    document.getElementById("startScreen").classList.remove("hidden");
+    document.getElementById("welcomeText").innerText = "Ciao, " + myNick;
+    
+    peer = new Peer(myNick.replace(/\s+/g, '') + "-" + Math.floor(Math.random()*999));
+    peer.on('open', id => document.getElementById("myPeerId").innerText = id);
+    peer.on('connection', conn => setupHostListeners(conn));
+};
+
+// 2. COPIA ID
+document.getElementById("copyBtn").onclick = () => {
+    const id = document.getElementById("myPeerId").innerText;
+    const helper = document.getElementById("copyHelper");
+    helper.value = id; helper.select();
+    document.execCommand("copy");
+    showToast("ID COPIATO! 📋");
+};
+
+// 3. LOGICA HOST (CHI RICEVE)
+function setupHostListeners(conn) {
+    conn.on('open', () => {
+        if(players.length >= gameSettings.maxPlayers - 1) {
+            conn.send({type: 'ERROR', msg: 'Stanza piena!'});
+            return;
+        }
+        connections.push(conn);
+        players.push({ nick: conn.metadata.nick, id: conn.peer, handCount: 0 });
+        updateStatus();
+        conn.on('data', data => handleData(data, conn));
+    });
 }
 
-body { 
-    margin: 0; 
-    background: #1a472a; 
-    color: white; 
-    font-family: 'Arial Black', sans-serif; 
-    overflow: hidden; 
-    width: 100vw; 
-    height: 100vh; 
+// 4. LOGICA CLIENT (CHI SI UNISCE)
+document.getElementById("connectBtn").onclick = () => {
+    const hostId = document.getElementById("hostIdInput").value.trim();
+    const conn = peer.connect(hostId, { metadata: { nick: myNick } });
+    conn.on('open', () => {
+        connections.push(conn);
+        showToast("CONNESSO!");
+        conn.on('data', data => handleData(data, conn));
+    });
+};
+
+// 5. IMPOSTAZIONI
+document.getElementById("settingsBtn").onclick = () => document.getElementById("settingsModal").classList.remove("hidden");
+document.getElementById("saveSettings").onclick = () => {
+    gameSettings.rule07 = document.getElementById("rule07").checked;
+    gameSettings.ruleMulti = document.getElementById("ruleMulti").checked;
+    gameSettings.maxPlayers = parseInt(document.getElementById("maxPlayersSelect").value);
+    document.getElementById("settingsModal").classList.add("hidden");
+    updateStatus();
+};
+
+function updateStatus() {
+    document.getElementById("statusText").innerText = `Giocatori: ${players.length + 1}/${gameSettings.maxPlayers}`;
 }
 
-.hidden { display: none !important; }
-
-/* --- SCHERMATE PRINCIPALI (START/END) --- */
-#startScreen, #endScreen { 
-    position: fixed; 
-    inset: 0; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    background: radial-gradient(circle, #2d5a3f 0%, #1a472a 100%); 
-    z-index: 2000; 
+// 6. CHAT
+function sendChat(emoji) {
+    const msg = { type: 'CHAT', nick: myNick, content: emoji };
+    broadcast(msg);
+    renderChat(msg);
 }
 
-#endScreen { background: rgba(0,0,0,0.95); z-index: 5000; }
-
-.main-box { 
-    background: rgba(0,0,0,0.9); 
-    padding: 40px; 
-    border-radius: 40px; 
-    text-align: center; 
-    width: 92%; 
-    max-width: 440px; 
-    display: flex; 
-    flex-direction: column; 
-    gap: 30px; 
-    border: 4px solid #f1c40f; 
-    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+function renderChat(d) {
+    const box = document.getElementById("chatMessages");
+    box.innerHTML += `<div><strong>${d.nick}:</strong> ${d.content}</div>`;
+    box.scrollTop = box.scrollHeight;
 }
 
-/* --- ELEMENTI UI --- */
-.logo-title { color: #f1c40f; font-size: 38px; margin: 0; }
-.end-title { font-size: 45px; margin: 0; text-transform: uppercase; }
-.win-text { color: #f1c40f; text-shadow: 0 0 20px #f1c40f; }
-.lose-text { color: #e74c3c; text-shadow: 0 0 20px #e74c3c; }
+// 7. GAME ENGINE (START)
+document.getElementById("startGameBtn").onclick = () => {
+    // Riempi con Bot se mancano umani
+    while(players.length < gameSettings.maxPlayers - 1) {
+        players.push({ nick: "Bot " + (players.length+1), id: 'BOT', isBot: true, handCount: 0 });
+    }
+    
+    // Genera mazzo e mani
+    initDeck();
+    playerHand = drawCards(7);
+    const hands = players.map(p => drawCards(7));
+    topCard = deck.pop();
+    currentColor = topCard.color;
 
-.btn-yellow { background: #f1c40f; color: #000; padding: 18px; border-radius: 18px; font-weight: 900; cursor: pointer; box-shadow: 0 6px 0 #b7950b; text-transform: uppercase; }
-.btn-white { background: #fff; color: #1a472a; padding: 18px; border-radius: 18px; font-weight: 900; box-shadow: 0 6px 0 #ccc; text-transform: uppercase; cursor: pointer; }
-input { background: rgba(255,255,255,0.1); border: 2px solid #f1c40f !important; padding: 18px; border-radius: 15px; color: white; text-align: center; font-size: 18px; width: 100%; }
+    // Sincronizza tutti
+    broadcast({
+        type: 'START',
+        settings: gameSettings,
+        topCard, currentColor,
+        players: [{nick: myNick, id: peer.id}, ...players],
+        yourHand: hands // L'host assegna le mani
+    });
 
-.peer-display { background: rgba(255,255,255,0.1); padding: 10px; border-radius: 10px; font-family: monospace; font-size: 20px; color: #f1c40f; }
-.menu-section { display: flex; flex-direction: column; gap: 15px; }
+    startLocalGame();
+};
 
-/* --- TAVOLO DA GIOCO --- */
-#gameArea { 
-    height: 100vh; 
-    display: flex; 
-    flex-direction: column; 
-    justify-content: space-between; 
-    align-items: center; 
-    padding: 20px 0; 
+function initDeck() {
+    deck = [];
+    const colors = ["red", "blue", "green", "yellow"];
+    const vals = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "skip", "reverse", "draw2"];
+    colors.forEach(c => vals.forEach(v => { deck.push({color: c, value: v}); if(v!=="0") deck.push({color: c, value: v}); }));
+    for(let i=0; i<4; i++) { deck.push({color: "wild", value: "W"}, {color: "wild4", value: "W4"}); }
+    deck.sort(() => Math.random() - 0.5);
 }
 
-#turnIndicator { font-size: 14px; font-weight: 900; letter-spacing: 1px; }
-
-.gold-badge { 
-    background: #f1c40f; color: #000; padding: 6px 12px; border-radius: 8px; 
-    font-weight: 900; font-size: 11px; position: absolute; left: 15px; top: -25px; z-index: 50; 
+function drawCards(n) {
+    let drawn = [];
+    for(let i=0; i<n; i++) if(deck.length > 0) drawn.push(deck.pop());
+    return drawn;
 }
 
-.game-row { position: relative; width: 100%; display: flex; justify-content: center; }
-
-.hand { display: flex; justify-content: center; width: 100%; min-height: 120px; }
-.card { 
-    width: 80px; height: 115px; border-radius: 12px; border: 3px solid #fff; 
-    margin: 0 -22px; display: flex; align-items: center; justify-content: center; 
-    font-size: 32px; font-weight: 900; color: white; position: relative; 
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3); transition: transform 0.2s;
-}
-.card:active { transform: translateY(-20px); }
-
-.card::before, .card::after { content: attr(data-val); position: absolute; font-size: 12px; }
-.card::before { top: 5px; left: 7px; } 
-.card::after { bottom: 5px; right: 7px; transform: rotate(180deg); }
-
-/* COLORI CARTE */
-.red { background: #d63031; } 
-.blue { background: #0984e3; } 
-.green { background: #27ae60; } 
-.yellow { background: #f1c40f; color: #000 !important; }
-.wild, .wild4 { background: #2d3436; border-color: #f1c40f; }
-
-#centerArea { display: flex; gap: 30px; align-items: center; margin: 15px 0; }
-/* RETRO CARTA CON TESTO SPEZZATO */
-.card-back-classic { 
-    width: 85px; 
-    height: 120px; 
-    background: #000; 
-    border: 4px solid #fff; 
-    border-radius: 15px; 
-    color: #f1c40f; 
-    display: flex; 
-    flex-direction: column; /* Forza la disposizione verticale */
-    align-items: center; 
-    justify-content: center; 
-    font-weight: 900; 
-    text-align: center; 
-    font-size: 15px; /* Leggermente più grande per leggibilità */
-    line-height: 1.2; 
-    gap: 5px; /* Crea spazio tra MASTER e UNO */
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+function broadcast(data) {
+    connections.forEach(c => { if(c.open) c.send(data); });
 }
 
-/* --- ALERT E BOTTONI --- */
-#toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 11000; }
-.toast { 
-    background: #f1c40f; color: #000; padding: 12px 20px; border-radius: 50px; 
-    font-weight: 900; border: 3px solid #fff; margin-bottom: 8px; 
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3); animation: slideIn 0.3s forwards;
+function handleData(d, conn) {
+    if(d.type === 'CHAT') renderChat(d);
+    if(d.type === 'ERROR') alert(d.msg);
+    if(d.type === 'START') {
+        gameSettings = d.settings;
+        topCard = d.topCard;
+        currentColor = d.currentColor;
+        // Trova la propria mano nell'array inviato dall'host
+        const myIdx = d.players.findIndex(p => p.id === peer.id);
+        playerHand = d.yourHand[myIdx - 1]; 
+        startLocalGame();
+    }
 }
 
-#masterUnoBtn { 
-    background: #e74c3c; color: #fff; padding: 15px 30px; border-radius: 50px; 
-    font-weight: 900; position: fixed; bottom: 160px; right: 20px; 
-    border: 3px solid #fff; animation: pulse 1s infinite; z-index: 1000; 
+function startLocalGame() {
+    document.getElementById("startScreen").classList.add("hidden");
+    document.getElementById("gameArea").classList.remove("hidden");
+    gameActive = true;
+    isMyTurn = true; // Semplificato: l'host inizia sempre
+    renderGame();
 }
 
-/* --- SELETTORE COLORE (QUADRATO 2x2) --- */
-#colorPicker { 
-    position: fixed; inset: 0; background: rgba(0,0,0,0.9); 
-    display: flex; align-items: center; justify-content: center; z-index: 10000; 
+function renderGame() {
+    // Rendering scarto
+    const disc = document.getElementById("discardPile");
+    disc.innerHTML = `<div class="card ${currentColor}">${topCard.value}</div>`;
+    
+    // Rendering mano
+    const handDiv = document.getElementById("playerHand");
+    handDiv.innerHTML = "";
+    playerHand.forEach((c, i) => {
+        const div = document.createElement("div");
+        div.className = `card ${c.color}`;
+        div.innerText = c.value;
+        div.onclick = () => playCard(i);
+        handDiv.appendChild(div);
+    });
 }
 
-.picker-box { 
-    background: #000; padding: 30px; border-radius: 30px; 
-    border: 4px solid #f1c40f; text-align: center; 
+function showToast(m) {
+    const t = document.createElement("div"); t.className = "toast"; t.innerText = m;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 2500);
 }
 
-.picker-box h3 { color: #f1c40f; margin: 0 0 20px 0; text-transform: uppercase; }
-
-/* Forza la griglia 2x2 */
-.pick-grid { 
-    display: grid !important; 
-    grid-template-columns: repeat(2, 100px) !important; 
-    grid-template-rows: repeat(2, 100px) !important; 
-    gap: 15px !important; 
-}
-
-.pick { 
-    width: 100px !important; 
-    height: 100px !important; 
-    border-radius: 20px; 
-    border: 5px solid #fff; 
-    cursor: pointer; 
-}
-
-.pick.red { background: #d63031; } 
-.pick.blue { background: #0984e3; } 
-.pick.green { background: #27ae60; } 
-.pick.yellow { background: #f1c40f; }
-
-/* --- ANIMAZIONI --- */
-@keyframes slideIn { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-@keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
-
-/* Login e Impostazioni */
-#loginScreen { position: fixed; inset: 0; background: #1a472a; display: flex; align-items: center; justify-content: center; z-index: 9000; }
-.setting-item { text-align: left; background: rgba(255,255,255,0.1); padding: 10px; border-radius: 10px; margin-bottom: 10px; }
-.setting-item span { display: block; font-size: 10px; color: #ccc; margin-top: 5px; }
-
-/* Chat */
-#chatBox { position: fixed; bottom: 20px; left: 20px; width: 200px; background: rgba(0,0,0,0.8); border: 2px solid #f1c40f; border-radius: 15px; z-index: 8000; transition: 0.3s; }
-#chatMessages { height: 100px; overflow-y: auto; padding: 10px; font-size: 12px; }
-.emoji-list { display: flex; justify-content: space-around; padding: 5px; border-top: 1px solid #333; cursor: pointer; }
-.msg { margin-bottom: 5px; animation: fadeIn 0.3s; }
+// Inserisci qui le funzioni playCard, botTurn e le logiche 0-7...
