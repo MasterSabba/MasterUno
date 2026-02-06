@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>MasterUno - Bomba Edition</title>
+    <title>MasterUno Ultimate</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -13,83 +13,80 @@
     <div id="loginScreen">
         <div class="main-box">
             <h1 class="logo-title">MASTER UNO</h1>
-            <p>Scegli il tuo nome di battaglia</p>
-            <input type="text" id="nickInput" placeholder="Inserisci Nickname...">
-            <div id="loginBtn" class="btn-yellow">ENTRA NEL GIOCO</div>
+            <input type="text" id="nickInput" placeholder="Il tuo Nickname...">
+            <div id="loginBtn" class="btn-yellow">ENTRA</div>
         </div>
     </div>
 
     <div id="startScreen" class="hidden">
         <div class="main-box">
-            <div class="settings-trigger" id="settingsBtn">⚙️</div>
-            <h1 class="logo-title">MASTER UNO</h1>
+            <div id="settingsBtn" class="settings-gear">⚙️</div>
+            <h2 id="welcomeText"></h2>
             <div class="menu-section">
-                <div id="myPeerId" class="peer-display">----</div>
-                <div id="copyBtn" class="btn-yellow">Copia il tuo ID</div>
+                <div id="myPeerId" class="peer-display">Generazione ID...</div>
+                <input type="text" id="copyHelper" style="position:absolute;left:-9999px">
+                <div id="copyBtn" class="btn-white">COPIA ID</div>
             </div>
             <div class="menu-section">
-                <input type="text" id="friendIdInput" placeholder="Inserisci ID Host">
-                <div id="connectBtn" class="btn-white">Connettiti a Host</div>
-                <div id="statusText" style="font-size:12px; color:#f1c40f; margin-top:5px;">Giocatori: 1/4</div>
+                <input type="text" id="hostIdInput" placeholder="ID dell'Host per unirsi">
+                <div id="connectBtn" class="btn-white">UNISCITI A PARTITA</div>
             </div>
-            <div id="playBotBtn" class="btn-yellow">Gioca (Host/Bot)</div>
+            <div id="statusText" class="status-info">Giocatori: 1/4</div>
+            <div id="startGameBtn" class="btn-yellow">INIZIA PARTITA (HOST)</div>
         </div>
     </div>
 
     <div id="settingsModal" class="hidden">
         <div class="main-box">
-            <h3>REGOLE BOMBA</h3>
-            <div class="rule-item">
-                <label><input type="checkbox" id="rule07"> Modalità 0-7 (Scambio)</label>
-                <small>Lo 0 ruota le mani, il 7 scambia con chi vuoi.</small>
+            <h3>IMPOSTAZIONI</h3>
+            <div class="rule-box">
+                <label><input type="checkbox" id="rule07"> Regola 0-7</label>
+                <p>Lo 0 ruota le mani, il 7 le scambia.</p>
             </div>
-            <div class="rule-item">
+            <div class="rule-box">
                 <label><input type="checkbox" id="ruleMulti"> Combo Numeri</label>
-                <small>Puoi lanciare più carte dello stesso numero insieme.</small>
+                <p>Lancia più carte dello stesso numero insieme.</p>
             </div>
-            <div class="rule-item">
+            <div class="rule-box">
                 <label>Giocatori: 
-                    <select id="playerCountSelect">
-                        <option value="2">2 Giocatori</option>
-                        <option value="3">3 Giocatori</option>
-                        <option value="4">4 Giocatori</option>
+                    <select id="maxPlayersSelect">
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4" selected>4</option>
                     </select>
                 </label>
             </div>
-            <div id="saveSettings" class="btn-yellow">SALVA REGOLE</div>
+            <div id="saveSettings" class="btn-yellow">SALVA</div>
         </div>
     </div>
 
     <div id="gameArea" class="hidden">
         <div id="turnIndicator">CARICAMENTO...</div>
-        <div id="opponentBadges" class="badges-container"></div>
+        <div id="otherPlayers" class="opponents-row"></div>
         
         <div id="centerArea">
             <div id="deck" class="card-back-classic"><span>MASTER</span><span>UNO</span></div>
             <div id="discardPile"></div>
         </div>
 
-        <div class="player-section">
-            <div id="playerBadge" class="gold-badge">TU: 0</div>
+        <div class="player-zone">
             <div id="playerHand" class="hand"></div>
+            <div id="masterUnoBtn" class="hidden pulse">MASTER UNO!</div>
         </div>
-        
-        <button id="masterUnoBtn" class="hidden">MASTER UNO!</button>
 
         <div id="chatBox">
             <div id="chatMessages"></div>
-            <div class="emoji-bar">
-                <span onclick="sendEmoji('🔥')">🔥</span>
-                <span onclick="sendEmoji('😂')">😂</span>
-                <span onclick="sendEmoji('🃏')">🃏</span>
-                <span onclick="sendEmoji('🤫')">🤫</span>
+            <div class="emoji-row">
+                <span onclick="sendChat('🔥')">🔥</span>
+                <span onclick="sendChat('😂')">😂</span>
+                <span onclick="sendChat('🤡')">🤡</span>
+                <span onclick="sendChat('🃏')">🃏</span>
             </div>
         </div>
     </div>
 
     <div id="colorPicker" class="hidden">
         <div class="picker-box">
-            <h3>Scegli Colore</h3>
             <div class="pick-grid">
                 <div class="pick red" onclick="setWildColor('red')"></div>
                 <div class="pick blue" onclick="setWildColor('blue')"></div>
@@ -101,10 +98,8 @@
 
     <div id="endScreen" class="hidden">
         <div class="main-box">
-            <h1 id="endTitle" class="end-title">VITTORIA!</h1>
-            <div class="menu-section">
-                <div onclick="location.reload()" class="btn-yellow">TORNA AL MENU</div>
-            </div>
+            <h1 id="endTitle">PARTITA FINITA</h1>
+            <div class="btn-yellow" onclick="location.reload()">MENU PRINCIPALE</div>
         </div>
     </div>
 
