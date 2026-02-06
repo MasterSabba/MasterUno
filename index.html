@@ -13,9 +13,8 @@
     <div id="loginScreen">
         <div class="main-box">
             <h1 class="logo-title">MASTER UNO</h1>
-            <p>Inserisci il tuo nome per giocare</p>
-            <input type="text" id="nickInput" placeholder="Nickname obbligatorio..." maxlength="12">
-            <div id="loginBtn" class="btn-yellow">ENTRA NEL GIOCO</div>
+            <input type="text" id="nickInput" placeholder="Inserisci Nickname...">
+            <div id="loginBtn" class="btn-yellow">ENTRA</div>
         </div>
     </div>
 
@@ -23,51 +22,39 @@
         <div class="main-box">
             <div id="settingsBtn" class="settings-gear">⚙️</div>
             <h2 id="welcomeText"></h2>
-            
-            <div class="menu-section">
-                <div id="myPeerId" class="peer-display">Generazione ID...</div>
-                <input type="text" id="copyHelper" style="position:absolute;left:-9999px">
-                <div id="copyBtn" class="btn-white">COPIA IL TUO ID</div>
-            </div>
-
-            <div class="menu-section">
-                <input type="text" id="hostIdInput" placeholder="Inserisci ID Host">
-                <div id="connectBtn" class="btn-white">CONNETTITI A AMICO</div>
-            </div>
-
-            <div id="statusText" class="status-info">Giocatori: 1/4</div>
+            <div id="myPeerId" class="peer-display">Generazione ID...</div>
+            <div id="copyBtn" class="btn-white">COPIA IL TUO ID</div>
+            <input type="text" id="hostIdInput" placeholder="Inserisci ID Host">
+            <div id="connectBtn" class="btn-white">CONNETTITI A AMICO</div>
+            <div id="statusText" style="margin-top:10px; color:#f1c40f">Giocatori: 1/4</div>
             <div id="startGameBtn" class="btn-yellow">INIZIA PARTITA</div>
         </div>
     </div>
 
     <div id="settingsModal" class="hidden">
         <div class="main-box">
-            <h3>REGOLE PERSONALIZZATE</h3>
+            <h3>REGOLE</h3>
+            <div class="rule-box"><label><input type="checkbox" id="rule07"> Regola 0-7</label></div>
+            <div class="rule-box"><label><input type="checkbox" id="ruleMulti"> Combo Numeri</label></div>
             <div class="rule-box">
-                <label><input type="checkbox" id="rule07"> Regola 0-7 (Scambio)</label>
-            </div>
-            <div class="rule-box">
-                <label><input type="checkbox" id="ruleMulti"> Combo Numeri</label>
-            </div>
-            <div class="rule-box">
-                <label>Max Giocatori: 
+                <label>Giocatori: 
                     <select id="maxPlayersSelect">
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                        <option value="4" selected>4</option>
+                        <option value="2">2</option><option value="3">3</option><option value="4" selected>4</option>
                     </select>
                 </label>
             </div>
-            <div id="saveSettings" class="btn-yellow">SALVA E CHIUDI</div>
+            <div id="saveSettings" class="btn-yellow">SALVA</div>
         </div>
     </div>
 
     <div id="gameArea" class="hidden">
-        <div id="turnIndicator">ATTESA...</div>
+        <div id="turnIndicator">TURNO DI...</div>
         <div id="otherPlayers" class="opponents-row"></div>
         
         <div id="centerArea">
-            <div id="deck" class="card-back-classic"><span>MASTER</span><span>UNO</span></div>
+            <div id="deck" class="card-back-classic" onclick="drawCard()">
+                <span>MASTER</span><span>UNO</span>
+            </div>
             <div id="discardPile"></div>
         </div>
 
@@ -79,10 +66,8 @@
         <div id="chatBox">
             <div id="chatMessages"></div>
             <div class="emoji-row">
-                <span onclick="sendChat('🔥')">🔥</span>
-                <span onclick="sendChat('😂')">😂</span>
-                <span onclick="sendChat('🤡')">🤡</span>
-                <span onclick="sendChat('🃏')">🃏</span>
+                <span onclick="sendChat('🔥')">🔥</span><span onclick="sendChat('😂')">😂</span>
+                <span onclick="sendChat('🤫')">🤫</span><span onclick="sendChat('🃏')">🃏</span>
             </div>
         </div>
     </div>
@@ -95,13 +80,6 @@
                 <div class="pick green" onclick="setWildColor('green')"></div>
                 <div class="pick yellow" onclick="setWildColor('yellow')"></div>
             </div>
-        </div>
-    </div>
-
-    <div id="endScreen" class="hidden">
-        <div class="main-box">
-            <h1 id="endTitle">FINE</h1>
-            <div class="btn-yellow" onclick="location.reload()">NUOVA PARTITA</div>
         </div>
     </div>
 
