@@ -263,3 +263,41 @@ input[type="text"] {
     margin: 10px 0;
     word-break: break-all;
 }
+
+/* --- BADGE BOT E AVVERSARI --- */
+.opponents-row {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    padding: 10px;
+    width: 100%;
+    position: absolute;
+    top: 50px; /* Sotto l'indicatore del turno */
+}
+
+.opp-badge {
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid #f1c40f;
+    border-radius: 10px;
+    padding: 8px 12px;
+    text-align: center;
+    min-width: 80px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+}
+
+.opp-badge .name {
+    font-size: 12px;
+    font-weight: bold;
+    display: block;
+    color: #f1c40f;
+    margin-bottom: 4px;
+}
+
+.opp-badge .card-count {
+    font-size: 14px;
+    background: #fff;
+    color: #000;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-weight: 900;
+}
