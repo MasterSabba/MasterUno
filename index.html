@@ -10,38 +10,81 @@
 </head>
 <body>
 
-    <div id="startScreen">
+    <div id="loginScreen">
         <div class="main-box">
+            <h1 class="logo-title">MASTER UNO</h1>
+            <p>Scegli il tuo nome di battaglia</p>
+            <input type="text" id="nickInput" placeholder="Inserisci Nickname...">
+            <div id="loginBtn" class="btn-yellow">ENTRA NEL GIOCO</div>
+        </div>
+    </div>
+
+    <div id="startScreen" class="hidden">
+        <div class="main-box">
+            <div class="settings-trigger" id="settingsBtn">⚙️</div>
             <h1 class="logo-title">MASTER UNO</h1>
             <div class="menu-section">
                 <div id="myPeerId" class="peer-display">----</div>
                 <div id="copyBtn" class="btn-yellow">Copia il tuo ID</div>
             </div>
             <div class="menu-section">
-                <input type="text" id="friendIdInput" placeholder="Inserisci ID Amico">
-                <div id="connectBtn" class="btn-white">Connettiti e Gioca</div>
+                <input type="text" id="friendIdInput" placeholder="Inserisci ID Host">
+                <div id="connectBtn" class="btn-white">Connettiti a Host</div>
+                <div id="statusText" style="font-size:12px; color:#f1c40f; margin-top:5px;">Giocatori: 1/4</div>
             </div>
-            <div class="menu-section">
-                <div id="playBotBtn" class="btn-yellow">Gioca contro Computer</div>
+            <div id="playBotBtn" class="btn-yellow">Gioca (Host/Bot)</div>
+        </div>
+    </div>
+
+    <div id="settingsModal" class="hidden">
+        <div class="main-box">
+            <h3>REGOLE BOMBA</h3>
+            <div class="rule-item">
+                <label><input type="checkbox" id="rule07"> Modalità 0-7 (Scambio)</label>
+                <small>Lo 0 ruota le mani, il 7 scambia con chi vuoi.</small>
             </div>
+            <div class="rule-item">
+                <label><input type="checkbox" id="ruleMulti"> Combo Numeri</label>
+                <small>Puoi lanciare più carte dello stesso numero insieme.</small>
+            </div>
+            <div class="rule-item">
+                <label>Giocatori: 
+                    <select id="playerCountSelect">
+                        <option value="2">2 Giocatori</option>
+                        <option value="3">3 Giocatori</option>
+                        <option value="4">4 Giocatori</option>
+                    </select>
+                </label>
+            </div>
+            <div id="saveSettings" class="btn-yellow">SALVA REGOLE</div>
         </div>
     </div>
 
     <div id="gameArea" class="hidden">
         <div id="turnIndicator">CARICAMENTO...</div>
-        <div class="game-row">
-            <div id="opponentBadge" class="gold-badge">AVVERSARIO: 7</div>
-            <div id="opponentHand" class="hand"></div>
-        </div>
+        <div id="opponentBadges" class="badges-container"></div>
+        
         <div id="centerArea">
-            <div id="deck" class="card-back-classic">MAZZO</div>
+            <div id="deck" class="card-back-classic"><span>MASTER</span><span>UNO</span></div>
             <div id="discardPile"></div>
         </div>
-        <div class="game-row">
-            <div id="playerBadge" class="gold-badge">TU: 7</div>
+
+        <div class="player-section">
+            <div id="playerBadge" class="gold-badge">TU: 0</div>
             <div id="playerHand" class="hand"></div>
         </div>
+        
         <button id="masterUnoBtn" class="hidden">MASTER UNO!</button>
+
+        <div id="chatBox">
+            <div id="chatMessages"></div>
+            <div class="emoji-bar">
+                <span onclick="sendEmoji('🔥')">🔥</span>
+                <span onclick="sendEmoji('😂')">😂</span>
+                <span onclick="sendEmoji('🃏')">🃏</span>
+                <span onclick="sendEmoji('🤫')">🤫</span>
+            </div>
+        </div>
     </div>
 
     <div id="colorPicker" class="hidden">
@@ -59,10 +102,8 @@
     <div id="endScreen" class="hidden">
         <div class="main-box">
             <h1 id="endTitle" class="end-title">VITTORIA!</h1>
-            <p id="endSubtitle">Ottima partita!</p>
             <div class="menu-section">
-                <div id="playAgainBtn" class="btn-yellow">Gioca Ancora</div>
-                <div id="exitBtn" class="btn-white">Torna al Menu</div>
+                <div onclick="location.reload()" class="btn-yellow">TORNA AL MENU</div>
             </div>
         </div>
     </div>
