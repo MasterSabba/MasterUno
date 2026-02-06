@@ -1,4 +1,3 @@
-// VARIABILI GLOBALI
 let myNick = "";
 let players = [];
 let deck = [];
@@ -10,11 +9,20 @@ let drawStack = 0;
 let gameActive = false;
 let gameSettings = { rule07: false, ruleMulti: false, maxPlayers: 4 };
 
-// --- GESTIONE SCHERMATE ---
-function openSettings() { document.getElementById('settingsModal').classList.remove('hidden'); }
-function closeSettings() { document.getElementById('settingsModal').classList.add('hidden'); }
+// NAVIGAZIONE
+function showSettings() {
+    document.getElementById('startScreen').classList.add('hidden');
+    document.getElementById('settingsScreen').classList.remove('hidden');
+}
+function hideSettings() {
+    gameSettings.rule07 = document.getElementById('rule07').checked;
+    gameSettings.ruleMulti = document.getElementById('ruleMulti').checked;
+    gameSettings.maxPlayers = parseInt(document.getElementById('maxPlayersSelect').value);
+    document.getElementById('settingsScreen').classList.add('hidden');
+    document.getElementById('startScreen').classList.remove('hidden');
+}
 
-// --- UTILS ---
+// SIMBOLI
 const getSym = (v) => {
     if(v === "skip") return "🚫";
     if(v === "reverse") return "🔄";
@@ -22,50 +30,27 @@ const getSym = (v) => {
     return v;
 };
 
-function showToast(msg) {
-    const t = document.createElement("div");
-    t.style = "position:fixed; top:20px; background:#f1c40f; color:black; padding:10px 20px; border-radius:20px; font-weight:bold; z-index:1000;";
-    t.innerText = msg;
-    document.body.appendChild(t);
-    setTimeout(() => t.remove(), 2000);
-}
-
-// --- LOGICA LOGIN ---
+// LOGIN
 document.getElementById('loginBtn').onclick = () => {
     myNick = document.getElementById('nickInput').value.trim() || "Giocatore";
     document.getElementById('loginScreen').classList.add('hidden');
     document.getElementById('startScreen').classList.remove('hidden');
-    document.getElementById('welcomeText').innerText = "Ciao, " + myNick;
+    document.getElementById('welcomeText').innerText = "MasterUno: " + myNick;
 };
 
-// --- IMPOSTAZIONI ---
-document.getElementById('saveSettings').onclick = () => {
-    gameSettings.rule07 = document.getElementById('rule07').checked;
-    gameSettings.ruleMulti = document.getElementById('ruleMulti').checked;
-    gameSettings.maxPlayers = parseInt(document.getElementById('maxPlayersSelect').value);
-    closeSettings();
-    showToast("Regole Salvate!");
-};
-
-// --- AVVIO GIOCO E BOT ---
+// GIOCO
 document.getElementById('startGameBtn').onclick = () => {
     gameActive = true;
     createDeck();
     
-    // Creazione Giocatori (Umano + Bot)
     players = [{ nick: myNick, id: 'ME', hand: [] }];
     for(let i=1; i < gameSettings.maxPlayers; i++) {
-        players.push({ 
-            nick: "Bot " + i, 
-            id: 'BOT' + i, 
-            isBot: true, 
-            hand: drawCards(7) 
-        });
+        players.push({ nick: "Bot " + i, id: 'BOT'+i, isBot: true, hand: drawCards(7) });
     }
 
     playerHand = drawCards(7);
     topCard = deck.pop();
-    while(topCard.color === "wild") topCard = deck.pop(); // Evita carta nera all'inizio
+    while(topCard.value === "W" || topCard.value === "draw2") { topCard = deck.pop(); }
     currentColor = topCard.color;
 
     document.getElementById('startScreen').classList.add('hidden');
@@ -96,24 +81,19 @@ function drawCards(n) {
     return res;
 }
 
-// --- RENDERING ---
 function renderGame() {
-    // Tavolo Centrale
-    document.getElementById('discardPile').innerHTML = `
-        <div class="card ${currentColor}" data-symbol="${getSym(topCard.value)}">${getSym(topCard.value)}</div>
-    `;
+    // 1. Scarto e Mazzo
+    document.getElementById('discardPile').innerHTML = `<div class="card ${currentColor}" data-symbol="${getSym(topCard.value)}">${getSym(topCard.value)}</div>`;
     document.getElementById('deckArea').innerHTML = `<div class="card-back-deck" onclick="userDraw()">MAZZO</div>`;
 
-    // Bot (in alto)
+    // 2. Altri Giocatori
     const oppRow = document.getElementById('otherPlayers');
     oppRow.innerHTML = "";
     players.forEach(p => {
-        if(p.id !== 'ME') {
-            oppRow.innerHTML += `<div class="opp-badge">${p.nick}<br>🎴 ${p.hand.length}</div>`;
-        }
+        if(p.id !== 'ME') oppRow.innerHTML += `<div class="opp-badge">${p.nick}<br>🎴 ${p.hand.length}</div>`;
     });
 
-    // Tua Mano
+    // 3. Mia Mano
     const handDiv = document.getElementById('playerHand');
     handDiv.innerHTML = "";
     playerHand.forEach((c, i) => {
@@ -129,12 +109,11 @@ function renderGame() {
     document.getElementById('turnIndicator').innerText = isMyTurn ? "🟢 TOCCA A TE" : "🔴 TURNO DI " + players[currentPlayerIdx].nick;
 }
 
-// --- AZIONI ---
 function playCard(idx) {
     if(players[currentPlayerIdx].id !== 'ME') return;
     const card = playerHand[idx];
 
-    if(drawStack > 0 && card.value !== "draw2") return showToast("Devi rispondere al +2!");
+    if(drawStack > 0 && card.value !== "draw2") return;
 
     if(card.color === currentColor || card.value === topCard.value || card.color === "wild") {
         playerHand.splice(idx, 1);
@@ -146,8 +125,7 @@ function playCard(idx) {
         if(card.color === "wild") {
             document.getElementById('colorPicker').classList.remove('hidden');
         } else {
-            checkWin();
-            if(gameActive) nextTurn(card.value === "skip");
+            nextTurn(card.value === "skip");
         }
     }
 }
@@ -163,11 +141,9 @@ function nextTurn(skip = false) {
     currentPlayerIdx = (currentPlayerIdx + (skip ? 2 : 1)) % players.length;
     let p = players[currentPlayerIdx];
     
-    // Gestione +2
     if(drawStack > 0) {
         let pHand = (p.id === 'ME' ? playerHand : p.hand);
         if(!pHand.some(c => c.value === "draw2")) {
-            showToast(p.nick + " pesca +" + drawStack);
             pHand.push(...drawCards(drawStack));
             drawStack = 0;
             return nextTurn();
@@ -187,8 +163,7 @@ function botTurn() {
         topCard = card;
         currentColor = (card.color === "wild") ? "red" : card.color;
         if(card.value === "draw2") drawStack += 2;
-        checkWin();
-        if(gameActive) nextTurn(card.value === "skip");
+        nextTurn(card.value === "skip");
     } else {
         bot.hand.push(...drawCards(Math.max(1, drawStack)));
         drawStack = 0;
@@ -196,18 +171,10 @@ function botTurn() {
     }
 }
 
-function checkWin() {
-    let pHand = (players[currentPlayerIdx].id === 'ME') ? playerHand : players[currentPlayerIdx].hand;
-    if(pHand.length === 0) {
-        gameActive = false;
-        alert("🏆 HA VINTO " + players[currentPlayerIdx].nick + "!");
-        location.reload();
-    }
-}
-
 function setWildColor(c) {
     currentColor = c;
     document.getElementById('colorPicker').classList.add('hidden');
-    checkWin();
-    if(gameActive) nextTurn();
+    nextTurn();
 }
+
+window.sendChat = (m) => { console.log("Emoji: " + m); };
