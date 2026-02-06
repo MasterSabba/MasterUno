@@ -98,10 +98,24 @@ input { background: rgba(255,255,255,0.1); border: 2px solid #f1c40f !important;
 .wild, .wild4 { background: #2d3436; border-color: #f1c40f; }
 
 #centerArea { display: flex; gap: 30px; align-items: center; margin: 15px 0; }
+/* RETRO CARTA CON TESTO SPEZZATO */
 .card-back-classic { 
-    width: 85px; height: 120px; background: #000; border: 4px solid #fff; 
-    border-radius: 15px; color: #f1c40f; display: flex; align-items: center; 
-    justify-content: center; font-weight: 900; text-align: center; font-size: 11px; 
+    width: 85px; 
+    height: 120px; 
+    background: #000; 
+    border: 4px solid #fff; 
+    border-radius: 15px; 
+    color: #f1c40f; 
+    display: flex; 
+    flex-direction: column; /* Forza la disposizione verticale */
+    align-items: center; 
+    justify-content: center; 
+    font-weight: 900; 
+    text-align: center; 
+    font-size: 15px; /* Leggermente più grande per leggibilità */
+    line-height: 1.2; 
+    gap: 5px; /* Crea spazio tra MASTER e UNO */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
 
 /* --- ALERT E BOTTONI --- */
