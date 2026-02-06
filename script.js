@@ -64,12 +64,10 @@ window.setWildColor = (c) => {
 function finishAction() {
     renderGame();
     
-    // CONTROLLO VITTORIA (INVIO IMMEDIATO)
+    // CONTROLLO VITTORIA GIOCATORE
     if (playerHand.length === 0) { 
         gameActive = false;
-        if(isMultiplayer && conn && conn.open) {
-            conn.send({ type: 'GAME_OVER_LOSS' }); // Dico all'altro che lui ha perso
-        }
+        if(isMultiplayer && conn && conn.open) conn.send({ type: 'GAME_OVER_LOSS' });
         setTimeout(() => showEndScreen(true), 500);
         return; 
     }
@@ -92,6 +90,15 @@ function botTurn() {
         if (card.value === "draw2") drawStack += 2;
         if (card.value === "wild4") drawStack += 4;
         currentColor = card.color.includes("wild") ? colors[Math.floor(Math.random()*4)] : card.color;
+        
+        // --- FIX: CONTROLLO SE IL BOT HA VINTO ---
+        if (opponentHand.length === 0) {
+            renderGame();
+            gameActive = false;
+            setTimeout(() => showEndScreen(false), 500); // Mostra "HAI PERSO" a te
+            return;
+        }
+        
         finishAction();
     } else {
         if (drawStack > 0) { 
@@ -161,8 +168,9 @@ function setupChat() {
             if (d.plHand.length === 1) showToast("L'AVVERSARIO DICE: MASTERUNO! 🔥");
             playerHand = d.oppHand; opponentHand = d.plHand; topCard = d.top;
             currentColor = d.color; drawStack = d.stack; deck = d.deck; isMyTurn = d.turn; renderGame();
+            // Controllo vittoria passiva
+            if(opponentHand.length === 0) { gameActive = false; showEndScreen(false); }
         } else if (d.type === 'GAME_OVER_LOSS') {
-            // FIX: Quando ricevo questo, fermo tutto e mostro HAI PERSO
             gameActive = false;
             showEndScreen(false); 
         }
