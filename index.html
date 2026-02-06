@@ -13,8 +13,9 @@
     <div id="loginScreen">
         <div class="main-box">
             <h1 class="logo-title">MASTER UNO</h1>
-            <input type="text" id="nickInput" placeholder="Il tuo Nickname...">
-            <div id="loginBtn" class="btn-yellow">ENTRA</div>
+            <p>Inserisci il tuo nome per giocare</p>
+            <input type="text" id="nickInput" placeholder="Nickname obbligatorio..." maxlength="12">
+            <div id="loginBtn" class="btn-yellow">ENTRA NEL GIOCO</div>
         </div>
     </div>
 
@@ -22,33 +23,34 @@
         <div class="main-box">
             <div id="settingsBtn" class="settings-gear">⚙️</div>
             <h2 id="welcomeText"></h2>
+            
             <div class="menu-section">
                 <div id="myPeerId" class="peer-display">Generazione ID...</div>
                 <input type="text" id="copyHelper" style="position:absolute;left:-9999px">
-                <div id="copyBtn" class="btn-white">COPIA ID</div>
+                <div id="copyBtn" class="btn-white">COPIA IL TUO ID</div>
             </div>
+
             <div class="menu-section">
-                <input type="text" id="hostIdInput" placeholder="ID dell'Host per unirsi">
-                <div id="connectBtn" class="btn-white">UNISCITI A PARTITA</div>
+                <input type="text" id="hostIdInput" placeholder="Inserisci ID Host">
+                <div id="connectBtn" class="btn-white">CONNETTITI A AMICO</div>
             </div>
+
             <div id="statusText" class="status-info">Giocatori: 1/4</div>
-            <div id="startGameBtn" class="btn-yellow">INIZIA PARTITA (HOST)</div>
+            <div id="startGameBtn" class="btn-yellow">INIZIA PARTITA</div>
         </div>
     </div>
 
     <div id="settingsModal" class="hidden">
         <div class="main-box">
-            <h3>IMPOSTAZIONI</h3>
+            <h3>REGOLE PERSONALIZZATE</h3>
             <div class="rule-box">
-                <label><input type="checkbox" id="rule07"> Regola 0-7</label>
-                <p>Lo 0 ruota le mani, il 7 le scambia.</p>
+                <label><input type="checkbox" id="rule07"> Regola 0-7 (Scambio)</label>
             </div>
             <div class="rule-box">
                 <label><input type="checkbox" id="ruleMulti"> Combo Numeri</label>
-                <p>Lancia più carte dello stesso numero insieme.</p>
             </div>
             <div class="rule-box">
-                <label>Giocatori: 
+                <label>Max Giocatori: 
                     <select id="maxPlayersSelect">
                         <option value="2">2</option>
                         <option value="3">3</option>
@@ -56,12 +58,12 @@
                     </select>
                 </label>
             </div>
-            <div id="saveSettings" class="btn-yellow">SALVA</div>
+            <div id="saveSettings" class="btn-yellow">SALVA E CHIUDI</div>
         </div>
     </div>
 
     <div id="gameArea" class="hidden">
-        <div id="turnIndicator">CARICAMENTO...</div>
+        <div id="turnIndicator">ATTESA...</div>
         <div id="otherPlayers" class="opponents-row"></div>
         
         <div id="centerArea">
@@ -71,7 +73,7 @@
 
         <div class="player-zone">
             <div id="playerHand" class="hand"></div>
-            <div id="masterUnoBtn" class="hidden pulse">MASTER UNO!</div>
+            <button id="masterUnoBtn" class="hidden">MASTER UNO!</button>
         </div>
 
         <div id="chatBox">
@@ -98,8 +100,8 @@
 
     <div id="endScreen" class="hidden">
         <div class="main-box">
-            <h1 id="endTitle">PARTITA FINITA</h1>
-            <div class="btn-yellow" onclick="location.reload()">MENU PRINCIPALE</div>
+            <h1 id="endTitle">FINE</h1>
+            <div class="btn-yellow" onclick="location.reload()">NUOVA PARTITA</div>
         </div>
     </div>
 
