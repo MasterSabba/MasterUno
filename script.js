@@ -63,18 +63,14 @@ window.setWildColor = (c) => {
 
 function finishAction() {
     renderGame();
-    
-    // CONTROLLO VITTORIA GIOCATORE
     if (playerHand.length === 0) { 
         gameActive = false;
         if(isMultiplayer && conn && conn.open) conn.send({ type: 'GAME_OVER_LOSS' });
         setTimeout(() => showEndScreen(true), 500);
         return; 
     }
-    
     let skip = (topCard.value === "skip" || topCard.value === "reverse") && drawStack === 0;
     if (!skip) isMyTurn = !isMyTurn;
-    
     if (isMultiplayer && conn) sendMove();
     else if (!isMyTurn) setTimeout(botTurn, 1200);
     renderGame();
@@ -90,15 +86,12 @@ function botTurn() {
         if (card.value === "draw2") drawStack += 2;
         if (card.value === "wild4") drawStack += 4;
         currentColor = card.color.includes("wild") ? colors[Math.floor(Math.random()*4)] : card.color;
-        
-        // --- FIX: CONTROLLO SE IL BOT HA VINTO ---
         if (opponentHand.length === 0) {
             renderGame();
             gameActive = false;
-            setTimeout(() => showEndScreen(false), 500); // Mostra "HAI PERSO" a te
+            setTimeout(() => showEndScreen(false), 500);
             return;
         }
-        
         finishAction();
     } else {
         if (drawStack > 0) { 
@@ -132,8 +125,14 @@ function renderGame() {
     const vTop = (topCard.value === "draw2" ? "+2" : topCard.value === "wild4" ? "+4" : topCard.value === "skip" ? "Ø" : topCard.value === "reverse" ? "⇄" : topCard.value);
     discard.innerHTML = `<div class="card ${currentColor}" data-val="${vTop}">${vTop}</div>`;
     
+    // FIX: TASTO MASTER UNO SOLO SE HAI CARTE GIOCABILI
+    const hasPlayableCard = playerHand.some(card => isValidMove(card));
     const btnUno = document.getElementById("masterUnoBtn");
-    btnUno.classList.toggle("hidden", !(playerHand.length === 2 && isMyTurn && gameActive));
+    if (playerHand.length === 2 && isMyTurn && gameActive && hasPlayableCard) {
+        btnUno.classList.remove("hidden");
+    } else {
+        btnUno.classList.add("hidden");
+    }
 }
 
 // --- AZIONI MAZZO ---
@@ -168,7 +167,6 @@ function setupChat() {
             if (d.plHand.length === 1) showToast("L'AVVERSARIO DICE: MASTERUNO! 🔥");
             playerHand = d.oppHand; opponentHand = d.plHand; topCard = d.top;
             currentColor = d.color; drawStack = d.stack; deck = d.deck; isMyTurn = d.turn; renderGame();
-            // Controllo vittoria passiva
             if(opponentHand.length === 0) { gameActive = false; showEndScreen(false); }
         } else if (d.type === 'GAME_OVER_LOSS') {
             gameActive = false;
