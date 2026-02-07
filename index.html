@@ -3,76 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MasterUno Ultimate</title>
+    <title>MasterUno Pro</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 </head>
 <body>
 
     <div id="loginScreen" class="screen">
         <div class="main-box">
             <h1 class="logo">MASTER UNO</h1>
-            <input type="text" id="nickInput" placeholder="Inserisci il tuo nome...">
-            <button class="btn-yellow" onclick="app.handleLogin()">ENTRA NEL GIOCO</button>
+            <input type="text" id="nickInput" placeholder="Inserisci il tuo Nick...">
+            <button class="btn-main" onclick="game.login()">ENTRA</button>
         </div>
     </div>
 
-    <div id="startScreen" class="screen hidden">
+    <div id="menuScreen" class="screen hidden">
         <div class="main-box">
             <h2 id="welcomeText"></h2>
-            <button class="btn-yellow" onclick="app.showSettings()">IMPOSTAZIONI</button>
-            <button class="btn-yellow" onclick="app.startGame()">INIZIA PARTITA</button>
+            <p id="myPeerId" class="peer-code"></p>
+            <button class="btn-main" onclick="game.startGame()">GIOCA ORA</button>
+            <button class="btn-sub" onclick="game.goTo('settingsScreen')">IMPOSTAZIONI</button>
+            <div class="multi-zone">
+                <input type="text" id="joinId" placeholder="ID Amico...">
+                <button class="btn-sub" onclick="game.connectToPeer()">CONNETTI</button>
+            </div>
         </div>
     </div>
 
     <div id="settingsScreen" class="screen hidden">
         <div class="main-box">
-            <h3>REGOLE</h3>
-            <div class="setting-row">
-                <label>Numero di Bot:</label>
-                <select id="botCount">
+            <h2 class="logo">REGOLE</h2>
+            <div class="setting-item">
+                <label>Bot:</label>
+                <select id="botSelect">
                     <option value="1">1 Bot</option>
                     <option value="2">2 Bot</option>
                     <option value="3" selected>3 Bot</option>
                 </select>
             </div>
-            <div class="setting-row">
-                <label>Regola 0-7: <input type="checkbox" id="rule07Check"></label>
+            <div class="setting-item">
+                <label>Regola 0-7:</label>
+                <input type="checkbox" id="rule07Check">
             </div>
-            <button class="btn-yellow" onclick="app.saveSettings()">SALVA E TORNA</button>
+            <button class="btn-main" onclick="game.saveSettings()">SALVA</button>
         </div>
     </div>
 
     <div id="gameArea" class="screen hidden">
-        <div id="turnIndicator">CARICAMENTO...</div>
-        
-        <div id="otherPlayers" class="opponents-row"></div>
-        
-        <div id="centerArea">
-            <div id="deckArea" class="card card-back" onclick="app.userDraw()">
-                <span>MAZZO</span>
-            </div>
-            <div id="discardPile"></div>
+        <div id="statusInfo">TOCCA A TE</div>
+
+        <div id="playerTop" class="player-slot pos-top"></div>
+        <div id="playerLeft" class="player-slot pos-left"></div>
+        <div id="playerRight" class="player-slot pos-right"></div>
+
+        <div class="table-center">
+            <div id="directionIndicator" class="dir-cw"></div>
+            <div id="deck" class="card-back" onclick="game.userDraw()">MAZZO</div>
+            <div id="discard"></div>
         </div>
 
-        <div class="player-zone">
+        <div class="player-bottom">
             <div class="emoji-bar">
-                <span onclick="app.toast('😂')">😂</span>
-                <span onclick="app.toast('🤫')">🤫</span>
-                <span onclick="app.toast('🔥')">🔥</span>
+                <span onclick="game.toast('🔥')">🔥</span>
+                <span onclick="game.toast('😂')">😂</span>
+                <span onclick="game.toast('🃏')">🃏</span>
             </div>
-            <div id="playerHand" class="hand"></div>
+            <div id="myHand" class="hand"></div>
         </div>
     </div>
 
-    <div id="colorPicker" class="screen hidden" style="background:rgba(0,0,0,0.9); z-index:1000;">
-        <div class="main-box">
-            <h3>SCEGLI COLORE</h3>
-            <div class="color-grid">
-                <div onclick="app.setWildColor('red')" class="c-btn" style="background:#c0392b"></div>
-                <div onclick="app.setWildColor('blue')" class="c-btn" style="background:#2980b9"></div>
-                <div onclick="app.setWildColor('green')" class="c-btn" style="background:#27ae60"></div>
-                <div onclick="app.setWildColor('yellow')" class="c-btn" style="background:#f1c40f"></div>
-            </div>
+    <div id="colorPicker" class="overlay hidden">
+        <div class="picker-grid">
+            <div onclick="game.setWildColor('red')" class="c-choice red"></div>
+            <div onclick="game.setWildColor('blue')" class="c-choice blue"></div>
+            <div onclick="game.setWildColor('green')" class="c-choice green"></div>
+            <div onclick="game.setWildColor('yellow')" class="c-choice yellow"></div>
         </div>
     </div>
 
