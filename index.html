@@ -9,10 +9,12 @@
 </head>
 <body>
 
+    <div id="toast" class="toast hidden"></div>
+
     <div id="loginScreen" class="screen">
         <div class="main-box">
             <h1 class="logo">MASTER UNO</h1>
-            <input type="text" id="nickInput" placeholder="Inserisci il tuo Nick...">
+            <input type="text" id="nickInput" placeholder="Tuo Nick...">
             <button class="btn-main" onclick="game.login()">ENTRA</button>
         </div>
     </div>
@@ -20,55 +22,39 @@
     <div id="menuScreen" class="screen hidden">
         <div class="main-box">
             <h2 id="welcomeText"></h2>
-            <p id="myPeerId" class="peer-code"></p>
-            <button class="btn-main" onclick="game.startGame()">GIOCA ORA</button>
+            <div class="peer-box" onclick="game.copyId()">
+                <span>ID: </span><b id="myPeerIdDisplay">---</b>
+                <small>(Clicca per copiare)</small>
+            </div>
+            <button class="btn-main" onclick="game.startGame()">GIOCA CONTRO BOT</button>
             <button class="btn-sub" onclick="game.goTo('settingsScreen')">IMPOSTAZIONI</button>
-            <div class="multi-zone">
-                <input type="text" id="joinId" placeholder="ID Amico...">
-                <button class="btn-sub" onclick="game.connectToPeer()">CONNETTI</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="settingsScreen" class="screen hidden">
-        <div class="main-box">
-            <h2 class="logo">REGOLE</h2>
-            <div class="setting-item">
-                <label>Bot:</label>
-                <select id="botSelect">
-                    <option value="1">1 Bot</option>
-                    <option value="2">2 Bot</option>
-                    <option value="3" selected>3 Bot</option>
-                </select>
-            </div>
-            <div class="setting-item">
-                <label>Regola 0-7:</label>
-                <input type="checkbox" id="rule07Check">
-            </div>
-            <button class="btn-main" onclick="game.saveSettings()">SALVA</button>
         </div>
     </div>
 
     <div id="gameArea" class="screen hidden">
         <div id="statusInfo">TOCCA A TE</div>
-
+        
         <div id="playerTop" class="player-slot pos-top"></div>
         <div id="playerLeft" class="player-slot pos-left"></div>
         <div id="playerRight" class="player-slot pos-right"></div>
 
         <div class="table-center">
-            <div id="directionIndicator" class="dir-cw"></div>
-            <div id="deck" class="card-back" onclick="game.userDraw()">MAZZO</div>
+            <div id="directionIndicator"></div>
+            <div id="deck" class="card card-back deck-hover" onclick="game.userDraw()">
+                <div class="card-logo">MASTER<span>UNO</span></div>
+            </div>
             <div id="discard"></div>
         </div>
 
         <div class="player-bottom">
-            <div class="emoji-bar">
-                <span onclick="game.toast('🔥')">🔥</span>
-                <span onclick="game.toast('😂')">😂</span>
-                <span onclick="game.toast('🃏')">🃏</span>
-            </div>
             <div id="myHand" class="hand"></div>
+        </div>
+    </div>
+
+    <div id="winScreen" class="screen hidden">
+        <div class="main-box">
+            <h1 id="winMessage">HAI VINTO!</h1>
+            <button class="btn-main" onclick="location.reload()">TORNA AL MENU</button>
         </div>
     </div>
 
