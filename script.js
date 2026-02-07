@@ -1,182 +1,177 @@
-const app = {
+const game = {
     state: {
-        nick: "", players: [], deck: [], hand: [], top: null, 
-        color: "", turn: 0, stack: 0, active: false,
-        settings: { bots: 3, rule07: false }
+        nick: "", players: [], deck: [], discard: null,
+        color: "", turn: 0, dir: 1, stack: 0, 
+        rule07: false, botCount: 3
     },
 
-    // Navigazione
-    screen(id) {
+    login() {
+        const val = document.getElementById('nickInput').value.trim();
+        if(val.length < 2) return alert("Inserisci un nome!");
+        this.state.nick = val;
+        document.getElementById('welcomeText').innerText = "Ciao, " + val;
+        this.goTo('menuScreen');
+    },
+
+    goTo(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
         document.getElementById(id).classList.remove('hidden');
     },
 
-    handleLogin() {
-        this.state.nick = document.getElementById('nickInput').value || "Giocatore";
-        document.getElementById('welcomeText').innerText = "Ciao, " + this.state.nick;
-        this.screen('startScreen');
-    },
-
-    showSettings() { this.screen('settingsScreen'); },
-    
     saveSettings() {
-        this.state.settings.bots = parseInt(document.getElementById('botCount').value);
-        this.state.settings.rule07 = document.getElementById('rule07Check').checked;
-        this.screen('startScreen');
+        this.state.botCount = parseInt(document.getElementById('botSelect').value);
+        this.state.rule07 = document.getElementById('rule07Check').checked;
+        this.goTo('menuScreen');
     },
 
-    // Logica Core
     startGame() {
-        this.state.active = true;
-        this.createDeck();
-        this.state.players = [{ n: this.state.nick, h: [], bot: false }];
-        for(let i=0; i<this.state.settings.bots; i++) {
-            this.state.players.push({ n: "Bot "+(i+1), h: this.draw(7), bot: true });
+        this.state.players = [{ id: 'ME', name: this.state.nick, hand: [], bot: false }];
+        for(let i=1; i <= this.state.botCount; i++) {
+            this.state.players.push({ id: 'B'+i, name: 'Bot '+i, hand: [], bot: true });
         }
-        this.state.hand = this.draw(7);
-        this.state.top = this.state.deck.pop();
-        while(this.state.top.c === 'wild') this.state.top = this.state.deck.pop();
-        this.state.color = this.state.top.c;
+        this.initGame();
+    },
+
+    initGame() {
+        this.createDeck();
+        this.state.players.forEach(p => p.hand = this.draw(7));
+        this.state.discard = this.state.deck.pop();
+        while(this.state.discard.c === 'wild') this.state.discard = this.state.deck.pop();
+        this.state.color = this.state.discard.c;
         this.state.turn = 0;
-        this.screen('gameArea');
+        this.state.dir = 1;
+        this.state.stack = 0;
+        this.goTo('gameArea');
         this.render();
     },
 
     createDeck() {
-        this.state.deck = [];
         const cols = ['red', 'blue', 'green', 'yellow'];
         const vals = ['0','1','2','3','4','5','6','7','8','9','skip','reverse','draw2'];
+        this.state.deck = [];
         cols.forEach(c => vals.forEach(v => {
-            this.state.deck.push({c, v}); 
-            if(v !== '0') this.state.deck.push({c, v});
+            this.state.deck.push({c, v}); this.state.deck.push({c, v});
         }));
         for(let i=0; i<4; i++) this.state.deck.push({c:'wild', v:'W'});
         this.state.deck.sort(() => Math.random() - 0.5);
     },
 
     draw(n) {
-        let res = [];
+        let cards = [];
         for(let i=0; i<n; i++) {
             if(this.state.deck.length === 0) this.createDeck();
-            res.push(this.state.deck.pop());
+            cards.push(this.state.deck.pop());
         }
-        return res;
-    },
-
-    getSymbol(v) {
-        if(v === 'skip') return '🚫';
-        if(v === 'reverse') return '🔄';
-        if(v === 'draw2') return '+2';
-        return v;
+        return cards;
     },
 
     render() {
-        // Scarto
-        document.getElementById('discardPile').innerHTML = `
-            <div class="card ${this.state.color}" data-symbol="${this.getSymbol(this.state.top.v)}">${this.getSymbol(this.state.top.v)}</div>
-        `;
-        
-        // Bot
-        const ops = document.getElementById('otherPlayers');
-        ops.innerHTML = "";
+        document.getElementById('discard').innerHTML = `<div class="card ${this.state.color}">${this.getSym(this.state.discard.v)}</div>`;
+        document.getElementById('directionIndicator').className = this.state.dir === 1 ? 'dir-cw' : 'dir-ccw';
+
+        const slots = ['playerTop', 'playerLeft', 'playerRight'];
+        let sIdx = 0;
         this.state.players.forEach((p, i) => {
-            if(i !== 0) ops.innerHTML += `<div class="badge">${p.n}<br>🎴 ${p.h.length}</div>`;
+            if(i === 0) return;
+            const el = document.getElementById(slots[sIdx++]);
+            el.innerHTML = `<b>${p.name}</b><br>🎴 ${p.hand.length}`;
+            el.style.borderColor = (this.state.turn === i) ? 'white' : 'var(--gold)';
         });
 
-        // Mano Umana
-        const hDiv = document.getElementById('playerHand');
-        hDiv.innerHTML = "";
-        this.state.hand.forEach((c, i) => {
-            const d = document.createElement('div');
-            d.className = `card ${c.c}`;
-            const s = this.getSymbol(c.v);
-            d.setAttribute('data-symbol', s);
-            d.innerText = s;
-            d.onclick = () => this.play(i);
-            hDiv.appendChild(d);
+        const handEl = document.getElementById('myHand');
+        handEl.innerHTML = "";
+        this.state.players[0].hand.forEach((c, i) => {
+            const div = document.createElement('div');
+            div.className = `card ${c.c}`;
+            div.innerText = this.getSym(c.v);
+            div.onclick = () => this.playCard(i);
+            handEl.appendChild(div);
         });
 
-        const turnInfo = this.state.players[this.state.turn];
-        document.getElementById('turnIndicator').innerText = this.state.turn === 0 ? "🟢 IL TUO TURNO" : "🔴 TURNO DI " + turnInfo.n;
+        document.getElementById('statusInfo').innerText = (this.state.turn === 0) ? "TOCCA A TE" : "TURNO DI " + this.state.players[this.state.turn].name;
     },
 
-    play(i) {
+    playCard(idx) {
         if(this.state.turn !== 0) return;
-        const card = this.state.hand[i];
-        
+        const card = this.state.players[0].hand[idx];
         if(this.state.stack > 0 && card.v !== 'draw2') return;
+        if(card.c === this.state.color || card.v === this.state.discard.v || card.c === 'wild') {
+            this.state.players[0].hand.splice(idx, 1);
+            this.processMove(card);
+        }
+    },
 
-        if(card.c === this.state.color || card.v === this.state.top.v || card.c === 'wild') {
-            this.state.hand.splice(i, 1);
-            this.state.top = card;
-            this.state.color = card.c;
-            
-            if(card.v === 'draw2') this.state.stack += 2;
-            
-            if(this.state.hand.length === 0) return this.win(this.state.nick);
+    processMove(card) {
+        this.state.discard = card;
+        this.state.color = card.c;
+        if(card.v === 'draw2') this.state.stack += 2;
+        if(card.v === 'reverse') this.state.dir *= -1;
+        
+        // Regola 0-7
+        if(this.state.rule07) {
+            if(card.v === '0') this.swapAllMani();
+            if(card.v === '7') this.swapWithBot();
+        }
 
-            if(card.c === 'wild') {
-                document.getElementById('colorPicker').classList.remove('hidden');
-            } else {
-                this.next(card.v === 'skip');
+        if(card.c === 'wild') {
+            document.getElementById('colorPicker').classList.remove('hidden');
+        } else {
+            this.nextTurn(card.v === 'skip');
+        }
+    },
+
+    nextTurn(skip) {
+        const n = this.state.players.length;
+        this.state.turn = (this.state.turn + (skip?2:1)*this.state.dir + n) % n;
+        
+        if(this.state.stack > 0) {
+            const p = this.state.players[this.state.turn];
+            if(!p.hand.some(c => c.v === 'draw2')) {
+                p.hand.push(...this.draw(this.state.stack));
+                this.state.stack = 0;
+                return this.nextTurn();
             }
+        }
+        this.render();
+        if(this.state.players[this.state.turn].bot) setTimeout(() => this.botTurn(), 1200);
+    },
+
+    botTurn() {
+        const b = this.state.players[this.state.turn];
+        let idx = b.hand.findIndex(c => (this.state.stack > 0 ? c.v === 'draw2' : (c.c === this.state.color || c.v === this.state.discard.v || c.c === 'wild')));
+        if(idx !== -1) {
+            const card = b.hand.splice(idx, 1)[0];
+            if(card.c === 'wild') card.c = ['red','blue','green','yellow'][Math.floor(Math.random()*4)];
+            this.processMove(card);
+        } else {
+            b.hand.push(...this.draw(this.state.stack || 1));
+            this.state.stack = 0;
+            this.nextTurn();
         }
     },
 
     userDraw() {
         if(this.state.turn !== 0) return;
-        this.state.hand.push(...this.draw(this.state.stack || 1));
+        this.state.players[0].hand.push(...this.draw(this.state.stack || 1));
         this.state.stack = 0;
-        this.next();
+        this.nextTurn();
     },
 
-    next(skip = false) {
-        this.state.turn = (this.state.turn + (skip ? 2 : 1)) % this.state.players.length;
-        this.render();
-        
-        let p = this.state.players[this.state.turn];
-        if(this.state.stack > 0) {
-            let currentHand = p.bot ? p.h : this.state.hand;
-            if(!currentHand.some(c => c.v === 'draw2')) {
-                currentHand.push(...this.draw(this.state.stack));
-                this.state.stack = 0;
-                return this.next();
-            }
-        }
-
-        if(p.bot) setTimeout(() => this.botTurn(), 1200);
+    swapAllMani() {
+        const hands = this.state.players.map(p => p.hand);
+        if(this.state.dir === 1) hands.unshift(hands.pop());
+        else hands.push(hands.shift());
+        this.state.players.forEach((p, i) => p.hand = hands[i]);
     },
 
-    botTurn() {
-        let b = this.state.players[this.state.turn];
-        let i = b.h.findIndex(c => (this.state.stack > 0 ? c.v === 'draw2' : (c.c === this.state.color || c.v === this.state.top.v || c.c === 'wild')));
-        
-        if(i !== -1) {
-            let card = b.h.splice(i, 1)[0];
-            this.state.top = card;
-            this.state.color = card.c === 'wild' ? 'red' : card.c;
-            if(card.v === 'draw2') this.state.stack += 2;
-            if(b.h.length === 0) return this.win(b.n);
-            this.next(card.v === 'skip');
-        } else {
-            b.h.push(...this.draw(this.state.stack || 1));
-            this.state.stack = 0;
-            this.next();
-        }
+    swapWithBot() {
+        const targetIdx = 1;
+        let temp = this.state.players[0].hand;
+        this.state.players[0].hand = this.state.players[targetIdx].hand;
+        this.state.players[targetIdx].hand = temp;
     },
 
-    setWildColor(c) {
-        this.state.color = c;
-        document.getElementById('colorPicker').classList.add('hidden');
-        this.next();
-    },
-
-    win(name) {
-        alert("🏆 " + name + " HA VINTO!");
-        location.reload();
-    },
-
-    toast(m) {
-        console.log("Emoji: " + m);
-    }
+    getSym: (v) => (v==='draw2'?'+2':v==='skip'?'🚫':v==='reverse'?'🔄':v==='W'?'🎨':v),
+    setWildColor(c) { this.state.color = c; document.getElementById('colorPicker').classList.add('hidden'); this.nextTurn(); },
+    toast(m) { console.log("Emoji: " + m); }
 };
