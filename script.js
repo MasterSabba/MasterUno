@@ -1,7 +1,8 @@
 const game = {
     state: {
         nick: "", players: [], deck: [], discard: null,
-        color: "", turn: 0, dir: 1, stack: 0, active: false
+        color: "", turn: 0, dir: 1, stack: 0, 
+        rule07: false, botCount: 3
     },
 
     login() {
@@ -9,20 +10,18 @@ const game = {
         if(val.length < 2) return this.notify("Nome troppo corto!");
         this.state.nick = val;
         document.getElementById('welcomeText').innerText = "Ciao, " + val;
-        document.getElementById('myPeerIdDisplay').innerText = val + "_" + Math.floor(Math.random()*999);
+        document.getElementById('myPeerIdDisplay').innerText = val.toUpperCase();
         this.goTo('menuScreen');
     },
 
     notify(msg) {
         const t = document.getElementById('toast');
-        t.innerText = msg;
-        t.classList.remove('hidden');
+        t.innerText = msg; t.classList.remove('hidden');
         setTimeout(() => t.classList.add('hidden'), 2000);
     },
 
     copyId() {
-        const id = document.getElementById('myPeerIdDisplay').innerText;
-        navigator.clipboard.writeText(id);
+        navigator.clipboard.writeText(document.getElementById('myPeerIdDisplay').innerText);
         this.notify("ID Copiato!");
     },
 
@@ -31,9 +30,16 @@ const game = {
         document.getElementById(id).classList.remove('hidden');
     },
 
+    saveSettings() {
+        this.state.botCount = parseInt(document.getElementById('botSelect').value);
+        this.state.rule07 = document.getElementById('rule07Check').checked;
+        this.notify("Impostazioni Salvate!");
+        this.goTo('menuScreen');
+    },
+
     startGame() {
         this.state.players = [{ name: this.state.nick, hand: [], bot: false }];
-        for(let i=1; i <= 3; i++) {
+        for(let i=1; i <= this.state.botCount; i++) {
             this.state.players.push({ name: 'Bot '+i, hand: [], bot: true });
         }
         this.initGame();
@@ -73,25 +79,25 @@ const game = {
     },
 
     render() {
-        // Scarto
         document.getElementById('discard').innerHTML = `<div class="card ${this.state.color}">${this.getSym(this.state.discard.v)}</div>`;
         
-        // Bot (Carte coperte con logo)
         const slots = ['playerTop', 'playerLeft', 'playerRight'];
         let sIdx = 0;
+        
+        // Reset slot Bot
+        slots.forEach(s => document.getElementById(s).innerHTML = "");
+
         this.state.players.forEach((p, i) => {
             if(i === 0) return;
             const el = document.getElementById(slots[sIdx++]);
-            let cardsHtml = '<div class="bot-card-stack">';
-            for(let j=0; j < Math.min(p.hand.length, 5); j++) {
-                cardsHtml += `<div class="mini-card card-back"><div class="card-logo" style="font-size:4px">M<span>U</span></div></div>`;
-            }
-            cardsHtml += '</div>';
-            el.innerHTML = `<b>${p.name}</b><br>🎴 ${p.hand.length}${cardsHtml}`;
-            el.style.borderColor = (this.state.turn === i) ? 'white' : 'var(--gold)';
+            if(!el) return;
+            el.innerHTML = `
+                <div class="bot-badge">${p.name} - ${p.hand.length} Carte</div>
+                <div class="card card-back"><div class="card-logo">MASTER<span>UNO</span></div></div>
+            `;
+            el.style.opacity = (this.state.turn === i) ? "1" : "0.6";
         });
 
-        // Mia Mano
         const handEl = document.getElementById('myHand');
         handEl.innerHTML = "";
         this.state.players[0].hand.forEach((c, i) => {
@@ -109,7 +115,6 @@ const game = {
         if(this.state.turn !== 0) return;
         const card = this.state.players[0].hand[idx];
         if(this.state.stack > 0 && card.v !== 'draw2') return this.notify("Devi rispondere al +2!");
-        
         if(card.c === this.state.color || card.v === this.state.discard.v || card.c === 'wild') {
             this.state.players[0].hand.splice(idx, 1);
             this.processMove(card);
@@ -122,16 +127,18 @@ const game = {
         if(card.v === 'draw2') this.state.stack += 2;
         if(card.v === 'reverse') this.state.dir *= -1;
 
+        if(this.state.rule07) {
+            if(card.v === '0') this.rule0();
+            if(card.v === '7') this.rule7();
+        }
+
         if(this.state.players[this.state.turn].hand.length === 0) {
-            document.getElementById('winMessage').innerText = this.state.players[this.state.turn].bot ? "HA VINTO " + this.state.players[this.state.turn].name : "HAI VINTO!";
+            document.getElementById('winMessage').innerText = this.state.players[this.state.turn].bot ? "VINCE " + this.state.players[this.state.turn].name : "HAI VINTO!";
             return this.goTo('winScreen');
         }
 
-        if(card.c === 'wild') {
-            document.getElementById('colorPicker').classList.remove('hidden');
-        } else {
-            this.nextTurn(card.v === 'skip');
-        }
+        if(card.c === 'wild') document.getElementById('colorPicker').classList.remove('hidden');
+        else this.nextTurn(card.v === 'skip');
     },
 
     nextTurn(skip) {
@@ -142,7 +149,7 @@ const game = {
             const p = this.state.players[this.state.turn];
             if(!p.hand.some(c => c.v === 'draw2')) {
                 p.hand.push(...this.draw(this.state.stack));
-                this.notify(p.name + " pesca " + this.state.stack + " carte!");
+                this.notify(p.name + " pesca " + this.state.stack + "!");
                 this.state.stack = 0;
                 return this.nextTurn();
             }
@@ -170,6 +177,20 @@ const game = {
         this.state.players[0].hand.push(...this.draw(this.state.stack || 1));
         this.state.stack = 0;
         this.nextTurn();
+    },
+
+    rule0() {
+        const hands = this.state.players.map(p => p.hand);
+        if(this.state.dir === 1) hands.unshift(hands.pop()); else hands.push(hands.shift());
+        this.state.players.forEach((p, i) => p.hand = hands[i]);
+        this.notify("Mani Scambiate!");
+    },
+
+    rule7() {
+        let h0 = this.state.players[0].hand;
+        this.state.players[0].hand = this.state.players[1].hand;
+        this.state.players[1].hand = h0;
+        this.notify("Scambio con Bot 1!");
     },
 
     getSym: (v) => (v==='draw2'?'+2':v==='skip'?'🚫':v==='reverse'?'🔄':v==='W'?'🎨':v),
