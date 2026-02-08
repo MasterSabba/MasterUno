@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MasterUno Pro</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 </head>
 <body>
 
@@ -23,8 +24,13 @@
             <h2 id="welcomeText"></h2>
             <div class="peer-box" onclick="game.copyId()">
                 ID: <b id="myPeerIdDisplay">---</b>
+                <br><small>(Tocca per copiare)</small>
             </div>
             <button class="btn-main" onclick="game.startGame()">GIOCA ORA</button>
+            <div class="multi-zone">
+                <input type="text" id="joinId" placeholder="Inserisci ID Amico...">
+                <button class="btn-sub" onclick="game.connectToPeer()">CONNETTI AMICO</button>
+            </div>
             <button class="btn-sub" onclick="game.goTo('settingsScreen')">IMPOSTAZIONI</button>
         </div>
     </div>
@@ -33,11 +39,11 @@
         <div class="main-box">
             <h2 class="logo">REGOLE</h2>
             <div class="setting-item">
-                <label>Bot:</label>
-                <select id="botSelect">
-                    <option value="1">1 Bot</option>
-                    <option value="2">2 Bot</option>
-                    <option value="3" selected>3 Bot</option>
+                <label>Giocatori Totali:</label>
+                <select id="playerLimit">
+                    <option value="2">2 Giocatori</option>
+                    <option value="3">3 Giocatori</option>
+                    <option value="4" selected>4 Giocatori</option>
                 </select>
             </div>
             <div class="setting-item">
@@ -49,14 +55,14 @@
     </div>
 
     <div id="gameArea" class="screen hidden">
-        <div id="statusInfo">CARICAMENTO...</div>
+        <div id="statusInfo">TURNO DI...</div>
         
         <div id="playerTop" class="player-slot pos-top"></div>
         <div id="playerLeft" class="player-slot pos-left"></div>
         <div id="playerRight" class="player-slot pos-right"></div>
 
         <div class="table-center">
-            <div id="directionIndicator"></div>
+            <div id="directionIndicator" class="dir-cw"></div>
             <div id="deck" class="card card-back" onclick="game.userDraw()">
                 <div class="card-logo">MASTER<span>UNO</span></div>
             </div>
