@@ -1,14 +1,15 @@
 const game = {
     peer: null,
     conn: null,
+    isHost: false,
     state: {
         nick: "", myId: "", players: [], deck: [], discard: null,
-        color: "", turn: 0, dir: 1, stack: 0, rule07: false, playerLimit: 4
+        color: "", turn: 0, dir: 1, stack: 0, playerLimit: 4
     },
 
     login() {
         const val = document.getElementById('nickInput').value.trim();
-        if(val.length < 2) return;
+        if(val.length < 2) return this.notify("Nome troppo corto!");
         this.state.nick = val;
         this.state.myId = val + "_" + Math.floor(1000 + Math.random() * 9000);
         document.getElementById('welcomeText').innerText = "Ciao, " + val;
@@ -17,15 +18,17 @@ const game = {
         this.peer = new Peer(this.state.myId);
         this.peer.on('connection', (c) => {
             this.conn = c;
-            this.setupConn();
-            this.notify("Amico connesso!");
+            this.isHost = true;
+            this.setupConnection();
+            this.notify("Amico Connesso!");
         });
+
         this.goTo('menuScreen');
     },
 
-    setupConn() {
+    setupConnection() {
         this.conn.on('data', (data) => {
-            if(data.type === 'START') {
+            if(data.type === 'SYNC') {
                 this.state = data.state;
                 this.goTo('gameArea');
                 this.render();
@@ -34,39 +37,38 @@ const game = {
     },
 
     connectToPeer() {
-        const id = document.getElementById('joinId').value.trim();
-        this.conn = this.peer.connect(id);
-        this.setupConn();
+        const targetId = document.getElementById('joinId').value.trim();
+        if(!targetId) return;
+        this.conn = this.peer.connect(targetId);
+        this.isHost = false;
+        this.setupConnection();
         this.notify("Connessione...");
     },
 
     startGame() {
-        // Creazione giocatori: Tu + Amico (se c'è) + Bot mancanti
+        // Logica Giocatori
         this.state.players = [{ name: this.state.nick, hand: [], isBot: false }];
         
         if(this.conn) {
-            this.state.players.push({ name: this.conn.peer.split('_')[0], hand: [], isBot: false });
+            this.state.players.push({ name: "Amico", hand: [], isBot: false });
         }
 
         while(this.state.players.length < this.state.playerLimit) {
             this.state.players.push({ name: 'Bot ' + this.state.players.length, hand: [], isBot: true });
         }
 
-        this.initGame();
-
-        // Invia comando di inizio all'amico
-        if(this.conn) {
-            this.conn.send({ type: 'START', state: this.state });
-        }
-    },
-
-    initGame() {
         this.createDeck();
         this.state.players.forEach(p => p.hand = this.draw(7));
         this.state.discard = this.state.deck.pop();
         this.state.color = this.state.discard.c;
         this.state.turn = 0;
         this.state.dir = 1;
+
+        // Se c'è un amico, mandagli i dati
+        if(this.conn) {
+            this.conn.send({ type: 'SYNC', state: this.state });
+        }
+
         this.goTo('gameArea');
         this.render();
     },
@@ -93,15 +95,16 @@ const game = {
     },
 
     render() {
+        // Tavolo centrale
         document.getElementById('discard').innerHTML = `<div class="card ${this.state.color}">${this.getSym(this.state.discard.v)}</div>`;
+        
+        // Bot/Amici
         const slots = ['playerTop', 'playerLeft', 'playerRight'];
         let sIdx = 0;
-        
-        // Pulizia slot
         slots.forEach(s => document.getElementById(s).innerHTML = "");
 
         this.state.players.forEach((p, i) => {
-            if(i === 0) return;
+            if(i === 0) return; // Salta il giocatore locale
             const el = document.getElementById(slots[sIdx++]);
             if(!el) return;
             el.innerHTML = `
@@ -111,6 +114,7 @@ const game = {
             el.style.opacity = (this.state.turn === i) ? "1" : "0.5";
         });
 
+        // Mia Mano
         const handEl = document.getElementById('myHand');
         handEl.innerHTML = "";
         this.state.players[0].hand.forEach((c, i) => {
@@ -120,6 +124,7 @@ const game = {
             div.onclick = () => this.playCard(i);
             handEl.appendChild(div);
         });
+
         document.getElementById('statusInfo').innerText = (this.state.turn === 0) ? "TOCCA A TE" : "TURNO DI " + this.state.players[this.state.turn].name;
     },
 
@@ -137,9 +142,9 @@ const game = {
         this.state.color = (card.c === 'wild') ? this.state.color : card.c;
         if(card.v === 'reverse') this.state.dir *= -1;
         if(card.v === 'draw2') this.state.stack += 2;
-        
+
         if(this.state.players[this.state.turn].hand.length === 0) {
-            document.getElementById('winMessage').innerText = "FINE PARTITA";
+            document.getElementById('winMessage').innerText = "PARTITA CONCLUSA";
             return this.goTo('winScreen');
         }
 
@@ -150,8 +155,14 @@ const game = {
     nextTurn(skip) {
         const n = this.state.players.length;
         this.state.turn = (this.state.turn + (skip ? 2 : 1) * this.state.dir + n) % n;
+        
+        // Se c'è un amico connesso, mandagli lo stato aggiornato
+        if(this.conn && this.isHost) {
+            this.conn.send({ type: 'SYNC', state: this.state });
+        }
+
         this.render();
-        if(this.state.players[this.state.turn].isBot) setTimeout(() => this.botPlay(), 1000);
+        if(this.state.players[this.state.turn].isBot) setTimeout(() => this.botPlay(), 1200);
     },
 
     botPlay() {
@@ -177,5 +188,6 @@ const game = {
     setWildColor(c) { this.state.color = c; document.getElementById('colorPicker').classList.add('hidden'); this.nextTurn(); },
     notify(m) { const t=document.getElementById('toast'); t.innerText=m; t.classList.remove('hidden'); setTimeout(()=>t.classList.add('hidden'), 2000); },
     saveSettings() { this.state.playerLimit = document.getElementById('playerLimit').value; this.goTo('menuScreen'); },
-    copyId() { navigator.clipboard.writeText(this.state.myId); this.notify("ID Copiato!"); }
+    copyId() { navigator.clipboard.writeText(this.state.myId); this.notify("ID Copiato!"); },
+    goTo(id) { document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
 };
