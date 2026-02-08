@@ -21,7 +21,7 @@
     <div id="menuScreen" class="screen hidden">
         <div class="main-box">
             <h2 id="welcomeText"></h2>
-            <div class="peer-box" onclick="game.copyId()">
+            <div class="peer-box" onclick="game.copyId()" style="cursor:pointer; background:rgba(0,0,0,0.2); padding:10px; border-radius:10px; margin:10px 0;">
                 ID: <b id="myPeerIdDisplay">---</b>
             </div>
             <button class="btn-main" onclick="game.startGame()">INIZIA PARTITA</button>
@@ -44,19 +44,16 @@
                     <option value="4" selected>4</option>
                 </select>
             </div>
-            <div class="setting-item">
-                <label>Regola 0-7:</label>
-                <input type="checkbox" id="rule07Check">
-            </div>
             <button class="btn-main" onclick="game.saveSettings()">SALVA</button>
         </div>
     </div>
 
     <div id="gameArea" class="screen hidden">
-        <div id="statusInfo">TURNO DI...</div>
+        <div id="statusInfo">CARICAMENTO...</div>
         <div id="playerTop" class="player-slot pos-top"></div>
         <div id="playerLeft" class="player-slot pos-left"></div>
         <div id="playerRight" class="player-slot pos-right"></div>
+        
         <div class="table-center">
             <div id="directionIndicator"></div>
             <div id="deck" class="card card-back" onclick="game.userDraw()">
@@ -64,6 +61,7 @@
             </div>
             <div id="discard"></div>
         </div>
+
         <div class="player-bottom">
             <div id="myHand" class="hand"></div>
         </div>
@@ -71,8 +69,8 @@
 
     <div id="winScreen" class="screen hidden">
         <div class="main-box">
-            <h1 id="winMessage">VITTORIA!</h1>
-            <button class="btn-main" onclick="location.reload()">MENU</button>
+            <h1 id="winMessage">FINE!</h1>
+            <button class="btn-main" onclick="location.reload()">TORNA AL MENU</button>
         </div>
     </div>
 
@@ -84,6 +82,7 @@
             <div onclick="game.setWildColor('yellow')" class="c-choice yellow"></div>
         </div>
     </div>
+
     <script src="script.js"></script>
 </body>
 </html>
