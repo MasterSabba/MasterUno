@@ -13,7 +13,7 @@
     <div id="loginScreen" class="screen">
         <div class="main-box">
             <h1 class="logo">MASTER UNO</h1>
-            <input type="text" id="nickInput" placeholder="Tuo Nickname...">
+            <input type="text" id="nickInput" placeholder="Nickname...">
             <button class="btn-main" onclick="game.login()">ENTRA</button>
         </div>
     </div>
@@ -21,41 +21,37 @@
     <div id="menuScreen" class="screen hidden">
         <div class="main-box">
             <h2 id="welcomeText"></h2>
-            <div class="peer-box" onclick="game.copyId()" style="cursor:pointer; background:rgba(0,0,0,0.2); padding:10px; border-radius:10px; margin:10px 0;">
-                ID: <b id="myPeerIdDisplay">---</b>
-            </div>
-            <button class="btn-main" onclick="game.startGame()">INIZIA PARTITA</button>
+            <div class="id-box" onclick="game.copyId()">ID: <b id="myPeerIdDisplay">---</b></div>
             <div class="multi-zone">
                 <input type="text" id="joinId" placeholder="ID Amico...">
-                <button class="btn-sub" onclick="game.connectToPeer()">CONNETTI AMICO</button>
+                <button class="btn-main" onclick="game.connectToPeer()">CONNETTI AMICO</button>
             </div>
+            <button class="btn-sub" onclick="game.startGame()">GIOCA ORA</button>
             <button class="btn-sub" onclick="game.goTo('settingsScreen')">IMPOSTAZIONI</button>
         </div>
     </div>
 
     <div id="settingsScreen" class="screen hidden">
         <div class="main-box">
-            <h2 class="logo">REGOLE</h2>
-            <div class="setting-item">
-                <label>Giocatori Totali:</label>
-                <select id="playerLimit">
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4" selected>4</option>
-                </select>
-            </div>
-            <button class="btn-main" onclick="game.saveSettings()">SALVA</button>
+            <h2 class="logo">GIOCATORI</h2>
+            <select id="playerLimit">
+                <option value="2">2 Giocatori (1vs1)</option>
+                <option value="3">3 Giocatori</option>
+                <option value="4" selected>4 Giocatori</option>
+            </select>
+            <button class="btn-main" onclick="game.goTo('menuScreen')">SALVA</button>
         </div>
     </div>
 
     <div id="gameArea" class="screen hidden">
-        <div id="statusInfo">CARICAMENTO...</div>
-        <div id="playerTop" class="player-slot pos-top"></div>
-        <div id="playerLeft" class="player-slot pos-left"></div>
-        <div id="playerRight" class="player-slot pos-right"></div>
+        <div id="turnIndicator">TUO TURNO</div>
         
+        <div id="slot-1" class="player-slot pos-top"></div>
+        <div id="slot-2" class="player-slot pos-left"></div>
+        <div id="slot-3" class="player-slot pos-right"></div>
+
         <div class="table-center">
-            <div id="directionIndicator"></div>
+            <div id="directionRing"></div>
             <div id="deck" class="card card-back" onclick="game.userDraw()">
                 <div class="card-logo">MASTER<span>UNO</span></div>
             </div>
@@ -64,13 +60,6 @@
 
         <div class="player-bottom">
             <div id="myHand" class="hand"></div>
-        </div>
-    </div>
-
-    <div id="winScreen" class="screen hidden">
-        <div class="main-box">
-            <h1 id="winMessage">FINE!</h1>
-            <button class="btn-main" onclick="location.reload()">TORNA AL MENU</button>
         </div>
     </div>
 
