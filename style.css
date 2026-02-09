@@ -5,41 +5,42 @@ body { background: var(--bg); font-family: 'Arial Black', sans-serif; height: 10
 .screen { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 10; background: var(--bg); }
 .hidden { display: none !important; }
 
-/* LAYOUT CARTE */
-.card { width: 80px; height: 120px; border: 4px solid white; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 35px; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.5); cursor: pointer; transition: 0.2s; }
-.card::before, .card::after { content: attr(data-val); position: absolute; font-size: 14px; }
+/* CARTE */
+.card { width: 85px; height: 125px; border: 4px solid white; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 38px; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.5); transition: 0.2s; background: #eee; }
+.card::before, .card::after { content: attr(data-val); position: absolute; font-size: 16px; }
 .card::before { top: 5px; left: 5px; }
 .card::after { bottom: 5px; right: 5px; transform: rotate(180deg); }
 
 .card-back { background: #000 !important; color: var(--gold) !important; border-color: var(--gold); }
-.master-back { text-align: center; font-size: 10px; line-height: 1; }
+.master-back { text-align: center; font-size: 10px; line-height: 1; pointer-events: none; }
 .master-back span { display: block; font-size: 18px; color: white; }
 
 .red { background: #d63031; } .blue { background: #0984e3; } .green { background: #27ae60; } .yellow { background: #f1c40f; color: black; } .wild { background: #2d3436; }
 
 /* POSIZIONI */
 .player-slot { position: absolute; display: flex; flex-direction: column; align-items: center; }
-.top { top: 20px; left: 50%; transform: translateX(-50%); }
+.top { top: 30px; left: 50%; transform: translateX(-50%); }
 .side { top: 40%; transform: translateY(-50%); }
-#bot-left { left: 20px; }
-#bot-right { right: 20px; }
+#bot-left { left: 40px; }
+#bot-right { right: 40px; }
 
 /* BADGE */
-.status-badge { background: var(--gold); color: black; padding: 5px 15px; border-radius: 8px; font-weight: bold; border: 2px solid white; margin-bottom: 10px; }
-.active-turn .status-badge { box-shadow: 0 0 15px white; transform: scale(1.1); }
+.status-badge { background: var(--gold); color: black; padding: 5px 15px; border-radius: 8px; font-weight: bold; border: 2px solid white; margin: 10px 0; }
+.active-turn .status-badge { box-shadow: 0 0 20px white; transform: scale(1.1); border-color: #fff; }
+
+/* EMOJI */
+.emoji-bubble { position: absolute; top: -60px; font-size: 40px; animation: pop 2s forwards; z-index: 100; }
+@keyframes pop { 0% { opacity:0; transform:scale(0.5); } 20% { opacity:1; transform:scale(1.2); } 100% { opacity:0; transform:translateY(-40px); } }
 
 /* TAVOLO */
 #gameArea { background: radial-gradient(circle, #27ae60 0%, #1a472a 100%); }
-.table-center { position: relative; width: 300px; height: 300px; display: flex; align-items: center; justify-content: center; gap: 20px; }
+.table-center { position: relative; width: 350px; height: 350px; display: flex; align-items: center; justify-content: center; gap: 30px; }
 
 /* MANO */
-.player-bottom { position: absolute; bottom: 30px; display: flex; align-items: center; gap: 20px; }
-.hand { display: flex; }
-.hand .card { margin-left: -35px; transition: 0.3s; }
-.hand .card:hover { transform: translateY(-30px); z-index: 100; margin-right: 15px; }
+.player-bottom { position: absolute; bottom: 40px; display: flex; align-items: center; gap: 30px; }
+.chat-bar { display: flex; flex-direction: column; gap: 8px; }
+.chat-bar span { font-size: 24px; cursor: pointer; }
 
-/* PICKER */
-.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; display: flex; align-items: center; justify-content: center; }
-.picker-box { background: var(--uno-green); padding: 20px; border: 4px solid var(--gold); border-radius: 20px; text-align: center; }
-.picker-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
-.c-choice { width: 70px; height: 70px; border-radius: 10px; border: 3px solid white; cursor: pointer; }
+.hand { display: flex; padding-left: 40px; }
+.hand .card { margin-left: -40px; cursor: pointer; }
+.hand .card:hover { transform: translateY(-40px); z-index: 100; margin-right: 20px; }
