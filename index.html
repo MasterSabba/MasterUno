@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MasterUno Pro</title>
+    <title>MasterUno Real Rules</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 </head>
@@ -14,7 +14,7 @@
         <div class="glass-box">
             <h1 class="logo-main">MASTER<span>UNO</span></h1>
             <input type="text" id="nickInput" placeholder="Tuo Nickname...">
-            <button class="btn-glow" onclick="game.login()">GIOCA</button>
+            <button class="btn-glow" onclick="game.login()">ENTRA</button>
         </div>
     </div>
 
@@ -22,16 +22,15 @@
         <div class="main-box">
             <h2 id="welcomeText"></h2>
             <div class="id-badge" onclick="game.copyId()">ID: <b id="myId">---</b></div>
-            <button class="btn-main" onclick="game.startGame()">PARTITA VELOCE</button>
+            <button class="btn-main" onclick="game.startGame()">GIOCA ORA</button>
             <button class="btn-sub" onclick="game.goTo('settingsScreen')">IMPOSTAZIONI</button>
         </div>
     </div>
 
     <div id="settingsScreen" class="screen hidden">
         <div class="main-box">
-            <h2>IMPOSTAZIONI</h2>
-            <div class="row">Avversari: <select id="playerLimit"><option value="2">1</option><option value="4" selected>3</option></select></div>
-            <div class="row">Pesca a strascico: <input type="checkbox" id="drawUntilPlay" checked></div>
+            <h2>REGOLE</h2>
+            <div class="row">Avversari: <select id="playerLimit"><option value="2">1</option><option value="3">2</option><option value="4" selected>3</option></select></div>
             <div class="row">Regola 0-7: <input type="checkbox" id="rule07" checked></div>
             <button class="btn-main" onclick="game.goTo('menuScreen')">SALVA</button>
         </div>
@@ -54,10 +53,12 @@
 
         <div class="player-bottom">
             <div class="my-info">
+                <div id="myEmoji" class="emoji-bubble hidden"></div>
                 <div id="myBadge" class="status-badge">TU: 7</div>
-                <div class="chat-mini">
+                <div class="chat-bar">
                     <span onclick="game.sendEmoji('😂')">😂</span>
                     <span onclick="game.sendEmoji('🤡')">🤡</span>
+                    <span onclick="game.sendEmoji('😡')">😡</span>
                 </div>
             </div>
             <div id="myHand" class="hand"></div>
