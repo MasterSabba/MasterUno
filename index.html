@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MasterUno Pro</title>
+    <title>MasterUno Classic Pro</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 </head>
@@ -13,64 +13,57 @@
     <div id="loginScreen" class="screen">
         <div class="glass-box">
             <h1 class="logo-main">MASTER<span>UNO</span></h1>
-            <p>Scegli un'identità per dominare il tavolo</p>
-            <input type="text" id="nickInput" placeholder="Inserisci il tuo Nickname...">
-            <button class="btn-glow" onclick="game.login()">ENTRA NEL CLUB</button>
+            <input type="text" id="nickInput" placeholder="Inserisci Nickname...">
+            <button class="btn-glow" onclick="game.login()">ENTRA</button>
         </div>
     </div>
 
     <div id="menuScreen" class="screen hidden">
         <div class="main-box">
             <h2 id="welcomeText"></h2>
-            <div class="id-badge" onclick="game.copyId()">
-                <span>ID SESSIONE</span>
-                <b id="myId">---</b>
-            </div>
+            <div class="id-badge" onclick="game.copyId()">ID: <b id="myId">---</b></div>
             <div class="multi-zone">
                 <input type="text" id="joinId" placeholder="Incolla ID Amico...">
-                <button class="btn-main" onclick="game.connectToPeer()">SFIDA AMICO</button>
+                <button class="btn-main" onclick="game.connectToPeer()">CONNETTI AMICO</button>
             </div>
-            <button class="btn-sub" onclick="game.startGame()">PARTITA LOCALE</button>
-            <button class="btn-sub" onclick="game.goTo('settingsScreen')">REGOLAMENTO</button>
+            <button class="btn-sub" onclick="game.startGame()">GIOCA (VS BOT)</button>
+            <button class="btn-sub" onclick="game.goTo('settingsScreen')">IMPOSTAZIONI</button>
         </div>
     </div>
 
     <div id="settingsScreen" class="screen hidden">
         <div class="main-box">
             <h2>REGOLE</h2>
-            <div class="row">Giocatori: <select id="playerLimit"><option value="2">2</option><option value="4" selected>4</option></select></div>
-            <div class="row">Somma +2/+4: <input type="checkbox" id="stacking" checked></div>
+            <div class="row">Bot: <select id="playerLimit"><option value="2">1 (1vs1)</option><option value="3">2</option><option value="4" selected>3</option></select></div>
             <div class="row">Regola 0-7: <input type="checkbox" id="rule07" checked></div>
-            <button class="btn-main" onclick="game.goTo('menuScreen')">CONFERMA</button>
+            <div class="row">Somma +2/+4: <input type="checkbox" id="stacking" checked></div>
+            <button class="btn-main" onclick="game.goTo('menuScreen')">SALVA</button>
         </div>
     </div>
 
     <div id="gameArea" class="screen hidden">
         <div id="turnIndicator">TURNO DI...</div>
         
-        <div id="bot-left" class="player-slot pos-left"></div>
-        <div id="bot-top" class="player-slot pos-top"></div>
-        <div id="bot-right" class="player-slot pos-right"></div>
+        <div id="bot-left" class="player-slot side"></div>
+        <div id="bot-top" class="player-slot top"></div>
+        <div id="bot-right" class="player-slot side"></div>
 
         <div class="table-center">
             <div id="directionRing"></div>
-            <div id="deck" class="card card-back deck-stack" onclick="game.userDraw()">
+            <div id="deck" class="card card-back" onclick="game.userDraw()">
                 <div class="master-back">MasterUno</div>
             </div>
             <div id="discard"></div>
         </div>
 
-        <div class="chat-bar">
-            <span onclick="game.sendEmoji('😂')">😂</span>
-            <span onclick="game.sendEmoji('🤡')">🤡</span>
-            <span onclick="game.sendEmoji('😡')">😡</span>
-            <span onclick="game.sendEmoji('🃏')">🃏</span>
-        </div>
-
         <div class="player-bottom">
-            <div id="myStatus" class="player-info-box">
+            <div class="my-info">
                 <div id="myBadge" class="status-badge">TU: 7</div>
-                <div id="myEmoji" class="emoji-bubble hidden"></div>
+                <div class="chat-mini">
+                    <span onclick="game.sendEmoji('😂')">😂</span>
+                    <span onclick="game.sendEmoji('🤡')">🤡</span>
+                    <span onclick="game.sendEmoji('😡')">😡</span>
+                </div>
             </div>
             <div id="myHand" class="hand"></div>
         </div>
@@ -84,8 +77,6 @@
             <div onclick="game.setWildColor('yellow')" class="c-choice yellow"></div>
         </div>
     </div>
-
-    <div id="animationContainer"></div>
 
     <script src="script.js"></script>
 </body>
