@@ -1,46 +1,50 @@
-:root { --uno-green: #1a472a; --gold: #f1c40f; --bg: #0d2a19; }
-* { box-sizing: border-box; user-select: none; margin: 0; padding: 0; }
-body { background: var(--bg); font-family: 'Arial Black', sans-serif; height: 100vh; overflow: hidden; color: white; }
+:root { --gold: #f1c40f; --red: #e74c3c; --blue: #3498db; --green: #2ecc71; --dark: #0f172a; }
+* { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; user-select: none; }
+body { background: var(--dark); height: 100vh; color: white; overflow: hidden; }
 
-.screen { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 10; background: var(--bg); }
+.screen { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle, #1e293b, #0f172a); }
 .hidden { display: none !important; }
 
-/* CARTE */
-.card { width: 85px; height: 125px; border: 4px solid white; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 38px; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.5); transition: 0.2s; background: #eee; }
-.card::before, .card::after { content: attr(data-val); position: absolute; font-size: 16px; }
+/* GRAFICA GLASSMOPHISM */
+.panel { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(15px); padding: 40px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); width: 350px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+.logo { font-size: 40px; font-weight: 900; margin-bottom: 20px; }
+.logo span { color: var(--gold); }
+
+.btn-primary { background: var(--gold); color: #000; border: none; padding: 15px; width: 100%; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+.btn-secondary { background: #334155; color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; }
+.btn-ghost { background: transparent; color: var(--gold); border: 1px solid var(--gold); padding: 10px; width: 100%; border-radius: 12px; margin-top: 10px; cursor: pointer; }
+
+/* CARTE E ANIMAZIONI */
+.card { width: 80px; height: 120px; border-radius: 12px; border: 4px solid white; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 32px; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.3); transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); background: #eee; color: white; }
+.card::before, .card::after { content: attr(data-val); position: absolute; font-size: 14px; }
 .card::before { top: 5px; left: 5px; }
 .card::after { bottom: 5px; right: 5px; transform: rotate(180deg); }
 
-.card-back { background: #000 !important; color: var(--gold) !important; border-color: var(--gold); }
-.master-back { text-align: center; font-size: 10px; line-height: 1; pointer-events: none; }
-.master-back span { display: block; font-size: 18px; color: white; }
+.card-back { background: #000 !important; border-color: var(--gold); }
+.master-back { font-size: 9px; color: var(--gold); text-align: center; font-weight: 900; line-height: 1; }
+.master-back span { display: block; font-size: 16px; color: white; }
 
-.red { background: #d63031; } .blue { background: #0984e3; } .green { background: #27ae60; } .yellow { background: #f1c40f; color: black; } .wild { background: #2d3436; }
-
-/* POSIZIONI */
-.player-slot { position: absolute; display: flex; flex-direction: column; align-items: center; }
-.top { top: 30px; left: 50%; transform: translateX(-50%); }
-.side { top: 40%; transform: translateY(-50%); }
-#bot-left { left: 40px; }
-#bot-right { right: 40px; }
-
-/* BADGE */
-.status-badge { background: var(--gold); color: black; padding: 5px 15px; border-radius: 8px; font-weight: bold; border: 2px solid white; margin: 10px 0; }
-.active-turn .status-badge { box-shadow: 0 0 20px white; transform: scale(1.1); border-color: #fff; }
-
-/* EMOJI */
-.emoji-bubble { position: absolute; top: -60px; font-size: 40px; animation: pop 2s forwards; z-index: 100; }
-@keyframes pop { 0% { opacity:0; transform:scale(0.5); } 20% { opacity:1; transform:scale(1.2); } 100% { opacity:0; transform:translateY(-40px); } }
+.flying-card { position: fixed; z-index: 999; transition: all 0.6s ease-in-out; pointer-events: none; }
 
 /* TAVOLO */
-#gameArea { background: radial-gradient(circle, #27ae60 0%, #1a472a 100%); }
-.table-center { position: relative; width: 350px; height: 350px; display: flex; align-items: center; justify-content: center; gap: 30px; }
+#gameArea { background: radial-gradient(circle, #064e3b, #022c22); }
+.table { position: relative; width: 300px; height: 300px; display: flex; align-items: center; justify-content: center; gap: 20px; }
+.player-slot { position: absolute; transition: 0.5s; }
+.top { top: 30px; left: 50%; transform: translateX(-50%); }
+.side.left { left: 30px; top: 40%; }
+.side.right { right: 30px; top: 40%; }
 
-/* MANO */
-.player-bottom { position: absolute; bottom: 40px; display: flex; align-items: center; gap: 30px; }
-.chat-bar { display: flex; flex-direction: column; gap: 8px; }
-.chat-bar span { font-size: 24px; cursor: pointer; }
+.badge { background: var(--gold); color: black; padding: 6px 15px; border-radius: 8px; font-weight: 900; border: 2px solid white; }
+.active-turn .badge { box-shadow: 0 0 25px var(--gold); transform: scale(1.1); }
 
-.hand { display: flex; padding-left: 40px; }
-.hand .card { margin-left: -40px; cursor: pointer; }
-.hand .card:hover { transform: translateY(-40px); z-index: 100; margin-right: 20px; }
+/* AREA GIOCATORE */
+.player-area { position: absolute; bottom: 30px; width: 100%; display: flex; flex-direction: column; align-items: center; }
+.hand { display: flex; margin-top: 20px; }
+.hand .card { margin-left: -40px; }
+.hand .card:hover { transform: translateY(-40px) rotate(5deg); z-index: 100; margin-right: 20px; }
+
+/* EMOJI */
+.emoji-bubble { position: absolute; top: -60px; font-size: 40px; animation: floatUp 2s forwards; }
+@keyframes floatUp { 0% { opacity: 0; transform: translateY(0); } 20% { opacity: 1; } 100% { opacity: 0; transform: translateY(-50px); } }
+
+.red { background: var(--red); } .blue { background: var(--blue); } .green { background: var(--green); } .yellow { background: var(--gold); color: black; } .wild { background: #1e293b; }
