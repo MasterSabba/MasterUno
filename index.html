@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MasterUno Classic Pro</title>
+    <title>MasterUno Pro</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 </head>
@@ -13,8 +13,8 @@
     <div id="loginScreen" class="screen">
         <div class="glass-box">
             <h1 class="logo-main">MASTER<span>UNO</span></h1>
-            <input type="text" id="nickInput" placeholder="Inserisci Nickname...">
-            <button class="btn-glow" onclick="game.login()">ENTRA</button>
+            <input type="text" id="nickInput" placeholder="Tuo Nickname...">
+            <button class="btn-glow" onclick="game.login()">GIOCA</button>
         </div>
     </div>
 
@@ -22,27 +22,23 @@
         <div class="main-box">
             <h2 id="welcomeText"></h2>
             <div class="id-badge" onclick="game.copyId()">ID: <b id="myId">---</b></div>
-            <div class="multi-zone">
-                <input type="text" id="joinId" placeholder="Incolla ID Amico...">
-                <button class="btn-main" onclick="game.connectToPeer()">CONNETTI AMICO</button>
-            </div>
-            <button class="btn-sub" onclick="game.startGame()">GIOCA (VS BOT)</button>
+            <button class="btn-main" onclick="game.startGame()">PARTITA VELOCE</button>
             <button class="btn-sub" onclick="game.goTo('settingsScreen')">IMPOSTAZIONI</button>
         </div>
     </div>
 
     <div id="settingsScreen" class="screen hidden">
         <div class="main-box">
-            <h2>REGOLE</h2>
-            <div class="row">Bot: <select id="playerLimit"><option value="2">1 (1vs1)</option><option value="3">2</option><option value="4" selected>3</option></select></div>
+            <h2>IMPOSTAZIONI</h2>
+            <div class="row">Avversari: <select id="playerLimit"><option value="2">1</option><option value="4" selected>3</option></select></div>
+            <div class="row">Pesca a strascico: <input type="checkbox" id="drawUntilPlay" checked></div>
             <div class="row">Regola 0-7: <input type="checkbox" id="rule07" checked></div>
-            <div class="row">Somma +2/+4: <input type="checkbox" id="stacking" checked></div>
             <button class="btn-main" onclick="game.goTo('menuScreen')">SALVA</button>
         </div>
     </div>
 
     <div id="gameArea" class="screen hidden">
-        <div id="turnIndicator">TURNO DI...</div>
+        <div id="turnIndicator">TURNO...</div>
         
         <div id="bot-left" class="player-slot side"></div>
         <div id="bot-top" class="player-slot top"></div>
@@ -51,7 +47,7 @@
         <div class="table-center">
             <div id="directionRing"></div>
             <div id="deck" class="card card-back" onclick="game.userDraw()">
-                <div class="master-back">MasterUno</div>
+                <div class="master-back">MASTER<span>UNO</span></div>
             </div>
             <div id="discard"></div>
         </div>
@@ -62,7 +58,6 @@
                 <div class="chat-mini">
                     <span onclick="game.sendEmoji('😂')">😂</span>
                     <span onclick="game.sendEmoji('🤡')">🤡</span>
-                    <span onclick="game.sendEmoji('😡')">😡</span>
                 </div>
             </div>
             <div id="myHand" class="hand"></div>
@@ -70,11 +65,14 @@
     </div>
 
     <div id="colorPicker" class="overlay hidden">
-        <div class="picker-grid">
-            <div onclick="game.setWildColor('red')" class="c-choice red"></div>
-            <div onclick="game.setWildColor('blue')" class="c-choice blue"></div>
-            <div onclick="game.setWildColor('green')" class="c-choice green"></div>
-            <div onclick="game.setWildColor('yellow')" class="c-choice yellow"></div>
+        <div class="picker-box">
+            <h3>Scegli Colore</h3>
+            <div class="picker-grid">
+                <div onclick="game.setWildColor('red')" class="c-choice red"></div>
+                <div onclick="game.setWildColor('blue')" class="c-choice blue"></div>
+                <div onclick="game.setWildColor('green')" class="c-choice green"></div>
+                <div onclick="game.setWildColor('yellow')" class="c-choice yellow"></div>
+            </div>
         </div>
     </div>
 
