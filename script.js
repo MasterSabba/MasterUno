@@ -1,12 +1,11 @@
 const game = {
     state: {
         nick: "", players: [], deck: [], discard: null,
-        color: "", turn: 0, dir: 1, stack: 0,
+        color: "", turn: 0, 
         settings: { drawUntil: true }
     },
 
     goTo(id) {
-        // Nasconde tutte le schermate e attiva solo quella richiesta
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
     },
@@ -27,8 +26,13 @@ const game = {
         ];
         this.initDeck();
         this.state.players.forEach(p => p.hand = this.draw(7));
-        this.state.discard = this.state.deck.pop();
-        this.state.color = this.state.discard.c === 'wild' ? 'red' : this.state.discard.c;
+        
+        // Pesca la prima carta valida (non wild per iniziare)
+        let firstCard;
+        do { firstCard = this.state.deck.pop(); } while(firstCard.c === 'wild');
+        
+        this.state.discard = firstCard;
+        this.state.color = firstCard.c;
         this.state.turn = 0;
         this.goTo('gameArea');
         this.render();
@@ -56,16 +60,17 @@ const game = {
         // Controllo vittoria
         this.state.players.forEach(p => {
             if(p.hand.length === 0) {
-                document.getElementById('winMessage').innerText = p.name + " ha vinto!";
+                document.getElementById('winStatus').innerText = p.isBot ? "HAI PERSO!" : "VITTORIA!";
+                document.getElementById('winMessage').innerText = p.name + " ha svuotato la mano!";
                 this.goTo('winScreen');
             }
         });
 
         // Slot Bot
-        const mapping = [{id:'bot-left', idx:1}, {id:'bot-top', idx:2}];
-        mapping.forEach(m => {
-            const el = document.getElementById(m.id);
-            const p = this.state.players[m.idx];
+        const botSlots = [{id:'bot-left', idx:1}, {id:'bot-right', idx:2}];
+        botSlots.forEach(slot => {
+            const el = document.getElementById(slot.id);
+            const p = this.state.players[slot.idx];
             let h = `<div class="status-badge">${p.name}: ${p.hand.length}</div><div style="display:flex">`;
             p.hand.forEach(() => h += `<div class="card card-back" style="margin-left:-55px"></div>`);
             el.innerHTML = h + "</div>";
@@ -83,33 +88,36 @@ const game = {
 
         document.getElementById('myBadge').innerText = `TU: ${this.state.players[0].hand.length}`;
         document.getElementById('discard').innerHTML = `<div class="card ${this.state.color}">${this.state.discard.v}</div>`;
-        document.getElementById('turnIndicator').innerText = "TURNO: " + this.state.players[this.state.turn].name;
+        document.getElementById('turnIndicator').innerText = "TURNO DI: " + this.state.players[this.state.turn].name;
     },
 
-    async userDraw() {
+    userDraw() {
         if(this.state.turn !== 0) return;
         const p = this.state.players[0];
-        let drawn;
         
-        // Logica Pesca a strascico
-        do {
-            drawn = this.draw(1)[0];
-            p.hand.push(drawn);
+        const drawn = this.draw(1)[0];
+        p.hand.push(drawn);
+        
+        // Se drawUntil è attivo, continua a pescare finché non trovi una carta giocabile
+        const canPlay = (c) => c.c === this.state.color || c.v === this.state.discard.v || c.c === 'wild';
+        
+        if(this.state.settings.drawUntil && !canPlay(drawn)) {
+            setTimeout(() => this.userDraw(), 300);
+        } else {
             this.render();
-            if(!this.state.settings.drawUntil) break;
-        } while(!(drawn.c === this.state.color || drawn.v === this.state.discard.v || drawn.c === 'wild'));
-        
-        setTimeout(() => this.nextTurn(), 1000);
+            setTimeout(() => this.nextTurn(), 1000);
+        }
     },
 
     playCard(i) {
         if(this.state.turn !== 0) return;
         const p = this.state.players[0];
         const c = p.hand[i];
+        
         if(c.c === this.state.color || c.v === this.state.discard.v || c.c === 'wild') {
             p.hand.splice(i, 1);
             this.state.discard = c;
-            this.state.color = c.c === 'wild' ? 'red' : c.c;
+            this.state.color = c.c === 'wild' ? ['red','blue','green','yellow'][Math.floor(Math.random()*4)] : c.c;
             this.render();
             this.nextTurn();
         }
@@ -118,19 +126,24 @@ const game = {
     nextTurn() {
         this.state.turn = (this.state.turn + 1) % this.state.players.length;
         this.render();
-        if(this.state.players[this.state.turn].isBot) setTimeout(() => this.botPlay(), 1200);
+        if(this.state.players[this.state.turn].isBot) {
+            setTimeout(() => this.botPlay(), 1200);
+        }
     },
 
     botPlay() {
         const b = this.state.players[this.state.turn];
         const idx = b.hand.findIndex(c => c.c === this.state.color || c.v === this.state.discard.v || c.c === 'wild');
+        
         if(idx !== -1) {
             const c = b.hand.splice(idx, 1)[0];
             this.state.discard = c;
             this.state.color = c.c === 'wild' ? 'blue' : c.c;
+            this.render();
             this.nextTurn();
         } else {
             b.hand.push(this.draw(1)[0]);
+            this.render();
             this.nextTurn();
         }
     }
