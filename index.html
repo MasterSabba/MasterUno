@@ -21,30 +21,22 @@
     <div id="menuScreen" class="screen hidden">
         <div class="main-box">
             <h2 id="welcomeText"></h2>
-            <button class="btn-main" onclick="game.startGame()">INIZIA PARTITA</button>
-            <button class="btn-sub" onclick="game.goTo('settingsScreen')">REGOLE E GIOCATORI</button>
+            <div class="id-display" onclick="game.copyId()">IL TUO ID: <b id="myId">---</b></div>
+            <div class="multi-box">
+                <input type="text" id="joinId" placeholder="ID Amico...">
+                <button class="btn-main" onclick="game.connectToPeer()">INVITA/CONNETTI</button>
+            </div>
+            <button class="btn-sub" onclick="game.startGame()">INIZIA PARTITA</button>
+            <button class="btn-sub" onclick="game.goTo('settingsScreen')">IMPOSTAZIONI</button>
         </div>
     </div>
 
     <div id="settingsScreen" class="screen hidden">
         <div class="main-box">
-            <h2 class="logo">IMPOSTAZIONI</h2>
-            <div class="opt">
-                <label>Giocatori:</label>
-                <select id="playerLimit">
-                    <option value="2">2 (1vs1)</option>
-                    <option value="3">3</option>
-                    <option value="4" selected>4</option>
-                </select>
-            </div>
-            <div class="opt">
-                <label>Regola 0-7:</label>
-                <input type="checkbox" id="rule07" checked>
-            </div>
-            <div class="opt">
-                <label>Pesca a strascico:</label>
-                <input type="checkbox" id="drawUntilPlay" checked>
-            </div>
+            <h2 class="logo">REGOLE</h2>
+            <div class="opt"><label>Giocatori:</label><select id="playerLimit"><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option></select></div>
+            <div class="opt"><label>Regola 0-7:</label><input type="checkbox" id="rule07" checked></div>
+            <div class="opt"><label>Pesca a strascico:</label><input type="checkbox" id="drawUntilPlay" checked></div>
             <button class="btn-main" onclick="game.goTo('menuScreen')">SALVA</button>
         </div>
     </div>
@@ -52,9 +44,9 @@
     <div id="gameArea" class="screen hidden">
         <div id="turnIndicator">CARICAMENTO...</div>
         
-        <div id="bot-left" class="player-slot side-hand"></div>
-        <div id="bot-top" class="player-slot top-hand"></div>
-        <div id="bot-right" class="player-slot side-hand"></div>
+        <div id="bot-left" class="player-slot pos-left"></div>
+        <div id="bot-top" class="player-slot pos-top"></div>
+        <div id="bot-right" class="player-slot pos-right"></div>
 
         <div class="table-center">
             <div id="directionRing"></div>
@@ -65,14 +57,8 @@
         </div>
 
         <div class="player-bottom">
+            <div id="myBadge" class="status-badge side-badge">TU: 7</div>
             <div id="myHand" class="hand"></div>
-        </div>
-    </div>
-
-    <div id="swapPicker" class="overlay hidden">
-        <div class="main-box">
-            <h3>Con chi vuoi scambiare?</h3>
-            <div id="swapTargets"></div>
         </div>
     </div>
 
