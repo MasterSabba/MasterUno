@@ -10,16 +10,25 @@
 <body>
     <div id="toast" class="toast hidden">ID COPIATO!</div>
 
-    <div id="menuScreen" class="screen">
+    <div id="loginScreen" class="screen">
+        <div class="gold-frame">
+            <div class="content">
+                <h1 class="gold-text">MASTER UNO</h1>
+                <p style="color: #888; margin-bottom: 20px;">Inserisci il tuo nome per iniziare</p>
+                <input type="text" id="nickInput" placeholder="Tuo Nickname..." class="glass-input">
+                <button class="btn-yellow" onclick="game.doLogin()">ENTRA NEL MENU</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="menuScreen" class="screen hidden">
         <div class="gold-frame">
             <div class="content">
                 <h1 id="mainTitle">MASTER UNO</h1>
-                <h2 id="subTitle">HAI VINTO!</h2>
-                <p id="winnerName">Complimenti, [NomeGiocatore]!</p>
+                <h2 id="menuUserTitle">BENVENUTO!</h2>
                 
                 <div class="input-area">
-                    <input type="text" id="nickInput" placeholder="Tuo Nickname..." class="glass-input">
-                    <button class="btn-gold" onclick="game.copyId()">COPIA IL TUO ID</button>
+                    <button class="btn-gold-flat" onclick="game.copyId()">COPIA IL TUO ID: <span id="displayId">---</span></button>
                     <input type="text" id="joinId" placeholder="Inserisci ID Amico" class="glass-input">
                 </div>
 
@@ -30,34 +39,51 @@
                 </div>
             </div>
         </div>
-        <div id="confetti"></div>
+    </div>
+
+    <div id="winScreen" class="screen hidden">
+        <div class="gold-frame win-anim">
+            <div class="content">
+                <h1 class="gold-text">MASTER UNO</h1>
+                <h2 id="winStatus">HAI VINTO!</h2>
+                <p id="winMessage">Complimenti!</p>
+                <button class="btn-yellow" onclick="game.goTo('menuScreen')">TORNA AL MENU</button>
+            </div>
+        </div>
     </div>
 
     <div id="settingsScreen" class="screen hidden">
-        <div class="gold-frame mini">
+        <div class="gold-frame">
             <div class="content">
-                <h2>REGOLAMENTO</h2>
-                <div class="row">Pesca a strascico: <input type="checkbox" id="drawUntil" checked></div>
-                <div class="row">Somma +2/+4: <b>Sempre On</b></div>
-                <button class="btn-yellow" onclick="game.goTo('menuScreen')">TORNA</button>
+                <h2 class="gold-text">REGOLE</h2>
+                <div class="setting-item">
+                    <span>Pesca a strascico</span>
+                    <input type="checkbox" id="drawUntil" checked>
+                </div>
+                <div class="setting-item">
+                    <span>Avversari (Bot)</span>
+                    <select id="botCount">
+                        <option value="1">1</option>
+                        <option value="2" selected>2</option>
+                        <option value="3">3</option>
+                    </select>
+                </div>
+                <button class="btn-yellow" style="margin-top:20px;" onclick="game.goTo('menuScreen')">SALVA</button>
             </div>
         </div>
     </div>
 
     <div id="gameArea" class="screen hidden">
-        <div id="turnIndicator">TURNO DI...</div>
-        
+        <div id="turnIndicator">TURNO...</div>
         <div id="bot-left" class="player-slot side"></div>
         <div id="bot-top" class="player-slot top"></div>
         <div id="bot-right" class="player-slot side"></div>
-
         <div class="table-center">
             <div id="deck" class="card card-back" onclick="game.userDraw()">
                 <div class="master-back">MASTER<span>UNO</span></div>
             </div>
             <div id="discard"></div>
         </div>
-
         <div class="player-bottom">
             <div class="my-info">
                 <div id="myEmoji" class="emoji-bubble hidden"></div>
