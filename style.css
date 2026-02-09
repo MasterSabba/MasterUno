@@ -2,16 +2,15 @@
 * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
 body { background: #000; font-family: sans-serif; height: 100vh; overflow: hidden; }
 
-/* LOGICA SCHERMATE - FONDAMENTALE */
 .screen { 
     position: fixed; inset: 0; 
-    display: none; /* Nasconde tutto di base */
+    display: none; 
     align-items: center; justify-content: center; 
     z-index: 10; background: #000; 
 }
-.screen.active { display: flex; } /* Mostra solo quella attiva */
+.screen.active { display: flex; }
 
-/* GRAFICA GOLD (MENU) */
+/* GRAFICA GOLD */
 .gold-frame {
     width: 320px; padding: 4px; border-radius: 35px;
     background: linear-gradient(135deg, #fff, var(--gold-bright), var(--gold));
@@ -19,26 +18,39 @@ body { background: #000; font-family: sans-serif; height: 100vh; overflow: hidde
 .content { background: #000; border-radius: 32px; padding: 30px 20px; text-align: center; }
 .gold-text { color: var(--gold); margin-bottom: 15px; font-size: 24px; }
 
-/* INTERNO GIOCO (ORDINATO) */
+/* COLORI CARTE */
+.red { background: #ff5555 !important; color: white; }
+.blue { background: #5555ff !important; color: white; }
+.green { background: #55aa55 !important; color: white; }
+.yellow { background: #ffaa00 !important; color: black; }
+.wild { background: #222 !important; color: var(--gold-bright); border: 3px solid var(--gold) !important; }
+
+/* GAME AREA */
 .game-bg { background: radial-gradient(circle, #1a3020, #000) !important; }
-#turnIndicator { position: absolute; top: 10px; font-weight: bold; color: var(--gold-bright); }
+#turnIndicator { position: absolute; top: 20px; font-weight: bold; color: var(--gold-bright); font-size: 1.2rem; }
 
 .player-slot { position: absolute; display: flex; flex-direction: column; align-items: center; }
-.top { top: 20px; }
-.side { top: 40%; }
-#bot-left { left: 10px; } 
-#bot-right { right: 10px; }
+.side { top: 30%; }
+#bot-left { left: 20px; } 
+#bot-right { right: 20px; }
 
 .table-center { display: flex; gap: 20px; align-items: center; }
-.card { width: 70px; height: 100px; border: 3px solid white; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 25px; background: white; color: black; }
-.card-back { background: black !important; border-color: var(--gold); color: var(--gold); }
+.card { 
+    width: 70px; height: 100px; border: 3px solid white; border-radius: 8px; 
+    display: flex; align-items: center; justify-content: center; 
+    font-weight: bold; font-size: 20px; background: white; color: black;
+    transition: transform 0.2s;
+}
+.card-back { background: #000 !important; border-color: var(--gold); color: var(--gold); cursor: pointer; }
+.master-back span { display: block; font-size: 10px; }
 
 .player-bottom { position: absolute; bottom: 20px; width: 100%; display: flex; flex-direction: column; align-items: center; }
 .status-badge { background: var(--gold); color: black; padding: 5px 15px; border-radius: 20px; font-weight: bold; margin-bottom: 10px; }
 .hand { display: flex; height: 110px; padding-left: 40px; }
-.hand .card { margin-left: -35px; box-shadow: -5px 0 10px rgba(0,0,0,0.5); }
+.hand .card { margin-left: -35px; box-shadow: -5px 0 10px rgba(0,0,0,0.5); cursor: pointer; }
+.hand .card:hover { transform: translateY(-20px); z-index: 100; }
 
-/* INPUT & BUTTONS */
+/* UI ELEMENTS */
 .glass-input { width: 90%; background: #222; border: 1px solid #444; padding: 12px; border-radius: 10px; color: white; margin-bottom: 15px; text-align: center; }
 .btn-yellow { background: var(--gold-bright); border: none; padding: 15px; width: 90%; border-radius: 15px; font-weight: bold; cursor: pointer; }
 .btn-black { background: black; color: white; border: 1px solid white; padding: 10px; width: 70%; border-radius: 20px; margin-top: 10px; cursor: pointer; }
