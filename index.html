@@ -3,72 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MasterUno Clean</title>
+    <title>MasterUno - Neo Arena</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="loginScreen" class="screen active">
-        <div class="gold-frame">
-            <div class="content">
-                <h1 class="gold-text">MASTER UNO</h1>
-                <input type="text" id="nickInput" placeholder="Tuo Nickname..." class="glass-input">
-                <button class="btn-yellow" onclick="game.doLogin()">ENTRA</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="menuScreen" class="screen">
-        <div class="gold-frame">
-            <div class="content">
-                <h1 class="gold-text">MASTER UNO</h1>
-                <h2 id="menuUserTitle">MENU</h2>
-                <div class="button-stack">
-                    <button class="btn-yellow" onclick="game.startGame()">NUOVA PARTITA</button>
-                    <button class="btn-black" onclick="game.goTo('settingsScreen')">REGOLE</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="settingsScreen" class="screen">
-        <div class="gold-frame">
-            <div class="content">
-                <h2 class="gold-text">REGOLE</h2>
-                <div class="setting-item">
-                    <span>Pesca a strascico</span>
-                    <input type="checkbox" id="drawUntil" checked>
-                </div>
-                <button class="btn-yellow" onclick="game.goTo('menuScreen')">SALVA</button>
+        <div class="glass-box">
+            <h1 class="neon-title">MASTER<span>UNO</span></h1>
+            <div class="input-area">
+                <input type="text" id="nickInput" placeholder="Inserisci il tuo Nick..." maxlength="12">
+                <button class="glow-btn" onclick="game.doLogin()">ENTRA NELL'ARENA</button>
             </div>
         </div>
     </div>
 
     <div id="gameArea" class="screen game-bg">
+        <div class="table-overlay"></div>
         <div id="turnIndicator">CARICAMENTO...</div>
-        
-        <div id="bot-left" class="player-slot side"></div>
-        <div id="bot-right" class="player-slot side"></div>
 
-        <div class="table-center">
-            <div id="deck" class="card card-back" onclick="game.userDraw()">
-                <div class="master-back">MASTER<span>UNO</span></div>
-            </div>
-            <div id="discard"></div>
+        <div class="bot-container left">
+            <div id="bot-left" class="bot-hand"></div>
+            <div class="bot-label">AI DUSTY</div>
+        </div>
+        
+        <div class="bot-container top">
+            <div id="bot-top" class="bot-hand"></div>
+            <div class="bot-label">AI LUNA</div>
         </div>
 
-        <div class="player-bottom">
-            <div id="myBadge" class="status-badge">TU: 7</div>
-            <div id="myHand" class="hand"></div>
+        <div class="bot-container right">
+            <div id="bot-right" class="bot-hand"></div>
+            <div class="bot-label">AI PUDDING</div>
+        </div>
+
+        <div class="table-center">
+            <div id="deck" class="deck-pile" onclick="game.userDraw()">
+                <div class="card card-back">
+                    <div class="m-text">MASTER</div>
+                    <div class="u-text">UNO</div>
+                </div>
+            </div>
+            <div id="discard-pile">
+                </div>
+        </div>
+
+        <div class="player-zone">
+            <div class="player-tag">
+                <span id="playerNameDisplay">TU</span>
+                <span id="cardCount" class="badge">7</span>
+            </div>
+            <div id="myHand" class="hand-container"></div>
         </div>
     </div>
 
     <div id="winScreen" class="screen win-overlay">
-        <div class="gold-frame">
-            <div class="content">
-                <h1 id="winStatus">VITTORIA!</h1>
-                <p id="winMessage"></p>
-                <button class="btn-yellow" onclick="location.reload()">GIOCA ANCORA</button>
-            </div>
+        <div class="glass-box">
+            <h1 id="winStatus">VITTORIA!</h1>
+            <button class="glow-btn" onclick="location.reload()">GIOCA ANCORA</button>
         </div>
     </div>
 
