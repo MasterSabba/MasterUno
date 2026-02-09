@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MasterUno Pro</title>
+    <title>MasterUno Ultimate</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 </head>
@@ -13,7 +13,7 @@
     <div id="loginScreen" class="screen">
         <div class="main-box">
             <h1 class="logo">MASTER UNO</h1>
-            <input type="text" id="nickInput" placeholder="Nickname...">
+            <input type="text" id="nickInput" placeholder="Tuo Nickname...">
             <button class="btn-main" onclick="game.login()">ENTRA</button>
         </div>
     </div>
@@ -21,34 +21,40 @@
     <div id="menuScreen" class="screen hidden">
         <div class="main-box">
             <h2 id="welcomeText"></h2>
-            <div class="id-box" onclick="game.copyId()">ID: <b id="myPeerIdDisplay">---</b></div>
-            <div class="multi-zone">
-                <input type="text" id="joinId" placeholder="ID Amico...">
-                <button class="btn-main" onclick="game.connectToPeer()">CONNETTI AMICO</button>
-            </div>
-            <button class="btn-sub" onclick="game.startGame()">GIOCA ORA</button>
-            <button class="btn-sub" onclick="game.goTo('settingsScreen')">IMPOSTAZIONI</button>
+            <button class="btn-main" onclick="game.startGame()">INIZIA PARTITA</button>
+            <button class="btn-sub" onclick="game.goTo('settingsScreen')">REGOLE E GIOCATORI</button>
         </div>
     </div>
 
     <div id="settingsScreen" class="screen hidden">
         <div class="main-box">
-            <h2 class="logo">GIOCATORI</h2>
-            <select id="playerLimit">
-                <option value="2">2 Giocatori (1vs1)</option>
-                <option value="3">3 Giocatori</option>
-                <option value="4" selected>4 Giocatori</option>
-            </select>
+            <h2 class="logo">IMPOSTAZIONI</h2>
+            <div class="opt">
+                <label>Giocatori:</label>
+                <select id="playerLimit">
+                    <option value="2">2 (1vs1)</option>
+                    <option value="3">3</option>
+                    <option value="4" selected>4</option>
+                </select>
+            </div>
+            <div class="opt">
+                <label>Regola 0-7:</label>
+                <input type="checkbox" id="rule07" checked>
+            </div>
+            <div class="opt">
+                <label>Pesca a strascico:</label>
+                <input type="checkbox" id="drawUntilPlay" checked>
+            </div>
             <button class="btn-main" onclick="game.goTo('menuScreen')">SALVA</button>
         </div>
     </div>
 
     <div id="gameArea" class="screen hidden">
-        <div id="turnIndicator">TUO TURNO</div>
+        <div id="turnIndicator">CARICAMENTO...</div>
         
-        <div id="slot-1" class="player-slot pos-top"></div>
-        <div id="slot-2" class="player-slot pos-left"></div>
-        <div id="slot-3" class="player-slot pos-right"></div>
+        <div id="bot-left" class="player-slot side-hand"></div>
+        <div id="bot-top" class="player-slot top-hand"></div>
+        <div id="bot-right" class="player-slot side-hand"></div>
 
         <div class="table-center">
             <div id="directionRing"></div>
@@ -60,6 +66,13 @@
 
         <div class="player-bottom">
             <div id="myHand" class="hand"></div>
+        </div>
+    </div>
+
+    <div id="swapPicker" class="overlay hidden">
+        <div class="main-box">
+            <h3>Con chi vuoi scambiare?</h3>
+            <div id="swapTargets"></div>
         </div>
     </div>
 
