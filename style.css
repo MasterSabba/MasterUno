@@ -1,53 +1,45 @@
 :root { --uno-green: #1a472a; --gold: #f1c40f; --bg: #0d2a19; }
 * { box-sizing: border-box; user-select: none; margin: 0; padding: 0; }
-body { background: var(--bg); font-family: sans-serif; height: 100vh; overflow: hidden; color: white; }
+body { background: var(--bg); font-family: 'Arial Black', sans-serif; height: 100vh; overflow: hidden; color: white; }
 
-/* NAVIGAZIONE SCHERMATE */
 .screen { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 10; background: var(--bg); }
 .hidden { display: none !important; }
 
-/* GRAFICA LOGIN & MENU */
-.glass-box, .main-box { background: var(--uno-green); padding: 30px; border: 4px solid var(--gold); border-radius: 20px; text-align: center; width: 320px; }
-.logo-main { font-size: 32px; color: white; margin-bottom: 20px; }
-.logo-main span { color: var(--gold); }
-input { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: none; text-align: center; }
+/* LAYOUT CARTE */
+.card { width: 80px; height: 120px; border: 4px solid white; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 35px; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.5); cursor: pointer; transition: 0.2s; }
+.card::before, .card::after { content: attr(data-val); position: absolute; font-size: 14px; }
+.card::before { top: 5px; left: 5px; }
+.card::after { bottom: 5px; right: 5px; transform: rotate(180deg); }
 
-/* TAVOLO DA GIOCO */
-#gameArea { background: radial-gradient(circle, #2ecc71 0%, #1a472a 100%); }
+.card-back { background: #000 !important; color: var(--gold) !important; border-color: var(--gold); }
+.master-back { text-align: center; font-size: 10px; line-height: 1; }
+.master-back span { display: block; font-size: 18px; color: white; }
 
-.player-slot { position: absolute; display: flex; flex-direction: column; align-items: center; transition: 0.3s; }
-.top { top: 20px; left: 50%; transform: translateX(-50%); flex-direction: row; gap: 10px; }
-.side { top: 45%; transform: translateY(-50%); }
+.red { background: #d63031; } .blue { background: #0984e3; } .green { background: #27ae60; } .yellow { background: #f1c40f; color: black; } .wild { background: #2d3436; }
+
+/* POSIZIONI */
+.player-slot { position: absolute; display: flex; flex-direction: column; align-items: center; }
+.top { top: 20px; left: 50%; transform: translateX(-50%); }
+.side { top: 40%; transform: translateY(-50%); }
 #bot-left { left: 20px; }
 #bot-right { right: 20px; }
 
-/* BADGE & TURNO */
-.status-badge { background: var(--gold); color: black; padding: 5px 12px; border-radius: 5px; font-weight: bold; border: 2px solid white; white-space: nowrap; }
-.active-turn .status-badge { box-shadow: 0 0 20px white; border-color: #fff; transform: scale(1.1); }
+/* BADGE */
+.status-badge { background: var(--gold); color: black; padding: 5px 15px; border-radius: 8px; font-weight: bold; border: 2px solid white; margin-bottom: 10px; }
+.active-turn .status-badge { box-shadow: 0 0 15px white; transform: scale(1.1); }
 
-/* CARTE */
-.card { width: 75px; height: 110px; border: 3px solid white; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 30px; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-.card::before, .card::after { content: attr(data-val); position: absolute; font-size: 12px; }
-.card::before { top: 4px; left: 4px; }
-.card::after { bottom: 4px; right: 4px; transform: rotate(180deg); }
+/* TAVOLO */
+#gameArea { background: radial-gradient(circle, #27ae60 0%, #1a472a 100%); }
+.table-center { position: relative; width: 300px; height: 300px; display: flex; align-items: center; justify-content: center; gap: 20px; }
 
-.card-back { background: #000 !important; color: transparent; }
-.master-back { font-size: 8px; color: var(--gold); transform: rotate(-45deg); text-transform: uppercase; }
-
-.red { background: #e74c3c; } .blue { background: #3498db; } .green { background: #2ecc71; } .yellow { background: #f1c40f; color: black; } .wild { background: #222; }
-
-/* TAVOLO CENTRALE */
-.table-center { position: relative; width: 280px; height: 280px; display: flex; align-items: center; justify-content: center; gap: 20px; }
-#directionRing { position: absolute; width: 200px; height: 200px; border: 4px dashed rgba(255,255,255,0.2); border-radius: 50%; animation: spin 15s linear infinite; }
-@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-
-/* MANO GIOCATORE */
-.player-bottom { position: absolute; bottom: 20px; width: 100%; display: flex; justify-content: center; align-items: center; gap: 20px; }
-.my-info { display: flex; flex-direction: column; gap: 10px; align-items: center; }
+/* MANO */
+.player-bottom { position: absolute; bottom: 30px; display: flex; align-items: center; gap: 20px; }
 .hand { display: flex; }
-.hand .card { margin-left: -30px; transition: 0.2s; cursor: pointer; }
+.hand .card { margin-left: -35px; transition: 0.3s; }
 .hand .card:hover { transform: translateY(-30px); z-index: 100; margin-right: 15px; }
 
-/* UI AGGIUNTIVA */
-.toast { position: fixed; top: 15px; background: var(--gold); color: black; padding: 10px 20px; border-radius: 20px; font-weight: bold; z-index: 1000; }
-.chat-mini span { cursor: pointer; font-size: 24px; margin: 0 3px; }
+/* PICKER */
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+.picker-box { background: var(--uno-green); padding: 20px; border: 4px solid var(--gold); border-radius: 20px; text-align: center; }
+.picker-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
+.c-choice { width: 70px; height: 70px; border-radius: 10px; border: 3px solid white; cursor: pointer; }
