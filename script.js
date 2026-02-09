@@ -1,8 +1,7 @@
 const game = {
     state: {
         nick: "", players: [], deck: [], discard: null,
-        color: "", turn: 0, 
-        settings: { drawUntil: true }
+        color: "", turn: 0,
     },
 
     goTo(id) {
@@ -11,123 +10,122 @@ const game = {
     },
 
     doLogin() {
-        const n = document.getElementById('nickInput').value;
-        this.state.nick = n || "Player";
-        document.getElementById('menuUserTitle').innerText = "CIAO " + this.state.nick;
-        this.goTo('menuScreen');
-    },
-
-    startGame() {
-        this.state.settings.drawUntil = document.getElementById('drawUntil').checked;
-        this.state.players = [
-            { name: this.state.nick, hand: [], isBot: false },
-            { name: "Bot 1", hand: [], isBot: true },
-            { name: "Bot 2", hand: [], isBot: true }
-        ];
-        this.initDeck();
-        this.state.players.forEach(p => p.hand = this.draw(7));
-        
-        // Pesca la prima carta valida (non wild per iniziare)
-        let firstCard;
-        do { firstCard = this.state.deck.pop(); } while(firstCard.c === 'wild');
-        
-        this.state.discard = firstCard;
-        this.state.color = firstCard.c;
-        this.state.turn = 0;
+        this.state.nick = document.getElementById('nickInput').value || "GIOCATORE";
+        document.getElementById('playerNameDisplay').innerText = this.state.nick;
         this.goTo('gameArea');
-        this.render();
+        this.startGame();
     },
 
     initDeck() {
         const colors = ['red', 'blue', 'green', 'yellow'];
         const vals = ['0','1','2','3','4','5','6','7','8','9','+2'];
         this.state.deck = [];
-        colors.forEach(c => vals.forEach(v => this.state.deck.push({c, v})));
-        for(let i=0; i<4; i++) this.state.deck.push({c:'wild', v:'+4'});
+        for(let i=0; i<2; i++) { // Due mazzi insieme
+            colors.forEach(c => vals.forEach(v => this.state.deck.push({c, v})));
+            for(let j=0; j<2; j++) this.state.deck.push({c:'wild', v:'+4'});
+        }
         this.state.deck.sort(() => Math.random() - 0.5);
     },
 
     draw(n) {
-        let res = [];
+        let cards = [];
         for(let i=0; i<n; i++) {
             if(this.state.deck.length === 0) this.initDeck();
-            res.push(this.state.deck.pop());
+            cards.push(this.state.deck.pop());
         }
-        return res;
+        return cards;
+    },
+
+    startGame() {
+        this.initDeck();
+        this.state.players = [
+            { name: this.state.nick, hand: this.draw(7), isBot: false },
+            { name: "AI DUSTY", hand: this.draw(7), isBot: true },
+            { name: "AI LUNA", hand: this.draw(7), isBot: true },
+            { name: "AI PUDDING", hand: this.draw(7), isBot: true }
+        ];
+        // Prima carta sul tavolo (non speciale)
+        let firstCard;
+        do { firstCard = this.state.deck.pop(); } while(firstCard.c === 'wild');
+        
+        this.state.discard = firstCard;
+        this.state.color = firstCard.c;
+        this.state.turn = 0;
+        this.render();
     },
 
     render() {
-        // Controllo vittoria
+        document.getElementById('turnIndicator').innerText = `TURNO DI: ${this.state.players[this.state.turn].name}`;
+        
+        // Render Discard
+        document.getElementById('discard-pile').innerHTML = `
+            <div class="card ${this.state.color}">${this.state.discard.v}</div>
+        `;
+
+        // Render Mia Mano
+        const hand = document.getElementById('myHand');
+        hand.innerHTML = "";
+        this.state.players[0].hand.forEach((c, i) => {
+            const div = document.createElement('div');
+            div.className = `card ${c.c}`;
+            div.innerText = c.v;
+            div.onclick = () => this.playCard(i);
+            hand.appendChild(div);
+        });
+        document.getElementById('cardCount').innerText = this.state.players[0].hand.length;
+
+        // Render Bot
+        this.renderBot('bot-left', 1);
+        this.renderBot('bot-top', 2);
+        this.renderBot('bot-right', 3);
+
+        // Vittoria
         this.state.players.forEach(p => {
             if(p.hand.length === 0) {
-                document.getElementById('winStatus').innerText = p.isBot ? "HAI PERSO!" : "VITTORIA!";
-                document.getElementById('winMessage').innerText = p.name + " ha svuotato la mano!";
+                document.getElementById('winStatus').innerText = `${p.name} HA VINTO!`;
                 this.goTo('winScreen');
             }
         });
-
-        // Slot Bot
-        const botSlots = [{id:'bot-left', idx:1}, {id:'bot-right', idx:2}];
-        botSlots.forEach(slot => {
-            const el = document.getElementById(slot.id);
-            const p = this.state.players[slot.idx];
-            let h = `<div class="status-badge">${p.name}: ${p.hand.length}</div><div style="display:flex">`;
-            p.hand.forEach(() => h += `<div class="card card-back" style="margin-left:-55px"></div>`);
-            el.innerHTML = h + "</div>";
-        });
-
-        // Mia Mano
-        const handEl = document.getElementById('myHand');
-        handEl.innerHTML = "";
-        this.state.players[0].hand.forEach((c, i) => {
-            const d = document.createElement('div');
-            d.className = `card ${c.c}`; d.innerText = c.v;
-            d.onclick = () => this.playCard(i);
-            handEl.appendChild(d);
-        });
-
-        document.getElementById('myBadge').innerText = `TU: ${this.state.players[0].hand.length}`;
-        document.getElementById('discard').innerHTML = `<div class="card ${this.state.color}">${this.state.discard.v}</div>`;
-        document.getElementById('turnIndicator').innerText = "TURNO DI: " + this.state.players[this.state.turn].name;
     },
 
-    userDraw() {
-        if(this.state.turn !== 0) return;
-        const p = this.state.players[0];
-        
-        const drawn = this.draw(1)[0];
-        p.hand.push(drawn);
-        
-        // Se drawUntil è attivo, continua a pescare finché non trovi una carta giocabile
-        const canPlay = (c) => c.c === this.state.color || c.v === this.state.discard.v || c.c === 'wild';
-        
-        if(this.state.settings.drawUntil && !canPlay(drawn)) {
-            setTimeout(() => this.userDraw(), 300);
-        } else {
-            this.render();
-            setTimeout(() => this.nextTurn(), 1000);
-        }
+    renderBot(id, idx) {
+        const container = document.getElementById(id);
+        container.innerHTML = "";
+        this.state.players[idx].hand.forEach(() => {
+            const c = document.createElement('div');
+            c.className = "card card-back";
+            c.innerHTML = `<span class="m-text">MASTER</span><span class="u-text">UNO</span>`;
+            c.style.marginLeft = "-60px";
+            container.appendChild(c);
+        });
     },
 
     playCard(i) {
         if(this.state.turn !== 0) return;
         const p = this.state.players[0];
-        const c = p.hand[i];
+        const card = p.hand[i];
         
-        if(c.c === this.state.color || c.v === this.state.discard.v || c.c === 'wild') {
+        if(card.c === this.state.color || card.v === this.state.discard.v || card.c === 'wild') {
             p.hand.splice(i, 1);
-            this.state.discard = c;
-            this.state.color = c.c === 'wild' ? ['red','blue','green','yellow'][Math.floor(Math.random()*4)] : c.c;
+            this.state.discard = card;
+            this.state.color = card.c === 'wild' ? 'blue' : card.c;
             this.render();
             this.nextTurn();
         }
     },
 
+    userDraw() {
+        if(this.state.turn !== 0) return;
+        this.state.players[0].hand.push(this.draw(1)[0]);
+        this.render();
+        setTimeout(() => this.nextTurn(), 1000);
+    },
+
     nextTurn() {
-        this.state.turn = (this.state.turn + 1) % this.state.players.length;
+        this.state.turn = (this.state.turn + 1) % 4;
         this.render();
         if(this.state.players[this.state.turn].isBot) {
-            setTimeout(() => this.botPlay(), 1200);
+            setTimeout(() => this.botPlay(), 1500);
         }
     },
 
@@ -136,15 +134,13 @@ const game = {
         const idx = b.hand.findIndex(c => c.c === this.state.color || c.v === this.state.discard.v || c.c === 'wild');
         
         if(idx !== -1) {
-            const c = b.hand.splice(idx, 1)[0];
-            this.state.discard = c;
-            this.state.color = c.c === 'wild' ? 'blue' : c.c;
-            this.render();
-            this.nextTurn();
+            const card = b.hand.splice(idx, 1)[0];
+            this.state.discard = card;
+            this.state.color = card.c === 'wild' ? 'red' : card.c;
         } else {
             b.hand.push(this.draw(1)[0]);
-            this.render();
-            this.nextTurn();
         }
+        this.render();
+        this.nextTurn();
     }
 };
