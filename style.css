@@ -1,47 +1,53 @@
-:root { --uno-green: #1a472a; --gold: #f1c40f; --bg: #0a1f13; }
+:root { --uno-green: #1a472a; --gold: #f1c40f; --bg: #0d2a19; }
 * { box-sizing: border-box; user-select: none; margin: 0; padding: 0; }
-body { background: var(--bg); font-family: 'Segoe UI', sans-serif; height: 100vh; overflow: hidden; color: white; }
+body { background: var(--bg); font-family: sans-serif; height: 100vh; overflow: hidden; color: white; }
 
-/* SCHERMATA LOGIN FIGA */
-.glass-box { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.1); padding: 40px; border-radius: 30px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-.logo-main { font-size: 45px; letter-spacing: -2px; margin-bottom: 10px; }
+/* NAVIGAZIONE SCHERMATE */
+.screen { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 10; background: var(--bg); }
+.hidden { display: none !important; }
+
+/* GRAFICA LOGIN & MENU */
+.glass-box, .main-box { background: var(--uno-green); padding: 30px; border: 4px solid var(--gold); border-radius: 20px; text-align: center; width: 320px; }
+.logo-main { font-size: 32px; color: white; margin-bottom: 20px; }
 .logo-main span { color: var(--gold); }
-.btn-glow { background: var(--gold); border: none; padding: 15px 30px; border-radius: 50px; font-weight: 900; cursor: pointer; transition: 0.3s; box-shadow: 0 0 20px rgba(241, 196, 15, 0.4); }
-.btn-glow:hover { transform: scale(1.05); box-shadow: 0 0 30px rgba(241, 196, 15, 0.6); }
+input { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: none; text-align: center; }
+
+/* TAVOLO DA GIOCO */
+#gameArea { background: radial-gradient(circle, #2ecc71 0%, #1a472a 100%); }
+
+.player-slot { position: absolute; display: flex; flex-direction: column; align-items: center; transition: 0.3s; }
+.top { top: 20px; left: 50%; transform: translateX(-50%); flex-direction: row; gap: 10px; }
+.side { top: 45%; transform: translateY(-50%); }
+#bot-left { left: 20px; }
+#bot-right { right: 20px; }
+
+/* BADGE & TURNO */
+.status-badge { background: var(--gold); color: black; padding: 5px 12px; border-radius: 5px; font-weight: bold; border: 2px solid white; white-space: nowrap; }
+.active-turn .status-badge { box-shadow: 0 0 20px white; border-color: #fff; transform: scale(1.1); }
 
 /* CARTE */
-.card { width: 85px; height: 125px; border: 4px solid white; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 38px; position: relative; box-shadow: 0 8px 20px rgba(0,0,0,0.4); background: #eee; color: white; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-.card::before { content: attr(data-val); position: absolute; top: 5px; left: 5px; font-size: 16px; }
-.card::after { content: attr(data-val); position: absolute; bottom: 5px; right: 5px; font-size: 16px; transform: rotate(180deg); }
+.card { width: 75px; height: 110px; border: 3px solid white; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 30px; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+.card::before, .card::after { content: attr(data-val); position: absolute; font-size: 12px; }
+.card::before { top: 4px; left: 4px; }
+.card::after { bottom: 4px; right: 4px; transform: rotate(180deg); }
 
-.card-back { background: radial-gradient(#333, #000) !important; color: transparent; }
-.master-back { font-size: 10px; color: var(--gold); text-transform: uppercase; font-weight: bold; transform: rotate(-45deg); }
+.card-back { background: #000 !important; color: transparent; }
+.master-back { font-size: 8px; color: var(--gold); transform: rotate(-45deg); text-transform: uppercase; }
 
-.red { background: linear-gradient(135deg, #ff4b2b, #ff416c); }
-.blue { background: linear-gradient(135deg, #00b4db, #0083b0); }
-.green { background: linear-gradient(135deg, #56ab2f, #a8e063); }
-.yellow { background: linear-gradient(135deg, #f1c40f, #f39c12); color: #222; }
+.red { background: #e74c3c; } .blue { background: #3498db; } .green { background: #2ecc71; } .yellow { background: #f1c40f; color: black; } .wild { background: #222; }
 
-/* POSIZIONI E TURNI */
-.player-slot { position: absolute; transition: 0.5s; }
-.active-turn .status-badge { box-shadow: 0 0 20px var(--gold); border-color: white; transform: scale(1.1); }
+/* TAVOLO CENTRALE */
+.table-center { position: relative; width: 280px; height: 280px; display: flex; align-items: center; justify-content: center; gap: 20px; }
+#directionRing { position: absolute; width: 200px; height: 200px; border: 4px dashed rgba(255,255,255,0.2); border-radius: 50%; animation: spin 15s linear infinite; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-.pos-top { top: 20px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: row; align-items: center; }
-.pos-left { left: 50px; top: 45%; transform: translateY(-50%); }
-.pos-right { right: 50px; top: 45%; transform: translateY(-50%); }
+/* MANO GIOCATORE */
+.player-bottom { position: absolute; bottom: 20px; width: 100%; display: flex; justify-content: center; align-items: center; gap: 20px; }
+.my-info { display: flex; flex-direction: column; gap: 10px; align-items: center; }
+.hand { display: flex; }
+.hand .card { margin-left: -30px; transition: 0.2s; cursor: pointer; }
+.hand .card:hover { transform: translateY(-30px); z-index: 100; margin-right: 15px; }
 
-.status-badge { background: var(--gold); color: black; padding: 5px 15px; border-radius: 8px; font-weight: bold; border: 2px solid transparent; transition: 0.3s; }
-
-/* ANIMAZIONE PESCA */
-.flying-card { position: fixed; z-index: 9999; pointer-events: none; transition: all 0.6s ease-in-out; }
-
-/* CHAT */
-.chat-bar { position: absolute; left: 20px; bottom: 100px; display: flex; flex-direction: column; gap: 10px; }
-.chat-bar span { font-size: 30px; cursor: pointer; transition: 0.2s; }
-.chat-bar span:hover { transform: scale(1.3); }
-.emoji-bubble { position: absolute; top: -50px; font-size: 40px; animation: floatUp 2s forwards; }
-
-@keyframes floatUp { 0% { opacity:0; transform: translateY(0); } 20% { opacity:1; } 100% { opacity:0; transform: translateY(-50px); } }
-
-/* ALERT */
-.toast { position: fixed; top: 20px; background: var(--gold); color: black; padding: 12px 25px; border-radius: 50px; font-weight: bold; z-index: 10000; transition: 0.5s; }
+/* UI AGGIUNTIVA */
+.toast { position: fixed; top: 15px; background: var(--gold); color: black; padding: 10px 20px; border-radius: 20px; font-weight: bold; z-index: 1000; }
+.chat-mini span { cursor: pointer; font-size: 24px; margin: 0 3px; }
