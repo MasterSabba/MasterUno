@@ -1,50 +1,50 @@
-:root { --gold: #f1c40f; --red: #e74c3c; --blue: #3498db; --green: #2ecc71; --dark: #0f172a; }
-* { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; user-select: none; }
-body { background: var(--dark); height: 100vh; color: white; overflow: hidden; }
+:root { --gold: #c5a044; --gold-bright: #ffdf00; --bg: #0a0a0a; }
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+body { background: var(--bg); font-family: 'Segoe UI', sans-serif; height: 100vh; overflow: hidden; color: white; }
 
-.screen { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle, #1e293b, #0f172a); }
+/* INTERFACCIA FOTO (GOLD FRAME) */
+.screen { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 10; background: radial-gradient(circle, #1a1a1a, #000); }
 .hidden { display: none !important; }
 
-/* GRAFICA GLASSMOPHISM */
-.panel { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(15px); padding: 40px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); width: 350px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-.logo { font-size: 40px; font-weight: 900; margin-bottom: 20px; }
-.logo span { color: var(--gold); }
+.gold-frame {
+    width: 380px; padding: 5px; background: linear-gradient(to bottom, var(--gold-bright), var(--gold));
+    border-radius: 40px; box-shadow: 0 0 50px rgba(197, 160, 68, 0.5); position: relative;
+}
+.gold-frame::before { content: ''; position: absolute; inset: 0; border-radius: 40px; box-shadow: inset 0 0 20px #fff; pointer-events: none; }
 
-.btn-primary { background: var(--gold); color: #000; border: none; padding: 15px; width: 100%; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-.btn-secondary { background: #334155; color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; }
-.btn-ghost { background: transparent; color: var(--gold); border: 1px solid var(--gold); padding: 10px; width: 100%; border-radius: 12px; margin-top: 10px; cursor: pointer; }
+.content { background: rgba(0,0,0,0.85); border-radius: 35px; padding: 40px 20px; text-align: center; }
 
-/* CARTE E ANIMAZIONI */
-.card { width: 80px; height: 120px; border-radius: 12px; border: 4px solid white; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 32px; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.3); transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); background: #eee; color: white; }
-.card::before, .card::after { content: attr(data-val); position: absolute; font-size: 14px; }
-.card::before { top: 5px; left: 5px; }
-.card::after { bottom: 5px; right: 5px; transform: rotate(180deg); }
+#mainTitle { color: var(--gold); font-size: 24px; letter-spacing: 2px; }
+#subTitle { color: #fff; font-size: 42px; text-shadow: 0 0 10px #fff; margin-bottom: 5px; }
+#winnerName { color: #ccc; font-size: 14px; margin-bottom: 20px; }
 
-.card-back { background: #000 !important; border-color: var(--gold); }
-.master-back { font-size: 9px; color: var(--gold); text-align: center; font-weight: 900; line-height: 1; }
-.master-back span { display: block; font-size: 16px; color: white; }
+.glass-input { width: 90%; background: rgba(255,255,255,0.1); border: 1px solid #444; padding: 12px; border-radius: 10px; color: #fff; text-align: center; margin-bottom: 10px; }
 
-.flying-card { position: fixed; z-index: 999; transition: all 0.6s ease-in-out; pointer-events: none; }
+/* BOTTONI STYLE FOTO */
+.btn-gold { background: var(--gold); color: #000; border: none; padding: 12px; width: 90%; border-radius: 10px; font-weight: bold; margin-bottom: 20px; cursor: pointer; }
+.btn-grey { background: #b1b1b1; color: #222; border: none; padding: 15px; width: 90%; border-radius: 15px; font-weight: bold; margin-bottom: 10px; cursor: pointer; box-shadow: 0 4px 0 #777; }
+.btn-black { background: #000; color: #fff; border: 2px solid #fff; padding: 10px; width: 60%; border-radius: 30px; font-weight: bold; margin-bottom: 15px; cursor: pointer; }
+.btn-yellow { background: #f1c40f; color: #000; border: none; padding: 15px; width: 85%; border-radius: 15px; font-weight: bold; font-size: 18px; cursor: pointer; box-shadow: 0 5px 0 #967b0c; }
 
-/* TAVOLO */
-#gameArea { background: radial-gradient(circle, #064e3b, #022c22); }
-.table { position: relative; width: 300px; height: 300px; display: flex; align-items: center; justify-content: center; gap: 20px; }
-.player-slot { position: absolute; transition: 0.5s; }
-.top { top: 30px; left: 50%; transform: translateX(-50%); }
-.side.left { left: 30px; top: 40%; }
-.side.right { right: 30px; top: 40%; }
+/* CARTE */
+.card { width: 80px; height: 120px; border: 4px solid white; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 35px; position: relative; background: #eee; transition: 0.3s; }
+.card-back { background: #000 !important; border-color: var(--gold-bright); }
+.master-back { text-align: center; font-size: 10px; color: var(--gold-bright); }
+.master-back span { display: block; font-size: 18px; color: white; }
 
-.badge { background: var(--gold); color: black; padding: 6px 15px; border-radius: 8px; font-weight: 900; border: 2px solid white; }
-.active-turn .badge { box-shadow: 0 0 25px var(--gold); transform: scale(1.1); }
+/* ANIMAZIONE PESCA */
+.flying-card { position: fixed; z-index: 1000; transition: all 0.6s ease-in-out; pointer-events: none; }
 
-/* AREA GIOCATORE */
-.player-area { position: absolute; bottom: 30px; width: 100%; display: flex; flex-direction: column; align-items: center; }
-.hand { display: flex; margin-top: 20px; }
-.hand .card { margin-left: -40px; }
-.hand .card:hover { transform: translateY(-40px) rotate(5deg); z-index: 100; margin-right: 20px; }
+/* GAME UI */
+.player-slot { position: absolute; }
+.top { top: 20px; left: 50%; transform: translateX(-50%); }
+.side { top: 40%; transform: translateY(-50%); }
+#bot-left { left: 20px; } #bot-right { right: 20px; }
 
-/* EMOJI */
-.emoji-bubble { position: absolute; top: -60px; font-size: 40px; animation: floatUp 2s forwards; }
-@keyframes floatUp { 0% { opacity: 0; transform: translateY(0); } 20% { opacity: 1; } 100% { opacity: 0; transform: translateY(-50px); } }
+.status-badge { background: var(--gold); color: #000; padding: 5px 15px; border-radius: 8px; font-weight: bold; border: 2px solid #fff; }
+.active-turn .status-badge { box-shadow: 0 0 20px #fff; transform: scale(1.1); }
 
-.red { background: var(--red); } .blue { background: var(--blue); } .green { background: var(--green); } .yellow { background: var(--gold); color: black; } .wild { background: #1e293b; }
+.hand .card { margin-left: -40px; cursor: pointer; }
+.hand .card:hover { transform: translateY(-30px); z-index: 100; margin-right: 20px; }
+
+.toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--gold); color: #000; padding: 10px 30px; border-radius: 50px; font-weight: bold; z-index: 9999; }
