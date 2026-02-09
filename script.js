@@ -1,4 +1,5 @@
 const game = {
+    peer: null, conn: null,
     state: {
         nick: "", players: [], deck: [], discard: null,
         color: "", turn: 0, dir: 1, 
@@ -9,8 +10,29 @@ const game = {
         const n = document.getElementById('nickInput').value.trim();
         if(n.length < 2) return;
         this.state.nick = n;
-        document.getElementById('welcomeText').innerText = "CIAO " + n.toUpperCase();
+        this.state.myId = n.toUpperCase() + "_" + Math.floor(100 + Math.random() * 899);
+        document.getElementById('myId').innerText = this.state.myId;
+        
+        this.peer = new Peer(this.state.myId);
+        this.peer.on('connection', (c) => {
+            this.conn = c;
+            this.setupPeer();
+            this.notify("Amico collegato!");
+        });
         this.goTo('menuScreen');
+    },
+
+    connectToPeer() {
+        const id = document.getElementById('joinId').value.trim();
+        if(!id) return;
+        this.conn = this.peer.connect(id);
+        this.setupPeer();
+    },
+
+    setupPeer() {
+        this.conn.on('data', (data) => {
+            if(data.type === 'START') { this.state = data.state; this.goTo('gameArea'); this.render(); }
+        });
     },
 
     startGame() {
@@ -19,153 +41,93 @@ const game = {
         this.state.drawUntilPlay = document.getElementById('drawUntilPlay').checked;
         
         this.state.players = [{ name: this.state.nick, hand: [], isBot: false }];
-        for(let i=1; i < this.state.limit; i++) {
-            this.state.players.push({ name: 'BOT ' + i, hand: [], isBot: true });
+        
+        // Se c'è un amico connesso occupa il posto del Bot 2 (Sopra)
+        if(this.conn) this.state.players.push({ name: this.conn.peer.split('_')[0], hand: [], isBot: false });
+
+        while(this.state.players.length < this.state.limit) {
+            this.state.players.push({ name: 'BOT ' + this.state.players.length, hand: [], isBot: true });
         }
 
-        this.initDeck();
-        this.state.players.forEach(p => p.hand = this.draw(7));
-        this.state.discard = this.state.deck.pop();
-        this.state.color = this.state.discard.c === 'wild' ? 'red' : this.state.discard.c;
-        this.state.turn = 0;
-        this.state.dir = 1;
-
+        this.initGame();
+        if(this.conn) this.conn.send({ type: 'START', state: this.state });
         this.goTo('gameArea');
         this.render();
     },
 
-    initDeck() {
+    initGame() {
         const colors = ['red', 'blue', 'green', 'yellow'];
-        const values = ['0','1','2','3','4','5','6','7','8','9','🚫','🔄','+2'];
+        const values = ['0','1','2','3','4','5','6','7','8','9','Ø','⇄','+2'];
         this.state.deck = [];
         colors.forEach(c => values.forEach(v => {
             this.state.deck.push({c, v});
             if(v !== '0') this.state.deck.push({c, v});
         }));
-        for(let i=0; i<4; i++) this.state.deck.push({c:'wild', v:'🎨'});
+        for(let i=0; i<4; i++) this.state.deck.push({c:'wild', v:'W'});
         this.state.deck.sort(() => Math.random() - 0.5);
+
+        this.state.players.forEach(p => p.hand = this.draw(7));
+        this.state.discard = this.state.deck.pop();
+        this.state.color = this.state.discard.c === 'wild' ? 'red' : this.state.discard.c;
+        this.state.turn = 0;
     },
 
     draw(n) {
         let res = [];
         for(let i=0; i<n; i++) {
-            if(this.state.deck.length === 0) this.initDeck();
+            if(this.state.deck.length === 0) this.initGame();
             res.push(this.state.deck.pop());
         }
         return res;
     },
 
     render() {
-        // Reset slot
-        document.getElementById('bot-left').innerHTML = "";
-        document.getElementById('bot-top').innerHTML = "";
-        document.getElementById('bot-right').innerHTML = "";
+        // Pulizia slot
+        ['bot-left', 'bot-top', 'bot-right'].forEach(id => document.getElementById(id).innerHTML = "");
 
-        // Logica posizionamento disordinata sistemata
-        const otherPlayers = this.state.players.slice(1);
-        let positions = [];
-        if(this.state.limit == 2) positions = ['bot-top'];
-        if(this.state.limit == 3) positions = ['bot-left', 'bot-right'];
-        if(this.state.limit == 4) positions = ['bot-left', 'bot-top', 'bot-right'];
+        // Logica Posizioni (Senso Orario: Sinistra -> Sopra -> Destra)
+        let posMap = [];
+        if(this.state.limit == 2) posMap = [{id: 'bot-top', idx: 1}];
+        if(this.state.limit == 3) posMap = [{id: 'bot-left', idx: 1}, {id: 'bot-right', idx: 2}];
+        if(this.state.limit == 4) posMap = [{id: 'bot-left', idx: 1}, {id: 'bot-top', idx: 2}, {id: 'bot-right', idx: 3}];
 
-        otherPlayers.forEach((p, i) => {
-            const slot = document.getElementById(positions[i]);
-            let handHTML = `<div class="status-badge">${p.name} (${p.hand.length})</div><div class="hand-container">`;
-            p.hand.forEach(() => {
-                handHTML += `<div class="card card-back opp-card"></div>`;
-            });
-            handHTML += `</div>`;
-            slot.innerHTML = handHTML;
-            slot.style.opacity = (this.state.turn === (i+1)) ? "1" : "0.6";
+        posMap.forEach(pos => {
+            const p = this.state.players[pos.idx];
+            if(!p) return;
+            const slot = document.getElementById(pos.id);
+            // Badge Orizzontale per i laterali
+            let html = `<div class="status-badge">${p.name}: ${p.hand.length}</div><div class="opp-hand">`;
+            p.hand.forEach(() => html += `<div class="card card-back opp-card"></div>`);
+            html += `</div>`;
+            slot.innerHTML = html;
         });
 
-        // Scarto
-        document.getElementById('discard').innerHTML = `<div class="card ${this.state.color}">${this.state.discard.v}</div>`;
-        
-        // Mia Mano
+        // Mia Mano e Badge a Lato
+        document.getElementById('myBadge').innerText = `TU: ${this.state.players[0].hand.length}`;
         const handEl = document.getElementById('myHand');
         handEl.innerHTML = "";
         this.state.players[0].hand.forEach((c, i) => {
             const div = document.createElement('div');
             div.className = `card ${c.c}`;
-            div.innerText = c.v;
+            div.setAttribute('data-val', c.v);
+            div.innerText = c.v === 'W' ? '🎨' : c.v;
             div.onclick = () => this.playCard(i);
             handEl.appendChild(div);
         });
 
-        document.getElementById('turnIndicator').innerText = this.state.turn === 0 ? "TOCCA A TE" : "TURNO DI " + this.state.players[this.state.turn].name;
+        document.getElementById('discard').innerHTML = `<div class="card ${this.state.color}" data-val="${this.state.discard.v}">${this.state.discard.v === 'W' ? '🎨' : this.state.discard.v}</div>`;
+        document.getElementById('turnIndicator').innerText = this.state.turn === 0 ? "TUO TURNO" : "TURNO DI " + this.state.players[this.state.turn].name;
     },
 
     playCard(i) {
         if(this.state.turn !== 0) return;
-        const p = this.state.players[0];
-        const card = p.hand[i];
-
+        const card = this.state.players[0].hand[i];
         if(card.c === this.state.color || card.v === this.state.discard.v || card.c === 'wild') {
-            p.hand.splice(i, 1);
-            this.handleCardEffect(card);
+            this.state.players[0].hand.splice(i, 1);
+            this.state.discard = card;
+            this.state.color = card.c === 'wild' ? this.state.color : card.c;
+            this.nextTurn(card.v === 'Ø');
         }
-    },
-
-    handleCardEffect(card) {
-        this.state.discard = card;
-        this.state.color = card.c === 'wild' ? this.state.color : card.c;
-
-        if(this.state.rule07) {
-            if(card.v === '0') return this.ruleZero();
-            if(card.v === '7') return this.ruleSeven();
-        }
-
-        if(card.v === '🔄') this.state.dir *= -1;
-        if(card.v === '🎨') {
-            document.getElementById('colorPicker').classList.remove('hidden');
-            return;
-        }
-
-        this.nextTurn(card.v === '🚫');
-    },
-
-    // REGOLA 0: Tutti passano la mano al successivo
-    ruleZero() {
-        const hands = this.state.players.map(p => p.hand);
-        if(this.state.dir === 1) hands.unshift(hands.pop());
-        else hands.push(hands.shift());
-        this.state.players.forEach((p, i) => p.hand = hands[i]);
-        this.notify("REGOLA 0: MANI SCAMBIATE!");
-        this.nextTurn();
-    },
-
-    // REGOLA 7: Scegli con chi scambiare
-    ruleSeven() {
-        if(this.state.turn !== 0) { // Bot sceglie a caso
-            let target = Math.floor(Math.random() * this.state.players.length);
-            while(target === this.state.turn) target = Math.floor(Math.random() * this.state.players.length);
-            this.swapHands(this.state.turn, target);
-            this.nextTurn();
-        } else {
-            const area = document.getElementById('swapTargets');
-            area.innerHTML = "";
-            this.state.players.forEach((p, i) => {
-                if(i === 0) return;
-                const b = document.createElement('button');
-                b.className = "btn-main";
-                b.innerText = p.name;
-                b.onclick = () => {
-                    this.swapHands(0, i);
-                    document.getElementById('swapPicker').classList.add('hidden');
-                    this.nextTurn();
-                };
-                area.appendChild(b);
-            });
-            document.getElementById('swapPicker').classList.remove('hidden');
-        }
-    },
-
-    swapHands(i, j) {
-        const temp = this.state.players[i].hand;
-        this.state.players[i].hand = this.state.players[j].hand;
-        this.state.players[j].hand = temp;
-        this.notify("SCAMBIO CARTE AVVENUTO!");
     },
 
     userDraw() {
@@ -173,22 +135,24 @@ const game = {
         const p = this.state.players[0];
         
         if(this.state.drawUntilPlay) {
-            let canPlay = false;
-            while(!canPlay) {
-                const c = this.draw(1)[0];
-                p.hand.push(c);
-                if(c.c === this.state.color || c.v === this.state.discard.v || c.c === 'wild') canPlay = true;
-                this.render();
+            let drawn = null;
+            // Pesca finché non trova una carta giocabile
+            while(true) {
+                drawn = this.draw(1)[0];
+                p.hand.push(drawn);
+                if(drawn.c === this.state.color || drawn.v === this.state.discard.v || drawn.c === 'wild') break;
             }
+            this.notify("Hai pescato finché non hai trovato una mossa!");
         } else {
             p.hand.push(...this.draw(1));
-            this.nextTurn();
         }
+        this.render();
+        // Dopo la pesca (o la serie di pesche), il turno finisce se non hai giocato subito (automatico qui per semplicità)
+        setTimeout(() => this.nextTurn(), 500);
     },
 
     nextTurn(skip) {
-        const n = this.state.players.length;
-        this.state.turn = (this.state.turn + (skip ? 2 : 1) * this.state.dir + n) % n;
+        this.state.turn = (this.state.turn + (skip ? 2 : 1)) % this.state.players.length;
         this.render();
         if(this.state.players[this.state.turn].isBot) setTimeout(() => this.botPlay(), 1200);
     },
@@ -198,28 +162,16 @@ const game = {
         const idx = b.hand.findIndex(c => c.c === this.state.color || c.v === this.state.discard.v || c.c === 'wild');
         if(idx !== -1) {
             const card = b.hand.splice(idx, 1)[0];
-            if(card.c === 'wild') card.c = ['red','blue','green','yellow'][Math.floor(Math.random()*4)];
-            this.handleCardEffect(card);
+            this.state.discard = card;
+            this.state.color = card.c === 'wild' ? 'red' : card.c;
+            this.nextTurn(card.v === 'Ø');
         } else {
             b.hand.push(...this.draw(1));
             this.nextTurn();
         }
     },
 
-    setWildColor(c) {
-        this.state.color = c;
-        document.getElementById('colorPicker').classList.add('hidden');
-        this.nextTurn();
-    },
-
-    notify(m) {
-        const t = document.getElementById('toast');
-        t.innerText = m; t.classList.remove('hidden');
-        setTimeout(() => t.classList.add('hidden'), 2000);
-    },
-
-    goTo(id) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
-        document.getElementById(id).classList.remove('hidden');
-    }
+    goTo(id) { document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); },
+    notify(m) { const t=document.getElementById('toast'); t.innerText=m; t.classList.remove('hidden'); setTimeout(()=>t.classList.add('hidden'), 2000); },
+    copyId() { navigator.clipboard.writeText(this.state.myId); this.notify("ID Copiato!"); }
 };
