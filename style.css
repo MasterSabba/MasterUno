@@ -1,59 +1,44 @@
-:root { --neon-green: #39ff14; --glass: rgba(255, 255, 255, 0.05); }
-* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
-body { background: #000; height: 100vh; overflow: hidden; color: white; }
+:root { --gold: #ffcc00; --dark-green: radial-gradient(circle, #0a2e12 0%, #000 100%); }
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+body { background: #000; color: white; overflow: hidden; height: 100vh; }
 
 .screen { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; z-index: 10; }
 .screen.active { display: flex; }
+.game-bg { background: var(--dark-green) !important; }
 
-/* SFONDO VERDE SCURO SFUMATO */
-.game-bg { background: radial-gradient(circle at center, #0a2e12 0%, #000000 100%) !important; }
+/* UI GIALLA */
+.glass-box { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); padding: 30px; border-radius: 20px; border: 1px solid rgba(255,204,0,0.3); text-align: center; width: 320px; }
+.btn-yellow { background: var(--gold); border: none; padding: 15px; width: 100%; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; transition: 0.2s; }
+.btn-yellow:hover { transform: scale(1.02); box-shadow: 0 0 15px var(--gold); }
+.btn-black { background: transparent; border: 1px solid white; color: white; padding: 10px; width: 100%; border-radius: 12px; margin-top: 10px; cursor: pointer; }
+.glass-input { width: 100%; background: rgba(0,0,0,0.5); border: 1px solid #444; padding: 12px; border-radius: 10px; color: white; margin-top: 10px; text-align: center; }
 
-.glass-container {
-    background: var(--glass); backdrop-filter: blur(15px);
-    border: 1px solid rgba(255,255,255,0.1); padding: 40px;
-    border-radius: 30px; text-align: center; width: 350px;
-}
+/* CARTE E MAZZO */
+.card { width: 75px; height: 110px; border-radius: 8px; border: 2px solid white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 22px; background: white; color: black; box-shadow: 0 5px 15px rgba(0,0,0,0.5); position: relative; }
+.card-back { background: #000 !important; color: var(--gold); border-color: #333; }
+.m-back span { display: block; font-size: 10px; color: white; }
 
-.neon-title { font-size: 35px; letter-spacing: 5px; margin-bottom: 20px; }
-.neon-title span { color: var(--neon-green); text-shadow: 0 0 10px var(--neon-green); }
+.table-center { display: flex; gap: 30px; align-items: center; }
+.card-stack-effect { position: absolute; width: 75px; height: 110px; background: #222; border-radius: 8px; transform: translate(4px, 4px); z-index: -1; box-shadow: 2px 2px 5px black; }
 
-.glass-input { 
-    background: rgba(0,0,0,0.5); border: 1px solid #444; padding: 12px;
-    border-radius: 10px; color: white; width: 100%; margin-bottom: 15px; text-align: center;
-}
-
-.menu-btn {
-    background: rgba(255,255,255,0.1); border: none; padding: 12px;
-    border-radius: 10px; color: white; cursor: pointer; width: 100%; margin-bottom: 10px;
-}
-.menu-btn.primary { background: var(--neon-green); color: black; font-weight: bold; }
-
-/* CARTE */
-.card {
-    width: 75px; height: 110px; border: 3px solid white; border-radius: 10px;
-    display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 24px;
-    background: white; color: black; transition: 0.3s; box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-}
-.card-back { background: #000 !important; border-color: #333; color: var(--neon-green); }
-.m-back span { display: block; font-size: 12px; color: white; }
-
-/* COLORI CARTE */
+/* COLORI */
 .red { background: #ff4d4d !important; color: white; }
-.blue { background: #4d94ff !important; color: white; }
-.green { background: #2ecc71 !important; color: white; }
+.blue { background: #3498db !important; color: white; }
+.green { background: #27ae60 !important; color: white; }
 .yellow { background: #f1c40f !important; color: black; }
-.wild { background: #111 !important; color: var(--neon-green) !important; border-color: var(--neon-green) !important; }
+.wild { background: #111 !important; color: var(--gold) !important; border-color: var(--gold) !important; }
 
-/* LAYOUT GIOCO */
+/* SLOTS */
 .slot { position: absolute; display: flex; flex-direction: column; align-items: center; }
 .side { top: 35%; }
-.top { top: 30px; }
+.top { top: 20px; }
 #bot-left { left: 20px; } #bot-right { right: 20px; }
 
 .player-zone { position: absolute; bottom: 20px; width: 100%; display: flex; flex-direction: column; align-items: center; }
 .hand { display: flex; height: 120px; padding-left: 40px; }
-.hand .card { margin-left: -40px; cursor: pointer; }
-.hand .card:hover { transform: translateY(-30px) rotate(5deg); }
+.hand .card { margin-left: -35px; cursor: pointer; transition: 0.2s; }
+.hand .card:hover { transform: translateY(-25px); z-index: 100; }
 
-.settings-list { margin-bottom: 20px; text-align: left; }
-.setting-row { display: flex; justify-content: space-between; margin-bottom: 15px; }
+/* COLOR PICKER */
+.color-picker-overlay { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); gap: 10px; z-index: 100; background: rgba(0,0,0,0.8); padding: 20px; border-radius: 50px; }
+.color-btn { width: 50px; height: 50px; border-radius: 50%; cursor: pointer; border: 2px solid white; }
