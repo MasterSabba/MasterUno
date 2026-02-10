@@ -3,50 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MasterUno Elite</title>
+    <title>MasterUno Neo-Arena</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Poppins:wght@300;600&display=swap" rel="stylesheet">
 </head>
 <body>
 
-<div id="notification-area"></div>
+<div id="ui-layer">
+    <div id="alert-container"></div>
 
-<div id="loginScreen" class="screen active">
-    <div class="neo-card">
-        <h1 class="glitch-title">MASTER<span>UNO</span></h1>
-        <div class="auth-box">
-            <input type="text" id="nickInput" placeholder="NICKNAME" class="neo-input">
-            <input type="password" id="passInput" placeholder="PASSWORD" class="neo-input">
-            <button class="btn-glow" onclick="game.doLogin()">ENTRA NELL'ARENA</button>
+    <section id="loginScreen" class="screen active">
+        <div class="glass-panel">
+            <h1 class="logo-main">MASTER<span>UNO</span></h1>
+            <div class="login-form">
+                <input type="text" id="nickInput" placeholder="NICKNAME">
+                <input type="password" id="passInput" placeholder="PASSWORD">
+                <button class="btn-gold" onclick="game.doLogin()">ACCEDI</button>
+            </div>
         </div>
-    </div>
-</div>
+    </section>
 
-<div id="menuScreen" class="screen">
-    <div class="neo-card menu-layout">
-        <button class="gear-btn" onclick="game.toggleSettings()">⚙️</button>
-        <h2 id="userHello">BENVENUTO AGENTE</h2>
-        
-        <div class="invite-drawer">
-            <button class="btn-secondary" onclick="game.toggleInvite()">INVITA AMICI ▾</button>
-            <div id="invitePanel" class="drawer-content">
-                <p>Codice Stanza:</p>
-                <div class="code-row">
-                    <span id="roomCode">M1-77XQ</span>
-                    <button onclick="game.copyCode()">COPIA</button>
+    <section id="menuScreen" class="screen">
+        <div class="glass-panel">
+            <button class="settings-gear" onclick="game.toggleSettings()">⚙️</button>
+            <h2 id="userDisplay">CIAO, PLAYER</h2>
+            <div class="menu-nav">
+                <button class="btn-gold-large" onclick="game.startGame()">GIOCA ORA</button>
+                <div class="invite-drawer">
+                    <button class="btn-outline" onclick="game.toggleDrawer()">INVITA AMICI ▾</button>
+                    <div id="drawer" class="drawer-content">
+                        <div class="code-box">
+                            <span id="roomCode">M1-ARENA</span>
+                            <button onclick="game.copyRoom()">COPIA</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
+    </section>
 
-        <button class="btn-glow large" onclick="game.startGame()">START GAME</button>
-    </div>
-</div>
-
-<div id="settingsOverlay" class="overlay">
-    <div class="neo-card settings-modal">
-        <h3>CONFIGURAZIONE</h3>
-        <div class="scroll-settings">
-            <div class="s-row">
+    <div id="settingsOverlay" class="overlay">
+        <div class="modal">
+            <h3>IMPOSTAZIONI</h3>
+            <div class="setting-item">
                 <label>Giocatori</label>
                 <select id="setPlayers">
                     <option value="2">2 (1vs1)</option>
@@ -54,56 +52,71 @@
                     <option value="4" selected>4 Giocatori</option>
                 </select>
             </div>
-            <div class="s-row">
-                <label>Regola 0-7 <span>(Inversione/Scambio)</span></label>
+            <div class="setting-item">
+                <label>Regola 0 (Scambia tutti) e 7 (Scegli con chi)</label>
                 <input type="checkbox" id="set07" checked>
             </div>
-            <div class="s-row">
-                <label>Pesca a Strascico <span>(No Stop)</span></label>
-                <input type="checkbox" id="setStrascico">
+            <div class="setting-item">
+                <label>Accumulo +2 / +4</label>
+                <input type="checkbox" id="setStack" checked>
             </div>
-            <div class="s-row">
-                <label>Combo Numeri <span>(Scarto Multiplo)</span></label>
+            <div class="setting-item">
+                <label>Combo Stesso Numero</label>
                 <input type="checkbox" id="setMulti" checked>
             </div>
+            <button class="btn-gold" onclick="game.toggleSettings()">SALVA</button>
         </div>
-        <button class="btn-glow" onclick="game.toggleSettings()">APPLICA</button>
-    </div>
-</div>
-
-<div id="gameArea" class="screen game-bg">
-    <div class="top-bar">
-        <div id="turnInfo" class="neon-badge">TURNO DI: <span id="activePlayer">...</span></div>
-        <div id="stackAlert" class="stack-badge"></div>
     </div>
 
-    <div id="bot-left" class="player-slot side"></div>
-    <div id="bot-top" class="player-slot top"></div>
-    <div id="bot-right" class="player-slot side"></div>
+    <section id="gameArea" class="screen arena-bg">
+        <div class="game-header">
+            <div id="turnTag">TURNO DI: <span>---</span></div>
+            <div id="stackValue"></div>
+        </div>
 
-    <div class="battlefield">
-        <div id="deck" class="deck-pile" onclick="game.userDraw()">
-            <div class="card card-back">
-                <div class="master-logo">MASTER<span>UNO</span></div>
+        <div id="opponents">
+            <div id="slot-1" class="bot-box left"></div>
+            <div id="slot-2" class="bot-box top"></div>
+            <div id="slot-3" class="bot-box right"></div>
+        </div>
+
+        <div class="table">
+            <div id="deck" onclick="game.userDraw()">
+                <div class="card card-back stack-1"></div>
+                <div class="card card-back stack-2"></div>
+                <div class="card card-back">
+                    <div class="master-text">MASTER<span>UNO</span></div>
+                </div>
+            </div>
+            <div id="discard-pile"></div>
+        </div>
+
+        <div class="chat-system">
+            <div id="emojiBar" class="hidden">
+                <button onclick="game.sendEmoji('🔥')">🔥</button>
+                <button onclick="game.sendEmoji('😎')">😎</button>
+                <button onclick="game.sendEmoji('🤡')">🤡</button>
+                <button onclick="game.sendEmoji('😡')">😡</button>
+            </div>
+            <button class="chat-btn" onclick="game.toggleEmoji()">💬</button>
+        </div>
+
+        <div class="player-hud">
+            <div id="myHand" class="hand"></div>
+            <div class="hand-controls">
+                <button id="multiPlayBtn" class="btn-gold hidden" onclick="game.confirmMulti()">GIOCA COMBO</button>
             </div>
         </div>
-        <div id="discard-area"></div>
-    </div>
 
-    <div class="chat-container">
-        <div id="emojiBox" class="emoji-popup">
-            <button onclick="game.sendEmoji('😂')">😂</button>
-            <button onclick="game.sendEmoji('🤡')">🤡</button>
-            <button onclick="game.sendEmoji('😡')">😡</button>
-            <button onclick="game.sendEmoji('🔥')">🔥</button>
+        <div id="wildPicker" class="overlay">
+            <div class="picker-box">
+                <div class="p-red" onclick="game.pickColor('red')"></div>
+                <div class="p-blue" onclick="game.pickColor('blue')"></div>
+                <div class="p-green" onclick="game.pickColor('green')"></div>
+                <div class="p-yellow" onclick="game.pickColor('yellow')"></div>
+            </div>
         </div>
-        <button class="chat-trigger" onclick="game.toggleEmoji()">💬</button>
-    </div>
-
-    <div class="player-hud">
-        <div id="myHand" class="hand"></div>
-        <button id="confirmBtn" class="btn-glow hidden" onclick="game.confirmMulti()">GIOCA COMBO</button>
-    </div>
+    </section>
 </div>
 
 <script src="script.js"></script>
