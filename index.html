@@ -3,119 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MasterUno Ultimate Elite</title>
+    <title>MasterUno Elite</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Poppins:wght@300;600&display=swap" rel="stylesheet">
 </head>
 <body>
 
-    <div id="toast-container"></div>
+<div id="notification-area"></div>
 
-    <div id="loginScreen" class="screen active">
-        <div class="auth-card">
-            <h1 class="logo">MASTER<span>UNO</span></h1>
-            <div class="input-group">
-                <input type="text" id="nickInput" placeholder="Nickname">
-                <input type="password" id="passInput" placeholder="Password">
-            </div>
-            <button class="btn-main" onclick="game.doLogin()">ACCEDI</button>
+<div id="loginScreen" class="screen active">
+    <div class="neo-card">
+        <h1 class="glitch-title">MASTER<span>UNO</span></h1>
+        <div class="auth-box">
+            <input type="text" id="nickInput" placeholder="NICKNAME" class="neo-input">
+            <input type="password" id="passInput" placeholder="PASSWORD" class="neo-input">
+            <button class="btn-glow" onclick="game.doLogin()">ENTRA NELL'ARENA</button>
         </div>
     </div>
+</div>
 
-    <div id="menuScreen" class="screen">
-        <div class="auth-card main-menu">
-            <button class="settings-trigger" onclick="game.toggleSettings()"><i class="fas fa-cog"></i></button>
-            <h2 id="welcomeMsg">BENTORNATO</h2>
-            <div class="menu-actions">
-                <button class="btn-main" onclick="game.startGame()">PARTITA RAPIDA</button>
-                <div class="invite-section">
-                    <p>Invita amici:</p>
-                    <div class="code-display" onclick="game.copyRoomCode()">
-                        <span id="roomCodeDisplay">G7K2X9</span>
-                        <i class="fas fa-copy"></i>
-                    </div>
+<div id="menuScreen" class="screen">
+    <div class="neo-card menu-layout">
+        <button class="gear-btn" onclick="game.toggleSettings()">⚙️</button>
+        <h2 id="userHello">BENVENUTO AGENTE</h2>
+        
+        <div class="invite-drawer">
+            <button class="btn-secondary" onclick="game.toggleInvite()">INVITA AMICI ▾</button>
+            <div id="invitePanel" class="drawer-content">
+                <p>Codice Stanza:</p>
+                <div class="code-row">
+                    <span id="roomCode">M1-77XQ</span>
+                    <button onclick="game.copyCode()">COPIA</button>
                 </div>
             </div>
         </div>
+
+        <button class="btn-glow large" onclick="game.startGame()">START GAME</button>
+    </div>
+</div>
+
+<div id="settingsOverlay" class="overlay">
+    <div class="neo-card settings-modal">
+        <h3>CONFIGURAZIONE</h3>
+        <div class="scroll-settings">
+            <div class="s-row">
+                <label>Giocatori</label>
+                <select id="setPlayers">
+                    <option value="2">2 (1vs1)</option>
+                    <option value="3">3 Giocatori</option>
+                    <option value="4" selected>4 Giocatori</option>
+                </select>
+            </div>
+            <div class="s-row">
+                <label>Regola 0-7 <span>(Inversione/Scambio)</span></label>
+                <input type="checkbox" id="set07" checked>
+            </div>
+            <div class="s-row">
+                <label>Pesca a Strascico <span>(No Stop)</span></label>
+                <input type="checkbox" id="setStrascico">
+            </div>
+            <div class="s-row">
+                <label>Combo Numeri <span>(Scarto Multiplo)</span></label>
+                <input type="checkbox" id="setMulti" checked>
+            </div>
+        </div>
+        <button class="btn-glow" onclick="game.toggleSettings()">APPLICA</button>
+    </div>
+</div>
+
+<div id="gameArea" class="screen game-bg">
+    <div class="top-bar">
+        <div id="turnInfo" class="neon-badge">TURNO DI: <span id="activePlayer">...</span></div>
+        <div id="stackAlert" class="stack-badge"></div>
     </div>
 
-    <div id="settingsOverlay" class="overlay">
-        <div class="settings-modal">
-            <h3><i class="fas fa-sliders-h"></i> IMPOSTAZIONI GIOCO</h3>
-            <div class="settings-content">
-                <div class="setting-item">
-                    <label>Giocatori Totali (Max 4)</label>
-                    <select id="setPlayers">
-                        <option value="2">2 Giocatori</option>
-                        <option value="3">3 Giocatori</option>
-                        <option value="4" selected>4 Giocatori</option>
-                    </select>
-                </div>
-                <div class="setting-item toggle">
-                    <label>Regola 0-7 <span>(Scambio mazzi)</span></label>
-                    <input type="checkbox" id="set07" checked>
-                </div>
-                <div class="setting-item toggle">
-                    <label>Pesca a Strascico <span>(Pesca finché non giochi)</span></label>
-                    <input type="checkbox" id="setStrascico">
-                </div>
-                <div class="setting-item toggle">
-                    <label>Scarto Multiplo <span>(Stesso numero insieme)</span></label>
-                    <input type="checkbox" id="setMulti" checked>
-                </div>
+    <div id="bot-left" class="player-slot side"></div>
+    <div id="bot-top" class="player-slot top"></div>
+    <div id="bot-right" class="player-slot side"></div>
+
+    <div class="battlefield">
+        <div id="deck" class="deck-pile" onclick="game.userDraw()">
+            <div class="card card-back">
+                <div class="master-logo">MASTER<span>UNO</span></div>
             </div>
-            <button class="btn-main" onclick="game.toggleSettings()">SALVA E CHIUDI</button>
         </div>
+        <div id="discard-area"></div>
     </div>
 
-    <div id="gameArea" class="screen game-bg">
-        <div id="activePlayerBox">TURNO: <span id="turnName">---</span></div>
-        <div id="stackBadge"></div>
-
-        <div class="bot-slots">
-            <div id="slot-1" class="bot-pos"></div>
-            <div id="slot-2" class="bot-pos"></div>
-            <div id="slot-3" class="bot-pos"></div>
+    <div class="chat-container">
+        <div id="emojiBox" class="emoji-popup">
+            <button onclick="game.sendEmoji('😂')">😂</button>
+            <button onclick="game.sendEmoji('🤡')">🤡</button>
+            <button onclick="game.sendEmoji('😡')">😡</button>
+            <button onclick="game.sendEmoji('🔥')">🔥</button>
         </div>
-
-        <div class="table">
-            <div id="deck" onclick="game.userDraw()">
-                <div class="card card-back deck-shadow">
-                    <div class="m-back">MASTER<span>UNO</span></div>
-                </div>
-            </div>
-            <div id="discard-pile"></div>
-        </div>
-
-        <div id="chatSystem">
-            <div id="emojiPanel" class="hidden">
-                <span onclick="game.sendEmoji('🔥')">🔥</span>
-                <span onclick="game.sendEmoji('😎')">😎</span>
-                <span onclick="game.sendEmoji('😭')">😭</span>
-                <span onclick="game.sendEmoji('🃏')">🃏</span>
-            </div>
-            <button id="chatBtn" onclick="game.toggleEmoji()"><i class="fas fa-smile"></i></button>
-        </div>
-
-        <div class="player-hud">
-            <div class="player-info-bar">
-                <span id="myNickDisplay">TU</span>
-                <div class="hand-count"><i class="fas fa-clone"></i> <span id="myCount">7</span></div>
-            </div>
-            <div id="myHand" class="hand"></div>
-            <button id="playMultiBtn" class="hidden" onclick="game.confirmMultiPlay()">GIOCA SELEZIONATE</button>
-        </div>
-
-        <div id="colorPicker" class="overlay">
-            <div class="color-wheel">
-                <div class="c-slice r" onclick="game.resolveWild('red')"></div>
-                <div class="c-slice b" onclick="game.resolveWild('blue')"></div>
-                <div class="c-slice g" onclick="game.resolveWild('green')"></div>
-                <div class="c-slice y" onclick="game.resolveWild('yellow')"></div>
-            </div>
-        </div>
+        <button class="chat-trigger" onclick="game.toggleEmoji()">💬</button>
     </div>
 
-    <script src="script.js"></script>
+    <div class="player-hud">
+        <div id="myHand" class="hand"></div>
+        <button id="confirmBtn" class="btn-glow hidden" onclick="game.confirmMulti()">GIOCA COMBO</button>
+    </div>
+</div>
+
+<script src="script.js"></script>
 </body>
 </html>
