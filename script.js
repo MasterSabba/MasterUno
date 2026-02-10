@@ -1,58 +1,41 @@
 const game = {
     state: {
-        players: [], deck: [], discard: null, turn: 0, 
-        stack: 0, dir: 1, 
-        settings: { num: 4, rule07: true, strascico: false, multi: true },
-        selectedCards: []
+        players: [], deck: [], discard: null, turn: 0, dir: 1, stack: 0,
+        selected: [], color: "", pendingWild: false
     },
 
-    // --- SISTEMA CORE ---
-    doLogin() {
-        const nick = document.getElementById('nickInput').value || "Player";
-        document.getElementById('welcomeMsg').innerText = "CIAO, " + nick.toUpperCase();
-        document.getElementById('myNickDisplay').innerText = nick;
-        this.goTo('menuScreen');
-        this.showToast("Accesso eseguito come " + nick);
-    },
-
-    goTo(id) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-    },
-
-    toggleSettings() {
-        const el = document.getElementById('settingsOverlay');
-        el.style.display = el.style.display === 'flex' ? 'none' : 'flex';
-    },
-
-    showToast(msg) {
+    // Notifiche automatiche
+    notify(msg) {
+        const area = document.getElementById('notification-area');
         const t = document.createElement('div');
         t.className = 'toast'; t.innerText = msg;
-        document.getElementById('toast-container').appendChild(t);
-        setTimeout(() => t.remove(), 3000);
+        area.appendChild(t);
+        setTimeout(() => t.remove(), 2500);
     },
 
-    // --- LOGICA GIOCO ---
+    doLogin() {
+        const n = document.getElementById('nickInput').value || "PLAYER-1";
+        const p = document.getElementById('passInput').value;
+        if(p.length < 4) return this.notify("Password troppo corta!");
+        document.getElementById('userHello').innerText = "BENVENUTO " + n;
+        this.goTo('menuScreen');
+    },
+
+    // Logica Carte
     initDeck() {
         const colors = ['red', 'blue', 'green', 'yellow'];
-        const vals = ['0','1','2','3','4','5','6','7','8','9','+2','SKIP','REV'];
+        const values = ['0','1','2','3','4','5','6','7','8','9','SKIP','REV','+2'];
         this.state.deck = [];
-        colors.forEach(c => vals.forEach(v => this.state.deck.push({c, v})));
+        colors.forEach(c => values.forEach(v => this.state.deck.push({c, v})));
         for(let i=0; i<4; i++) this.state.deck.push({c:'wild', v:'+4'}, {c:'wild', v:'WILD'});
         this.state.deck.sort(() => Math.random() - 0.5);
     },
 
     startGame() {
-        this.state.settings.num = parseInt(document.getElementById('setPlayers').value);
-        this.state.settings.rule07 = document.getElementById('set07').checked;
-        this.state.settings.strascico = document.getElementById('setStrascico').checked;
-        this.state.settings.multi = document.getElementById('setMulti').checked;
-        
+        const nPlayers = parseInt(document.getElementById('setPlayers').value);
         this.initDeck();
         this.state.players = [{ name: "TU", hand: this.draw(7), isBot: false }];
-        for(let i=1; i<this.state.settings.num; i++) {
-            this.state.players.push({ name: "BOT "+i, hand: this.draw(7), isBot: true });
-        }
+        for(let i=1; i<nPlayers; i++) this.state.players.push({ name: "BOT "+i, hand: this.draw(7), isBot: true });
         
         this.state.discard = this.state.deck.pop();
         this.state.color = this.state.discard.c === 'wild' ? 'red' : this.state.discard.c;
@@ -69,128 +52,67 @@ const game = {
         return cards;
     },
 
-    render() {
-        const p = this.state.players[this.state.turn];
-        document.getElementById('turnName').innerText = p.name;
-        document.getElementById('stackBadge').innerText = this.state.stack > 0 ? "+"+this.state.stack : "";
-        document.getElementById('discard-pile').innerHTML = this.createCardHTML(this.state.discard, false, this.state.color);
-
-        // Render Bot Slots
-        for(let i=1; i<=3; i++) {
-            const slot = document.getElementById('slot-'+i);
-            slot.innerHTML = "";
-            if(this.state.players[i]) {
-                const bot = this.state.players[i];
-                slot.className = `bot-pos ${this.state.turn === i ? 'active-turn' : ''}`;
-                slot.innerHTML = `<div>${bot.name} (${bot.hand.length})</div>`;
-            }
-        }
-
-        // Render My Hand
-        const handDiv = document.getElementById('myHand');
-        handDiv.innerHTML = "";
-        this.state.players[0].hand.forEach((c, i) => {
-            const cardEl = document.createElement('div');
-            cardEl.innerHTML = this.createCardHTML(c, true);
-            const inner = cardEl.firstChild;
-            inner.onclick = () => this.handleCardClick(i);
-            handDiv.appendChild(inner);
-        });
-        document.getElementById('myCount').innerText = this.state.players[0].hand.length;
-    },
-
-    createCardHTML(card, isSmall, forceColor) {
-        const colorClass = forceColor || card.c;
-        return `<div class="card ${colorClass} ${isSmall ? 'hand-card' : ''}">
-                    ${card.v}
-                </div>`;
-    },
-
-    handleCardClick(index) {
-        if(this.state.turn !== 0) return;
-        const card = this.state.players[0].hand[index];
-        
-        if(this.state.settings.multi) {
-            // Logica Selezione Multipla
-            const el = document.querySelectorAll('.hand-card')[index];
-            if(this.state.selectedCards.includes(index)) {
-                this.state.selectedCards = this.state.selectedCards.filter(i => i !== index);
-                el.classList.remove('selected');
-            } else {
-                const firstSelectedIdx = this.state.selectedCards[0];
-                if(this.state.selectedCards.length > 0) {
-                    const firstCard = this.state.players[0].hand[firstSelectedIdx];
-                    if(firstCard.v !== card.v) {
-                        this.showToast("Puoi selezionare solo carte dello stesso numero!");
-                        return;
-                    }
-                }
-                this.state.selectedCards.push(index);
-                el.classList.add('selected');
-            }
-            document.getElementById('playMultiBtn').classList.toggle('hidden', this.state.selectedCards.length < 1);
-        } else {
-            this.playSingle(index);
-        }
-    },
-
-    confirmMultiPlay() {
-        const indices = [...this.state.selectedCards].sort((a,b) => b-a);
-        const firstCard = this.state.players[0].hand[indices[0]];
-        
-        if(this.isValidMove(firstCard)) {
-            indices.forEach(idx => {
-                const c = this.state.players[0].hand.splice(idx, 1)[0];
-                this.state.discard = c;
-            });
-            this.state.selectedCards = [];
-            this.applyCardEffect(this.state.discard);
-            this.render();
-            if(!this.state.pendingWild) this.nextTurn();
-        }
-        document.getElementById('playMultiBtn').classList.add('hidden');
-    },
-
-    isValidMove(card) {
-        if(this.state.stack > 0) return card.v === '+2' || card.v === '+4';
-        return card.c === this.state.color || card.v === this.state.discard.v || card.c === 'wild';
-    },
-
-    userDraw() {
+    // Gestione Turni & Bug +2/+4
+    playCard(index) {
         if(this.state.turn !== 0) return;
         const p = this.state.players[0];
-        
-        if(this.state.stack > 0) {
-            p.hand.push(...this.draw(this.state.stack));
-            this.state.stack = 0;
-            this.nextTurn();
+        const card = p.hand[index];
+
+        // Regola Combo (Multi)
+        if(document.getElementById('setMulti').checked) {
+            this.handleMultiSelect(index);
         } else {
-            const newCard = this.draw(1)[0];
-            p.hand.push(newCard);
-            if(!this.state.settings.strascico) this.nextTurn();
+            this.executePlay([index]);
+        }
+    },
+
+    handleMultiSelect(idx) {
+        if(this.state.selected.includes(idx)) {
+            this.state.selected = this.state.selected.filter(i => i !== idx);
+        } else {
+            const firstIdx = this.state.selected[0];
+            if(this.state.selected.length > 0 && this.state.players[0].hand[firstIdx].v !== this.state.players[0].hand[idx].v) {
+                return this.notify("Devono avere lo stesso numero!");
+            }
+            this.state.selected.push(idx);
         }
         this.render();
+        document.getElementById('confirmBtn').classList.toggle('hidden', this.state.selected.length === 0);
     },
 
-    // --- REGOLE SPECIALI ---
-    applyCardEffect(card) {
-        if(card.v === '+2') this.state.stack += 2;
-        if(card.v === '+4') this.state.stack += 4;
-        if(card.v === 'SKIP') this.nextTurn();
-        if(card.v === 'REV') this.state.dir *= -1;
-        if(this.state.settings.rule07 && card.v === '0') this.rotateHands();
-        if(card.c === 'wild') {
-            this.state.pendingWild = true;
-            document.getElementById('colorPicker').style.display = 'flex';
+    confirmMulti() {
+        this.executePlay(this.state.selected);
+        this.state.selected = [];
+        document.getElementById('confirmBtn').classList.add('hidden');
+    },
+
+    executePlay(indices) {
+        const p = this.state.players[0];
+        const firstCard = p.hand[indices[0]];
+
+        if(this.isValid(firstCard)) {
+            indices.sort((a,b) => b-a).forEach(i => {
+                this.state.discard = p.hand.splice(i, 1)[0];
+            });
+            this.applyEffects(this.state.discard);
+            this.render();
+            if(!this.state.pendingWild) this.nextTurn();
+        } else {
+            this.notify("Mossa non valida!");
         }
     },
 
-    rotateHands() {
-        const hands = this.state.players.map(p => p.hand);
-        if(this.state.dir === 1) hands.push(hands.shift());
-        else hands.unshift(hands.pop());
-        this.state.players.forEach((p, i) => p.hand = hands[i]);
-        this.showToast("MANI SCAMBIATE!");
+    isValid(c) {
+        if(this.state.stack > 0) return c.v === '+2' || c.v === '+4';
+        return c.c === this.state.color || c.v === this.state.discard.v || c.c === 'wild';
+    },
+
+    applyEffects(c) {
+        if(c.v === '+2') this.state.stack += 2;
+        if(c.v === '+4') this.state.stack += 4;
+        if(c.v === 'SKIP') this.skipNext();
+        if(c.v === 'REV') this.state.dir *= -1;
+        if(c.v === '0' && document.getElementById('set07').checked) this.swapAll();
     },
 
     nextTurn() {
@@ -199,12 +121,42 @@ const game = {
         if(this.state.players[this.state.turn].isBot) setTimeout(() => this.botPlay(), 1500);
     },
 
-    // --- ABBELLIMENTI ---
-    toggleEmoji() {
-        document.getElementById('emojiPanel').classList.toggle('hidden');
-    },
+    // Chat
     sendEmoji(e) {
-        this.showToast("TU: " + e);
-        this.toggleEmoji();
+        this.notify("TU: " + e);
+        document.getElementById('emojiBox').style.display = 'none';
+    },
+
+    // Rendering con animazione "illuminata"
+    render() {
+        const current = this.state.players[this.state.turn];
+        document.getElementById('activePlayer').innerText = current.name;
+        document.getElementById('stackAlert').innerText = this.state.stack > 0 ? "+" + this.state.stack : "";
+        
+        // Discard
+        const disc = document.getElementById('discard-area');
+        disc.innerHTML = `<div class="card ${this.state.color}">${this.state.discard.v}</div>`;
+
+        // Bots
+        [1,2,3].forEach(i => {
+            const slot = document.getElementById('bot-'+(i === 1 ? 'left' : (i === 2 ? 'top' : 'right')));
+            slot.innerHTML = "";
+            if(this.state.players[i]) {
+                const b = this.state.players[i];
+                slot.className = `player-slot ${i === 1 ? 'side' : (i === 2 ? 'top' : 'side')} ${this.state.turn === i ? 'active-turn' : ''}`;
+                slot.innerHTML = `<b>${b.name}</b> (${b.hand.length})`;
+            }
+        });
+
+        // Hand
+        const hand = document.getElementById('myHand');
+        hand.innerHTML = "";
+        this.state.players[0].hand.forEach((c, i) => {
+            const div = document.createElement('div');
+            div.className = `card ${c.c} ${this.state.selected.includes(i) ? 'selected' : ''}`;
+            div.innerText = c.v;
+            div.onclick = () => this.playCard(i);
+            hand.appendChild(div);
+        });
     }
 };
