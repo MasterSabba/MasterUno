@@ -1,8 +1,18 @@
 const game = {
     state: {
-        nick: "", players: [], deck: [], discard: null,
-        color: "", turn: 0, stack: 0, pendingWild: false,
-        settings: { numPlayers: 4, rule07: true }
+        players: [], deck: [], discard: null, turn: 0, 
+        stack: 0, dir: 1, 
+        settings: { num: 4, rule07: true, strascico: false, multi: true },
+        selectedCards: []
+    },
+
+    // --- SISTEMA CORE ---
+    doLogin() {
+        const nick = document.getElementById('nickInput').value || "Player";
+        document.getElementById('welcomeMsg').innerText = "CIAO, " + nick.toUpperCase();
+        document.getElementById('myNickDisplay').innerText = nick;
+        this.goTo('menuScreen');
+        this.showToast("Accesso eseguito come " + nick);
     },
 
     goTo(id) {
@@ -10,157 +20,191 @@ const game = {
         document.getElementById(id).classList.add('active');
     },
 
-    copyCode() {
-        const c = Math.random().toString(36).substring(7).toUpperCase();
-        document.getElementById('joinCode').value = c;
-        alert("Codice Partita Copiato!");
+    toggleSettings() {
+        const el = document.getElementById('settingsOverlay');
+        el.style.display = el.style.display === 'flex' ? 'none' : 'flex';
     },
 
+    showToast(msg) {
+        const t = document.createElement('div');
+        t.className = 'toast'; t.innerText = msg;
+        document.getElementById('toast-container').appendChild(t);
+        setTimeout(() => t.remove(), 3000);
+    },
+
+    // --- LOGICA GIOCO ---
     initDeck() {
         const colors = ['red', 'blue', 'green', 'yellow'];
-        const vals = ['0','1','2','3','4','5','6','7','8','9','+2'];
+        const vals = ['0','1','2','3','4','5','6','7','8','9','+2','SKIP','REV'];
         this.state.deck = [];
-        for(let i=0; i<2; i++){
-            colors.forEach(c => vals.forEach(v => this.state.deck.push({c, v})));
-            for(let j=0; j<4; j++) this.state.deck.push({c:'wild', v:'+4'});
-        }
+        colors.forEach(c => vals.forEach(v => this.state.deck.push({c, v})));
+        for(let i=0; i<4; i++) this.state.deck.push({c:'wild', v:'+4'}, {c:'wild', v:'WILD'});
         this.state.deck.sort(() => Math.random() - 0.5);
     },
 
-    draw(n) {
-        let res = [];
-        for(let i=0; i<n; i++) {
-            if(this.state.deck.length === 0) this.initDeck();
-            res.push(this.state.deck.pop());
-        }
-        return res;
-    },
-
     startGame() {
-        this.state.settings.numPlayers = parseInt(document.getElementById('playerCount').value);
-        this.state.settings.rule07 = document.getElementById('rule07').checked;
+        this.state.settings.num = parseInt(document.getElementById('setPlayers').value);
+        this.state.settings.rule07 = document.getElementById('set07').checked;
+        this.state.settings.strascico = document.getElementById('setStrascico').checked;
+        this.state.settings.multi = document.getElementById('setMulti').checked;
+        
         this.initDeck();
         this.state.players = [{ name: "TU", hand: this.draw(7), isBot: false }];
-        for(let i=1; i < this.state.settings.numPlayers; i++) {
+        for(let i=1; i<this.state.settings.num; i++) {
             this.state.players.push({ name: "BOT "+i, hand: this.draw(7), isBot: true });
         }
-        this.state.discard = this.state.deck.find(c => c.c !== 'wild');
-        this.state.color = this.state.discard.c;
-        this.state.stack = 0;
-        this.state.turn = 0;
+        
+        this.state.discard = this.state.deck.pop();
+        this.state.color = this.state.discard.c === 'wild' ? 'red' : this.state.discard.c;
         this.goTo('gameArea');
         this.render();
     },
 
+    draw(n) {
+        let cards = [];
+        for(let i=0; i<n; i++) {
+            if(this.state.deck.length === 0) this.initDeck();
+            cards.push(this.state.deck.pop());
+        }
+        return cards;
+    },
+
     render() {
-        document.getElementById('turnIndicator').innerText = "TURNO: " + this.state.players[this.state.turn].name;
-        document.getElementById('stackInfo').innerText = this.state.stack > 0 ? "ATTENZIONE: +" + this.state.stack : "";
-        document.getElementById('discard-area').innerHTML = `<div class="card ${this.state.color}">${this.state.discard.v}</div>`;
+        const p = this.state.players[this.state.turn];
+        document.getElementById('turnName').innerText = p.name;
+        document.getElementById('stackBadge').innerText = this.state.stack > 0 ? "+"+this.state.stack : "";
+        document.getElementById('discard-pile').innerHTML = this.createCardHTML(this.state.discard, false, this.state.color);
 
         // Render Bot Slots
-        ['bot-left', 'bot-top', 'bot-right'].forEach(id => document.getElementById(id).innerHTML = "");
-        this.state.players.forEach((p, i) => {
-            if(i === 0) return;
-            let slotId = i === 1 ? 'bot-left' : (i === 2 ? 'bot-top' : 'bot-right');
-            let h = `<div style="background:var(--gold); color:black; padding:2px 10px; border-radius:10px; font-weight:bold; font-size:12px; margin-bottom:5px">${p.name} (${p.hand.length})</div><div style="display:flex">`;
-            p.hand.forEach(() => h += `<div class="card card-back" style="margin-left:-55px; width:60px; height:90px"></div>`);
-            document.getElementById(slotId).innerHTML = h + "</div>";
-        });
-
-        // Mia Mano
-        const hand = document.getElementById('myHand');
-        hand.innerHTML = "";
-        this.state.players[0].hand.forEach((c, i) => {
-            const d = document.createElement('div');
-            d.className = `card ${c.c}`; d.innerText = c.v;
-            d.onclick = () => this.playCard(i);
-            hand.appendChild(d);
-        });
-        document.getElementById('myBadge').innerText = "TU: " + this.state.players[0].hand.length;
-
-        if(this.state.players[this.state.turn].hand.length === 0) {
-            alert(this.state.players[this.state.turn].name + " HA VINTO!");
-            location.reload();
-        }
-    },
-
-    playCard(i) {
-        if(this.state.turn !== 0 || this.state.pendingWild) return;
-        const p = this.state.players[0];
-        const c = p.hand[i];
-
-        if(this.state.stack > 0 && c.v !== '+2' && c.v !== '+4') return;
-
-        if(c.c === this.state.color || c.v === this.state.discard.v || c.c === 'wild') {
-            p.hand.splice(i, 1);
-            this.state.discard = c;
-            
-            if(c.v === '+2') this.state.stack += 2;
-            if(c.v === '+4') this.state.stack += 4;
-
-            if(c.c === 'wild') {
-                this.state.pendingWild = true;
-                document.getElementById('colorPicker').style.display = 'flex';
-            } else {
-                this.state.color = c.c;
-                this.checkSpecialRules(c);
-                this.nextTurn();
+        for(let i=1; i<=3; i++) {
+            const slot = document.getElementById('slot-'+i);
+            slot.innerHTML = "";
+            if(this.state.players[i]) {
+                const bot = this.state.players[i];
+                slot.className = `bot-pos ${this.state.turn === i ? 'active-turn' : ''}`;
+                slot.innerHTML = `<div>${bot.name} (${bot.hand.length})</div>`;
             }
+        }
+
+        // Render My Hand
+        const handDiv = document.getElementById('myHand');
+        handDiv.innerHTML = "";
+        this.state.players[0].hand.forEach((c, i) => {
+            const cardEl = document.createElement('div');
+            cardEl.innerHTML = this.createCardHTML(c, true);
+            const inner = cardEl.firstChild;
+            inner.onclick = () => this.handleCardClick(i);
+            handDiv.appendChild(inner);
+        });
+        document.getElementById('myCount').innerText = this.state.players[0].hand.length;
+    },
+
+    createCardHTML(card, isSmall, forceColor) {
+        const colorClass = forceColor || card.c;
+        return `<div class="card ${colorClass} ${isSmall ? 'hand-card' : ''}">
+                    ${card.v}
+                </div>`;
+    },
+
+    handleCardClick(index) {
+        if(this.state.turn !== 0) return;
+        const card = this.state.players[0].hand[index];
+        
+        if(this.state.settings.multi) {
+            // Logica Selezione Multipla
+            const el = document.querySelectorAll('.hand-card')[index];
+            if(this.state.selectedCards.includes(index)) {
+                this.state.selectedCards = this.state.selectedCards.filter(i => i !== index);
+                el.classList.remove('selected');
+            } else {
+                const firstSelectedIdx = this.state.selectedCards[0];
+                if(this.state.selectedCards.length > 0) {
+                    const firstCard = this.state.players[0].hand[firstSelectedIdx];
+                    if(firstCard.v !== card.v) {
+                        this.showToast("Puoi selezionare solo carte dello stesso numero!");
+                        return;
+                    }
+                }
+                this.state.selectedCards.push(index);
+                el.classList.add('selected');
+            }
+            document.getElementById('playMultiBtn').classList.toggle('hidden', this.state.selectedCards.length < 1);
+        } else {
+            this.playSingle(index);
+        }
+    },
+
+    confirmMultiPlay() {
+        const indices = [...this.state.selectedCards].sort((a,b) => b-a);
+        const firstCard = this.state.players[0].hand[indices[0]];
+        
+        if(this.isValidMove(firstCard)) {
+            indices.forEach(idx => {
+                const c = this.state.players[0].hand.splice(idx, 1)[0];
+                this.state.discard = c;
+            });
+            this.state.selectedCards = [];
+            this.applyCardEffect(this.state.discard);
             this.render();
+            if(!this.state.pendingWild) this.nextTurn();
         }
+        document.getElementById('playMultiBtn').classList.add('hidden');
     },
 
-    selectColor(color) {
-        this.state.color = color;
-        this.state.pendingWild = false;
-        document.getElementById('colorPicker').style.display = 'none';
-        this.render();
-        this.nextTurn();
-    },
-
-    checkSpecialRules(c) {
-        if(this.state.settings.rule07 && c.v === '0') {
-            let hands = this.state.players.map(p => p.hand);
-            hands.push(hands.shift());
-            this.state.players.forEach((p, i) => p.hand = hands[i]);
-        }
+    isValidMove(card) {
+        if(this.state.stack > 0) return card.v === '+2' || card.v === '+4';
+        return card.c === this.state.color || card.v === this.state.discard.v || card.c === 'wild';
     },
 
     userDraw() {
         if(this.state.turn !== 0) return;
         const p = this.state.players[0];
+        
         if(this.state.stack > 0) {
             p.hand.push(...this.draw(this.state.stack));
             this.state.stack = 0;
+            this.nextTurn();
         } else {
-            p.hand.push(this.draw(1)[0]);
+            const newCard = this.draw(1)[0];
+            p.hand.push(newCard);
+            if(!this.state.settings.strascico) this.nextTurn();
         }
         this.render();
-        setTimeout(() => this.nextTurn(), 1000);
+    },
+
+    // --- REGOLE SPECIALI ---
+    applyCardEffect(card) {
+        if(card.v === '+2') this.state.stack += 2;
+        if(card.v === '+4') this.state.stack += 4;
+        if(card.v === 'SKIP') this.nextTurn();
+        if(card.v === 'REV') this.state.dir *= -1;
+        if(this.state.settings.rule07 && card.v === '0') this.rotateHands();
+        if(card.c === 'wild') {
+            this.state.pendingWild = true;
+            document.getElementById('colorPicker').style.display = 'flex';
+        }
+    },
+
+    rotateHands() {
+        const hands = this.state.players.map(p => p.hand);
+        if(this.state.dir === 1) hands.push(hands.shift());
+        else hands.unshift(hands.pop());
+        this.state.players.forEach((p, i) => p.hand = hands[i]);
+        this.showToast("MANI SCAMBIATE!");
     },
 
     nextTurn() {
-        this.state.turn = (this.state.turn + 1) % this.state.players.length;
+        this.state.turn = (this.state.turn + this.state.dir + this.state.players.length) % this.state.players.length;
         this.render();
-        if(this.state.players[this.state.turn].isBot) setTimeout(() => this.botPlay(), 1200);
+        if(this.state.players[this.state.turn].isBot) setTimeout(() => this.botPlay(), 1500);
     },
 
-    botPlay() {
-        const b = this.state.players[this.state.turn];
-        let idx = this.state.stack > 0 ? b.hand.findIndex(c => c.v === '+2' || c.v === '+4') : b.hand.findIndex(c => c.c === this.state.color || c.v === this.state.discard.v || c.c === 'wild');
-
-        if(idx !== -1) {
-            const c = b.hand.splice(idx, 1)[0];
-            this.state.discard = c;
-            this.state.color = c.c === 'wild' ? ['red','blue','green','yellow'][Math.floor(Math.random()*4)] : c.c;
-            if(c.v === '+2') this.state.stack += 2;
-            if(c.v === '+4') this.state.stack += 4;
-            this.checkSpecialRules(c);
-        } else {
-            if(this.state.stack > 0) { b.hand.push(...this.draw(this.state.stack)); this.state.stack = 0; }
-            else { b.hand.push(this.draw(1)[0]); }
-        }
-        this.render();
-        this.nextTurn();
+    // --- ABBELLIMENTI ---
+    toggleEmoji() {
+        document.getElementById('emojiPanel').classList.toggle('hidden');
+    },
+    sendEmoji(e) {
+        this.showToast("TU: " + e);
+        this.toggleEmoji();
     }
 };
