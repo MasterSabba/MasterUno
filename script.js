@@ -10,17 +10,38 @@ const game = {
     },
 
     doLogin() {
-        this.state.nick = document.getElementById('nickInput').value || "GIOCATORE";
+        const input = document.getElementById('nickInput').value;
+        this.state.nick = input || "GIOCATORE";
+        document.getElementById('welcomeText').innerText = `CIAO, ${this.state.nick.toUpperCase()}`;
         document.getElementById('playerNameDisplay').innerText = this.state.nick;
+        this.goTo('menuScreen');
+    },
+
+    startGame() {
+        this.initDeck();
+        this.state.players = [
+            { name: this.state.nick, hand: this.draw(7), isBot: false },
+            { name: "AI DUSTY", hand: this.draw(7), isBot: true },
+            { name: "AI LUNA", hand: this.draw(7), isBot: true },
+            { name: "AI PUDDING", hand: this.draw(7), isBot: true }
+        ];
+        
+        let firstCard;
+        do { firstCard = this.state.deck.pop(); } while(firstCard.c === 'wild');
+        
+        this.state.discard = firstCard;
+        this.state.color = firstCard.c;
+        this.state.turn = 0;
+        
         this.goTo('gameArea');
-        this.startGame();
+        this.render();
     },
 
     initDeck() {
         const colors = ['red', 'blue', 'green', 'yellow'];
         const vals = ['0','1','2','3','4','5','6','7','8','9','+2'];
         this.state.deck = [];
-        for(let i=0; i<2; i++) { // Due mazzi insieme
+        for(let i=0; i<2; i++) {
             colors.forEach(c => vals.forEach(v => this.state.deck.push({c, v})));
             for(let j=0; j<2; j++) this.state.deck.push({c:'wild', v:'+4'});
         }
@@ -36,33 +57,11 @@ const game = {
         return cards;
     },
 
-    startGame() {
-        this.initDeck();
-        this.state.players = [
-            { name: this.state.nick, hand: this.draw(7), isBot: false },
-            { name: "AI DUSTY", hand: this.draw(7), isBot: true },
-            { name: "AI LUNA", hand: this.draw(7), isBot: true },
-            { name: "AI PUDDING", hand: this.draw(7), isBot: true }
-        ];
-        // Prima carta sul tavolo (non speciale)
-        let firstCard;
-        do { firstCard = this.state.deck.pop(); } while(firstCard.c === 'wild');
-        
-        this.state.discard = firstCard;
-        this.state.color = firstCard.c;
-        this.state.turn = 0;
-        this.render();
-    },
-
     render() {
         document.getElementById('turnIndicator').innerText = `TURNO DI: ${this.state.players[this.state.turn].name}`;
-        
-        // Render Discard
-        document.getElementById('discard-pile').innerHTML = `
-            <div class="card ${this.state.color}">${this.state.discard.v}</div>
-        `;
+        document.getElementById('discard-pile').innerHTML = `<div class="card ${this.state.color}">${this.state.discard.v}</div>`;
 
-        // Render Mia Mano
+        // Mano Giocatore
         const hand = document.getElementById('myHand');
         hand.innerHTML = "";
         this.state.players[0].hand.forEach((c, i) => {
@@ -74,16 +73,16 @@ const game = {
         });
         document.getElementById('cardCount').innerText = this.state.players[0].hand.length;
 
-        // Render Bot
+        // Bot
         this.renderBot('bot-left', 1);
         this.renderBot('bot-top', 2);
         this.renderBot('bot-right', 3);
 
-        // Vittoria
+        // Controllo vittoria
         this.state.players.forEach(p => {
             if(p.hand.length === 0) {
-                document.getElementById('winStatus').innerText = `${p.name} HA VINTO!`;
-                this.goTo('winScreen');
+                alert(p.name + " VINCE!");
+                this.goTo('menuScreen');
             }
         });
     },
@@ -95,7 +94,7 @@ const game = {
             const c = document.createElement('div');
             c.className = "card card-back";
             c.innerHTML = `<span class="m-text">MASTER</span><span class="u-text">UNO</span>`;
-            c.style.marginLeft = "-60px";
+            c.style.marginLeft = "-65px";
             container.appendChild(c);
         });
     },
@@ -104,7 +103,6 @@ const game = {
         if(this.state.turn !== 0) return;
         const p = this.state.players[0];
         const card = p.hand[i];
-        
         if(card.c === this.state.color || card.v === this.state.discard.v || card.c === 'wild') {
             p.hand.splice(i, 1);
             this.state.discard = card;
@@ -118,25 +116,22 @@ const game = {
         if(this.state.turn !== 0) return;
         this.state.players[0].hand.push(this.draw(1)[0]);
         this.render();
-        setTimeout(() => this.nextTurn(), 1000);
+        setTimeout(() => this.nextTurn(), 800);
     },
 
     nextTurn() {
         this.state.turn = (this.state.turn + 1) % 4;
         this.render();
-        if(this.state.players[this.state.turn].isBot) {
-            setTimeout(() => this.botPlay(), 1500);
-        }
+        if(this.state.players[this.state.turn].isBot) setTimeout(() => this.botPlay(), 1200);
     },
 
     botPlay() {
         const b = this.state.players[this.state.turn];
         const idx = b.hand.findIndex(c => c.c === this.state.color || c.v === this.state.discard.v || c.c === 'wild');
-        
         if(idx !== -1) {
-            const card = b.hand.splice(idx, 1)[0];
-            this.state.discard = card;
-            this.state.color = card.c === 'wild' ? 'red' : card.c;
+            const c = b.hand.splice(idx, 1)[0];
+            this.state.discard = c;
+            this.state.color = c.c === 'wild' ? 'red' : c.c;
         } else {
             b.hand.push(this.draw(1)[0]);
         }
