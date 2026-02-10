@@ -1,7 +1,7 @@
 const game = {
     state: {
         nick: "", players: [], deck: [], discard: null,
-        color: "", turn: 0, stack: 0,
+        color: "", turn: 0, stack: 0, pendingWild: false,
         settings: { numPlayers: 4, rule07: true }
     },
 
@@ -11,9 +11,9 @@ const game = {
     },
 
     copyCode() {
-        const code = Math.random().toString(36).substring(7).toUpperCase();
-        navigator.clipboard.writeText(code);
-        alert("Codice Copiato: " + code);
+        const c = Math.random().toString(36).substring(7).toUpperCase();
+        document.getElementById('joinCode').value = c;
+        alert("Codice Partita Copiato!");
     },
 
     initDeck() {
@@ -22,7 +22,7 @@ const game = {
         this.state.deck = [];
         for(let i=0; i<2; i++){
             colors.forEach(c => vals.forEach(v => this.state.deck.push({c, v})));
-            for(let j=0; j<2; j++) this.state.deck.push({c:'wild', v:'+4'});
+            for(let j=0; j<4; j++) this.state.deck.push({c:'wild', v:'+4'});
         }
         this.state.deck.sort(() => Math.random() - 0.5);
     },
@@ -44,7 +44,7 @@ const game = {
         for(let i=1; i < this.state.settings.numPlayers; i++) {
             this.state.players.push({ name: "BOT "+i, hand: this.draw(7), isBot: true });
         }
-        this.state.discard = this.state.deck.find(c => c.v !== '+4' && c.v !== '+2');
+        this.state.discard = this.state.deck.find(c => c.c !== 'wild');
         this.state.color = this.state.discard.c;
         this.state.stack = 0;
         this.state.turn = 0;
@@ -54,20 +54,20 @@ const game = {
 
     render() {
         document.getElementById('turnIndicator').innerText = "TURNO: " + this.state.players[this.state.turn].name;
-        document.getElementById('stackValue').innerText = this.state.stack > 0 ? "+" + this.state.stack : "";
-        document.getElementById('discard').innerHTML = `<div class="card ${this.state.color}">${this.state.discard.v}</div>`;
+        document.getElementById('stackInfo').innerText = this.state.stack > 0 ? "ATTENZIONE: +" + this.state.stack : "";
+        document.getElementById('discard-area').innerHTML = `<div class="card ${this.state.color}">${this.state.discard.v}</div>`;
 
-        // Reset & Render Bots
+        // Render Bot Slots
         ['bot-left', 'bot-top', 'bot-right'].forEach(id => document.getElementById(id).innerHTML = "");
         this.state.players.forEach((p, i) => {
             if(i === 0) return;
-            let slot = i === 1 ? 'bot-left' : (i === 2 ? 'bot-top' : 'bot-right');
-            let h = `<div class="p-badge">${p.name}: ${p.hand.length}</div><div style="display:flex">`;
-            p.hand.forEach(() => h += `<div class="card card-back" style="margin-left:-55px"></div>`);
-            document.getElementById(slot).innerHTML = h + "</div>";
+            let slotId = i === 1 ? 'bot-left' : (i === 2 ? 'bot-top' : 'bot-right');
+            let h = `<div style="background:var(--gold); color:black; padding:2px 10px; border-radius:10px; font-weight:bold; font-size:12px; margin-bottom:5px">${p.name} (${p.hand.length})</div><div style="display:flex">`;
+            p.hand.forEach(() => h += `<div class="card card-back" style="margin-left:-55px; width:60px; height:90px"></div>`);
+            document.getElementById(slotId).innerHTML = h + "</div>";
         });
 
-        // My Hand
+        // Mia Mano
         const hand = document.getElementById('myHand');
         hand.innerHTML = "";
         this.state.players[0].hand.forEach((c, i) => {
@@ -76,15 +76,16 @@ const game = {
             d.onclick = () => this.playCard(i);
             hand.appendChild(d);
         });
+        document.getElementById('myBadge').innerText = "TU: " + this.state.players[0].hand.length;
 
         if(this.state.players[this.state.turn].hand.length === 0) {
-            alert(this.state.players[this.state.turn].name + " VINCE!");
-            this.goTo('menuScreen');
+            alert(this.state.players[this.state.turn].name + " HA VINTO!");
+            location.reload();
         }
     },
 
     playCard(i) {
-        if(this.state.turn !== 0) return;
+        if(this.state.turn !== 0 || this.state.pendingWild) return;
         const p = this.state.players[0];
         const c = p.hand[i];
 
@@ -93,21 +94,35 @@ const game = {
         if(c.c === this.state.color || c.v === this.state.discard.v || c.c === 'wild') {
             p.hand.splice(i, 1);
             this.state.discard = c;
-            this.state.color = c.c === 'wild' ? 'red' : c.c;
             
-            // Logica Stacking
             if(c.v === '+2') this.state.stack += 2;
             if(c.v === '+4') this.state.stack += 4;
 
-            // Regola 0 (Tutti passano la mano a sinistra)
-            if(this.state.settings.rule07 && c.v === '0') {
-                let hands = this.state.players.map(pl => pl.hand);
-                hands.push(hands.shift());
-                this.state.players.forEach((pl, idx) => pl.hand = hands[idx]);
+            if(c.c === 'wild') {
+                this.state.pendingWild = true;
+                document.getElementById('colorPicker').style.display = 'flex';
+            } else {
+                this.state.color = c.c;
+                this.checkSpecialRules(c);
+                this.nextTurn();
             }
-
             this.render();
-            this.nextTurn();
+        }
+    },
+
+    selectColor(color) {
+        this.state.color = color;
+        this.state.pendingWild = false;
+        document.getElementById('colorPicker').style.display = 'none';
+        this.render();
+        this.nextTurn();
+    },
+
+    checkSpecialRules(c) {
+        if(this.state.settings.rule07 && c.v === '0') {
+            let hands = this.state.players.map(p => p.hand);
+            hands.push(hands.shift());
+            this.state.players.forEach((p, i) => p.hand = hands[i]);
         }
     },
 
@@ -121,7 +136,7 @@ const game = {
             p.hand.push(this.draw(1)[0]);
         }
         this.render();
-        this.nextTurn();
+        setTimeout(() => this.nextTurn(), 1000);
     },
 
     nextTurn() {
@@ -132,21 +147,18 @@ const game = {
 
     botPlay() {
         const b = this.state.players[this.state.turn];
-        let idx = this.state.stack > 0 ? 
-            b.hand.findIndex(c => c.v === '+2' || c.v === '+4') :
-            b.hand.findIndex(c => c.c === this.state.color || c.v === this.state.discard.v || c.c === 'wild');
+        let idx = this.state.stack > 0 ? b.hand.findIndex(c => c.v === '+2' || c.v === '+4') : b.hand.findIndex(c => c.c === this.state.color || c.v === this.state.discard.v || c.c === 'wild');
 
         if(idx !== -1) {
             const c = b.hand.splice(idx, 1)[0];
             this.state.discard = c;
-            this.state.color = c.c === 'wild' ? 'blue' : c.c;
+            this.state.color = c.c === 'wild' ? ['red','blue','green','yellow'][Math.floor(Math.random()*4)] : c.c;
             if(c.v === '+2') this.state.stack += 2;
             if(c.v === '+4') this.state.stack += 4;
+            this.checkSpecialRules(c);
         } else {
-            if(this.state.stack > 0) {
-                b.hand.push(...this.draw(this.state.stack));
-                this.state.stack = 0;
-            } else { b.hand.push(this.draw(1)[0]); }
+            if(this.state.stack > 0) { b.hand.push(...this.draw(this.state.stack)); this.state.stack = 0; }
+            else { b.hand.push(this.draw(1)[0]); }
         }
         this.render();
         this.nextTurn();
