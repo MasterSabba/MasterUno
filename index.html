@@ -3,66 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MasterUno - Neo Arena</title>
+    <title>MasterUno Classic</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="loginScreen" class="screen active">
-        <div class="glass-box">
-            <h1 class="neon-title">MASTER<span>UNO</span></h1>
-            <div class="input-area">
-                <input type="text" id="nickInput" placeholder="Nickname..." maxlength="12">
-                <button class="glow-btn" onclick="game.doLogin()">CONFERMA</button>
+        <div class="gold-frame">
+            <div class="content">
+                <h1 class="gold-text">MASTER UNO</h1>
+                <input type="text" id="nickInput" placeholder="Tuo Nickname..." class="glass-input">
+                <button class="btn-yellow" onclick="game.doLogin()">ENTRA</button>
             </div>
         </div>
     </div>
 
     <div id="menuScreen" class="screen">
-        <div class="glass-box menu-box">
-            <h2 id="welcomeText">CIAO, PLAYER</h2>
-            <div class="menu-buttons">
-                <button class="menu-btn primary" onclick="game.startGame()">GIOCA ORA</button>
-                <button class="menu-btn" onclick="alert('Regole: Colore su colore, numero su numero. Wild cambia colore!')">REGOLE</button>
-                <button class="menu-btn" onclick="game.goTo('loginScreen')">ESCI</button>
+        <div class="gold-frame">
+            <div class="content">
+                <h2 id="menuUserTitle" class="gold-text">MENU</h2>
+                <div class="setting-item">
+                    <span>GIOCATORI:</span>
+                    <select id="playerCount" class="glass-input">
+                        <option value="2">1 VS 1</option>
+                        <option value="3">3 GIOCATORI</option>
+                        <option value="4" selected>4 GIOCATORI</option>
+                    </select>
+                </div>
+                <button class="btn-yellow" onclick="game.startGame()">GIOCA ORA</button>
             </div>
         </div>
     </div>
 
     <div id="gameArea" class="screen game-bg">
-        <div class="table-overlay"></div>
         <div id="turnIndicator">TURNO DI...</div>
-
-        <div class="bot-container left">
-            <div id="bot-left" class="bot-hand"></div>
-            <div class="bot-label">AI DUSTY</div>
-        </div>
-        
-        <div class="bot-container top">
-            <div id="bot-top" class="bot-hand"></div>
-            <div class="bot-label">AI LUNA</div>
-        </div>
-
-        <div class="bot-container right">
-            <div id="bot-right" class="bot-hand"></div>
-            <div class="bot-label">AI PUDDING</div>
-        </div>
+        <div id="stackIndicator"></div> <div id="bot-left" class="player-slot side"></div>
+        <div id="bot-top" class="player-slot top"></div>
+        <div id="bot-right" class="player-slot side"></div>
 
         <div class="table-center">
-            <div id="deck" class="deck-pile" onclick="game.userDraw()">
-                <div class="card card-back">
-                    <div class="m-text">MASTER</div>
-                    <div class="u-text">UNO</div>
-                </div>
+            <div id="deck" class="card card-back" onclick="game.userDraw()">
+                <div class="master-back">MASTER<span>UNO</span></div>
             </div>
-            <div id="discard-pile"></div>
+            <div id="discard"></div>
         </div>
 
-        <div class="player-zone">
-            <div class="player-tag">
-                <span id="playerNameDisplay">TU</span>
-                <span id="cardCount" class="badge">7</span>
-            </div>
-            <div id="myHand" class="hand-container"></div>
+        <div class="player-bottom">
+            <div id="myBadge" class="status-badge">TU: 7</div>
+            <div id="myHand" class="hand"></div>
         </div>
     </div>
 
