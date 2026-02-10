@@ -1,44 +1,69 @@
-:root { --gold: #ffcc00; --dark-green: radial-gradient(circle, #0a2e12 0%, #000 100%); }
-* { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+:root {
+    --gold: #FFD700;
+    --neon-green: #39FF14;
+    --dark-green: radial-gradient(circle, #0d3b18 0%, #000000 100%);
+    --glass: rgba(255, 255, 255, 0.08);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
 body { background: #000; color: white; overflow: hidden; height: 100vh; }
 
 .screen { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; z-index: 10; }
 .screen.active { display: flex; }
+
+/* AUTH & MENU */
+.auth-card {
+    background: var(--glass); backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.1); padding: 40px;
+    border-radius: 30px; text-align: center; width: 360px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+.logo { font-size: 38px; letter-spacing: 4px; margin-bottom: 30px; }
+.logo span { color: var(--gold); text-shadow: 0 0 15px var(--gold); }
+.input-group input {
+    width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 12px;
+    border: none; background: rgba(0,0,0,0.3); color: white; outline: none;
+}
+.btn-main {
+    width: 100%; padding: 15px; border-radius: 12px; border: none;
+    background: var(--gold); color: black; font-weight: 800; cursor: pointer; transition: 0.3s;
+}
+.btn-main:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--gold); }
+
+/* SETTINGS MODAL */
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 100; }
+.settings-modal { background: #1a1a1a; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; border: 1px solid var(--gold); }
+.setting-item { margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+.setting-item span { display: block; font-size: 11px; color: #888; }
+
+/* GAMEPLAY */
 .game-bg { background: var(--dark-green) !important; }
+.table { display: flex; gap: 40px; align-items: center; justify-content: center; }
 
-/* UI GIALLA */
-.glass-box { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); padding: 30px; border-radius: 20px; border: 1px solid rgba(255,204,0,0.3); text-align: center; width: 320px; }
-.btn-yellow { background: var(--gold); border: none; padding: 15px; width: 100%; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; transition: 0.2s; }
-.btn-yellow:hover { transform: scale(1.02); box-shadow: 0 0 15px var(--gold); }
-.btn-black { background: transparent; border: 1px solid white; color: white; padding: 10px; width: 100%; border-radius: 12px; margin-top: 10px; cursor: pointer; }
-.glass-input { width: 100%; background: rgba(0,0,0,0.5); border: 1px solid #444; padding: 12px; border-radius: 10px; color: white; margin-top: 10px; text-align: center; }
+/* CARTE MasterUno Style */
+.card {
+    width: 80px; height: 120px; border-radius: 12px; border: 3px solid white;
+    background: white; color: black; display: flex; align-items: center; justify-content: center;
+    font-size: 30px; font-weight: 900; position: relative; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.card-back { background: #000 !important; border-color: #222; }
+.m-back { text-align: center; color: var(--gold); line-height: 1; }
+.m-back span { font-size: 10px; color: white; display: block; }
 
-/* CARTE E MAZZO */
-.card { width: 75px; height: 110px; border-radius: 8px; border: 2px solid white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 22px; background: white; color: black; box-shadow: 0 5px 15px rgba(0,0,0,0.5); position: relative; }
-.card-back { background: #000 !important; color: var(--gold); border-color: #333; }
-.m-back span { display: block; font-size: 10px; color: white; }
+/* ANIMAZIONE PESCA */
+@keyframes drawCard {
+    0% { transform: translate(-200px, -200px) rotate(-45deg); opacity: 0; }
+    100% { transform: translate(0, 0) rotate(0); opacity: 1; }
+}
+.drawing { animation: drawCard 0.6s forwards; }
 
-.table-center { display: flex; gap: 30px; align-items: center; }
-.card-stack-effect { position: absolute; width: 75px; height: 110px; background: #222; border-radius: 8px; transform: translate(4px, 4px); z-index: -1; box-shadow: 2px 2px 5px black; }
+/* BOT SLOTS */
+.bot-pos { position: absolute; transition: 0.3s; padding: 10px; border-radius: 15px; }
+.bot-pos.active-turn { background: rgba(57, 255, 20, 0.2); box-shadow: 0 0 20px var(--neon-green); }
 
-/* COLORI */
-.red { background: #ff4d4d !important; color: white; }
-.blue { background: #3498db !important; color: white; }
-.green { background: #27ae60 !important; color: white; }
-.yellow { background: #f1c40f !important; color: black; }
-.wild { background: #111 !important; color: var(--gold) !important; border-color: var(--gold) !important; }
+/* CHAT */
+#chatSystem { position: absolute; left: 20px; bottom: 100px; z-index: 50; }
+#emojiPanel { background: rgba(0,0,0,0.8); padding: 10px; border-radius: 20px; display: flex; gap: 10px; margin-bottom: 10px; }
+#chatBtn { width: 50px; height: 50px; border-radius: 50%; border: none; background: var(--gold); cursor: pointer; }
 
-/* SLOTS */
-.slot { position: absolute; display: flex; flex-direction: column; align-items: center; }
-.side { top: 35%; }
-.top { top: 20px; }
-#bot-left { left: 20px; } #bot-right { right: 20px; }
-
-.player-zone { position: absolute; bottom: 20px; width: 100%; display: flex; flex-direction: column; align-items: center; }
-.hand { display: flex; height: 120px; padding-left: 40px; }
-.hand .card { margin-left: -35px; cursor: pointer; transition: 0.2s; }
-.hand .card:hover { transform: translateY(-25px); z-index: 100; }
-
-/* COLOR PICKER */
-.color-picker-overlay { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); gap: 10px; z-index: 100; background: rgba(0,0,0,0.8); padding: 20px; border-radius: 50px; }
-.color-btn { width: 50px; height: 50px; border-radius: 50%; cursor: pointer; border: 2px solid white; }
+/* MULTIPLAY */
+.card.selected { transform: translateY(-40px); border-color: var(--neon-green); box-shadow: 0 0 15px var(--neon-green); }
