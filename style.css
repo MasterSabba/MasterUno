@@ -1,69 +1,68 @@
 :root {
-    --gold: #FFD700;
-    --neon-green: #39FF14;
-    --dark-green: radial-gradient(circle, #0d3b18 0%, #000000 100%);
-    --glass: rgba(255, 255, 255, 0.08);
+    --emerald: #0a2e12;
+    --gold: #ffcc00;
+    --neon: #39ff14;
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
-body { background: #000; color: white; overflow: hidden; height: 100vh; }
-
-.screen { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; z-index: 10; }
-.screen.active { display: flex; }
-
-/* AUTH & MENU */
-.auth-card {
-    background: var(--glass); backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.1); padding: 40px;
-    border-radius: 30px; text-align: center; width: 360px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+body { 
+    background: #000; color: #fff; 
+    font-family: 'Poppins', sans-serif; 
+    height: 100vh; overflow: hidden; 
 }
-.logo { font-size: 38px; letter-spacing: 4px; margin-bottom: 30px; }
-.logo span { color: var(--gold); text-shadow: 0 0 15px var(--gold); }
-.input-group input {
-    width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 12px;
-    border: none; background: rgba(0,0,0,0.3); color: white; outline: none;
+
+/* EFFETTO SFONDO GIOCO */
+.game-bg {
+    background: radial-gradient(circle at center, #0f3d1a 0%, #000 80%) !important;
 }
-.btn-main {
-    width: 100%; padding: 15px; border-radius: 12px; border: none;
-    background: var(--gold); color: black; font-weight: 800; cursor: pointer; transition: 0.3s;
+
+.neo-card {
+    background: rgba(0,0,0,0.8);
+    border: 2px solid var(--gold);
+    border-radius: 25px;
+    padding: 30px;
+    box-shadow: 0 0 30px rgba(255, 204, 0, 0.2);
+    text-align: center;
 }
-.btn-main:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--gold); }
 
-/* SETTINGS MODAL */
-.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 100; }
-.settings-modal { background: #1a1a1a; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; border: 1px solid var(--gold); }
-.setting-item { margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; }
-.setting-item span { display: block; font-size: 11px; color: #888; }
+.glitch-title { font-family: 'Orbitron', sans-serif; font-weight: 900; color: #fff; }
+.glitch-title span { color: var(--gold); }
 
-/* GAMEPLAY */
-.game-bg { background: var(--dark-green) !important; }
-.table { display: flex; gap: 40px; align-items: center; justify-content: center; }
+/* TASTI GIALLI NEON */
+.btn-glow {
+    background: var(--gold);
+    border: none; padding: 12px 25px;
+    border-radius: 12px; font-weight: bold;
+    cursor: pointer; transition: 0.3s;
+}
+.btn-glow:hover { transform: translateY(-3px); box-shadow: 0 5px 20px var(--gold); }
 
-/* CARTE MasterUno Style */
+/* CARTE MasterUno ORIGINALI */
 .card {
-    width: 80px; height: 120px; border-radius: 12px; border: 3px solid white;
-    background: white; color: black; display: flex; align-items: center; justify-content: center;
-    font-size: 30px; font-weight: 900; position: relative; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    width: 80px; height: 120px;
+    border-radius: 12px; border: 4px solid #fff;
+    background: #fff; color: #000;
+    font-size: 32px; font-weight: 900;
+    display: flex; align-items: center; justify-content: center;
+    position: relative; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.card-back { background: #000 !important; border-color: #222; }
-.m-back { text-align: center; color: var(--gold); line-height: 1; }
-.m-back span { font-size: 10px; color: white; display: block; }
 
-/* ANIMAZIONE PESCA */
-@keyframes drawCard {
-    0% { transform: translate(-200px, -200px) rotate(-45deg); opacity: 0; }
-    100% { transform: translate(0, 0) rotate(0); opacity: 1; }
-}
-.drawing { animation: drawCard 0.6s forwards; }
+.card-back { background: #000 !important; border-color: #222 !important; }
+.master-logo { color: var(--gold); font-family: 'Orbitron'; font-size: 10px; }
+.master-logo span { font-size: 18px; display: block; color: #fff; }
 
-/* BOT SLOTS */
-.bot-pos { position: absolute; transition: 0.3s; padding: 10px; border-radius: 15px; }
-.bot-pos.active-turn { background: rgba(57, 255, 20, 0.2); box-shadow: 0 0 20px var(--neon-green); }
+/* LAYOUT ARENA */
+.player-slot { position: absolute; transition: 0.3s; padding: 10px; border-radius: 15px; }
+.player-slot.active-turn { border: 2px solid var(--neon); box-shadow: 0 0 15px var(--neon); }
 
-/* CHAT */
-#chatSystem { position: absolute; left: 20px; bottom: 100px; z-index: 50; }
-#emojiPanel { background: rgba(0,0,0,0.8); padding: 10px; border-radius: 20px; display: flex; gap: 10px; margin-bottom: 10px; }
-#chatBtn { width: 50px; height: 50px; border-radius: 50%; border: none; background: var(--gold); cursor: pointer; }
+.side { top: 35%; }
+#bot-left { left: 20px; } #bot-right { right: 20px; }
+.top { top: 60px; left: 50%; transform: translateX(-50%); }
 
-/* MULTIPLAY */
-.card.selected { transform: translateY(-40px); border-color: var(--neon-green); box-shadow: 0 0 15px var(--neon-green); }
+.hand { display: flex; gap: -30px; padding: 20px; }
+.hand .card { margin-left: -40px; cursor: pointer; }
+.hand .card:hover { transform: translateY(-40px) scale(1.1); z-index: 50; }
+.card.selected { border-color: var(--neon) !important; transform: translateY(-50px); }
+
+/* CHAT & NOTIFICHE */
+.toast { background: var(--gold); color: #000; padding: 10px 20px; border-radius: 10px; margin-top: 10px; animation: slideIn 0.3s forwards; }
+@keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
