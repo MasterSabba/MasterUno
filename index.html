@@ -2,66 +2,87 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MasterUNO</title>
-<link rel="stylesheet" href="uno.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>MasterUno - Bomba Edition</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
 <body>
 
-<!-- START SCREEN -->
-<div id="startScreen" class="screen">
-    <h1>MASTERUNO</h1>
-    <button id="playBotBtn">Gioca contro Bot</button>
-    <button id="settingsBtn">Impostazioni</button>
+<!-- START SCREEN / IMPOSTAZIONI -->
+<div id="startScreen">
+    <div class="main-box">
+        <h1 class="logo-title">MASTER UNO</h1>
+        <div class="menu-section">
+            <input type="text" id="playerNameInput" placeholder="Inserisci il tuo nome">
+            <select id="numPlayers">
+                <option value="2">2 Giocatori</option>
+                <option value="3">3 Giocatori</option>
+                <option value="4">4 Giocatori</option>
+            </select>
+            <select id="swapRule">
+                <option value="0">Scambio automatico carte (0)</option>
+                <option value="7">Scegli con chi scambiare (7)</option>
+            </select>
+        </div>
+        <div class="menu-section">
+            <div id="playBotBtn" class="btn-yellow">Gioca contro Computer</div>
+            <div id="connectBtn" class="btn-white">Multiplayer</div>
+        </div>
+        <div class="menu-section">
+            <div id="myPeerId" class="peer-display">----</div>
+            <div id="copyBtn" class="btn-yellow">Copia il tuo ID</div>
+        </div>
+        <div class="menu-section">
+            <input type="text" id="friendIdInput" placeholder="ID Amico (Multiplayer)">
+        </div>
+    </div>
 </div>
 
 <!-- GAME AREA -->
-<div id="gameArea" class="screen hidden">
-    <div id="opponents">
-        <div class="opponent">
-            <div id="opponentBadge1" class="badge">AVVERSARIO 1</div>
-            <div id="opponentHand1" class="hand"></div>
-        </div>
-        <div class="opponent">
-            <div id="opponentBadge2" class="badge">AVVERSARIO 2</div>
-            <div id="opponentHand2" class="hand"></div>
-        </div>
-        <div class="opponent">
-            <div id="opponentBadge3" class="badge">AVVERSARIO 3</div>
-            <div id="opponentHand3" class="hand"></div>
-        </div>
+<div id="gameArea" class="hidden">
+    <div id="turnIndicator">CARICAMENTO...</div>
+    <div id="opponentsArea"></div>
+    <div id="centerArea">
+        <div id="deck" class="card-back-classic">MAZZO</div>
+        <div id="discardPile"></div>
     </div>
-
-    <div id="board">
-        <div id="deck" class="deck">MAZZO</div>
-        <div id="discardPile" class="discard">SCARTO</div>
-    </div>
-
     <div id="playerArea">
-        <div id="playerBadge" class="badge">TU</div>
+        <div id="playerBadge" class="gold-badge"></div>
         <div id="playerHand" class="hand"></div>
-        <button id="masterUnoBtn" class="hidden">MASTERUNO!</button>
     </div>
+    <button id="masterUnoBtn" class="hidden">MASTER UNO!</button>
 </div>
 
 <!-- COLOR PICKER -->
 <div id="colorPicker" class="hidden">
-    <button onclick="setWildColor('red')">ROSSO</button>
-    <button onclick="setWildColor('blue')">BLU</button>
-    <button onclick="setWildColor('green')">VERDE</button>
-    <button onclick="setWildColor('yellow')">GIALLO</button>
+    <div class="picker-box">
+        <h3>Scegli Colore</h3>
+        <div class="pick-grid">
+            <div class="pick red" onclick="setWildColor('red')"></div>
+            <div class="pick blue" onclick="setWildColor('blue')"></div>
+            <div class="pick green" onclick="setWildColor('green')"></div>
+            <div class="pick yellow" onclick="setWildColor('yellow')"></div>
+        </div>
+    </div>
 </div>
 
 <!-- END SCREEN -->
-<div id="endScreen" class="screen hidden">
-    <h1 id="endTitle" class="end-title">HAI VINTO!</h1>
-    <button id="playAgainBtn">Rigioca</button>
-    <button id="exitBtn">Esci</button>
+<div id="endScreen" class="hidden">
+    <div class="main-box">
+        <h1 id="endTitle" class="end-title">VITTORIA!</h1>
+        <p id="endSubtitle">Ottima partita!</p>
+        <div class="menu-section">
+            <div id="playAgainBtn" class="btn-yellow">Gioca Ancora</div>
+            <div id="exitBtn" class="btn-white">Torna al Menu</div>
+        </div>
+    </div>
 </div>
 
-<!-- TOAST ALERT -->
+<!-- TOAST ALERTS -->
 <div id="toast-container"></div>
 
-<script src="uno.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
