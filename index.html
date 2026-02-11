@@ -3,36 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MasterUno Neo-Arena</title>
+    <title>MasterUno Elite Arena</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Poppins:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
-<div id="ui-layer">
-    <div id="alert-container"></div>
+<div id="app-container">
+    <div id="toast-layer"></div>
 
     <section id="loginScreen" class="screen active">
-        <div class="glass-panel">
-            <h1 class="logo-main">MASTER<span>UNO</span></h1>
-            <div class="login-form">
-                <input type="text" id="nickInput" placeholder="NICKNAME">
+        <div class="glass-card">
+            <h1 class="glitch-logo">MASTER<span>UNO</span></h1>
+            <div class="auth-inputs">
+                <input type="text" id="nickInput" placeholder="NICKNAME" autocomplete="off">
                 <input type="password" id="passInput" placeholder="PASSWORD">
-                <button class="btn-gold" onclick="game.doLogin()">ACCEDI</button>
             </div>
+            <button class="btn-primary" onclick="game.handleLogin()">ACCEDI ALL'ARENA</button>
         </div>
     </section>
 
     <section id="menuScreen" class="screen">
-        <div class="glass-panel">
-            <button class="settings-gear" onclick="game.toggleSettings()">⚙️</button>
-            <h2 id="userDisplay">CIAO, PLAYER</h2>
-            <div class="menu-nav">
-                <button class="btn-gold-large" onclick="game.startGame()">GIOCA ORA</button>
-                <div class="invite-drawer">
-                    <button class="btn-outline" onclick="game.toggleDrawer()">INVITA AMICI ▾</button>
-                    <div id="drawer" class="drawer-content">
-                        <div class="code-box">
-                            <span id="roomCode">M1-ARENA</span>
+        <div class="glass-card main-nav">
+            <button class="icon-btn settings-trigger" onclick="game.view('settingsScreen')">⚙️</button>
+            <h2 id="helloUser">BENVENUTO</h2>
+            
+            <div class="menu-buttons">
+                <button class="btn-primary large" onclick="game.start()">GIOCA ORA</button>
+                
+                <div class="invite-container">
+                    <button class="btn-outline" onclick="game.toggleInvite()">INVITA AMICI ▾</button>
+                    <div id="inviteDrawer" class="drawer">
+                        <p>Codice Stanza:</p>
+                        <div class="copy-box">
+                            <span id="roomID">M1-BATTLE</span>
                             <button onclick="game.copyRoom()">COPIA</button>
                         </div>
                     </div>
@@ -41,79 +45,84 @@
         </div>
     </section>
 
-    <div id="settingsOverlay" class="overlay">
-        <div class="modal">
-            <h3>IMPOSTAZIONI</h3>
-            <div class="setting-item">
-                <label>Giocatori</label>
-                <select id="setPlayers">
-                    <option value="2">2 (1vs1)</option>
-                    <option value="3">3 Giocatori</option>
-                    <option value="4" selected>4 Giocatori</option>
-                </select>
+    <section id="settingsScreen" class="screen">
+        <div class="glass-card settings-panel">
+            <h3>IMPOSTAZIONI GARA</h3>
+            <div class="scroll-area">
+                <div class="s-group">
+                    <label>Giocatori Totali</label>
+                    <select id="cfgPlayers">
+                        <option value="2">2 (1 VS 1)</option>
+                        <option value="3">3 Giocatori</option>
+                        <option value="4" selected>4 Giocatori</option>
+                    </select>
+                </div>
+                <div class="s-group check">
+                    <label>Regola 0 (Scambio Totale)</label>
+                    <input type="checkbox" id="cfgRule0" checked>
+                </div>
+                <div class="s-group check">
+                    <label>Regola 7 (Scambio Mirato)</label>
+                    <input type="checkbox" id="cfgRule7" checked>
+                </div>
+                <div class="s-group check">
+                    <label>Pesca a Strascico</label>
+                    <input type="checkbox" id="cfgStrascico">
+                </div>
+                <div class="s-group check">
+                    <label>Scarto Multiplo (Combo)</label>
+                    <input type="checkbox" id="cfgMulti" checked>
+                </div>
             </div>
-            <div class="setting-item">
-                <label>Regola 0 (Scambia tutti) e 7 (Scegli con chi)</label>
-                <input type="checkbox" id="set07" checked>
-            </div>
-            <div class="setting-item">
-                <label>Accumulo +2 / +4</label>
-                <input type="checkbox" id="setStack" checked>
-            </div>
-            <div class="setting-item">
-                <label>Combo Stesso Numero</label>
-                <input type="checkbox" id="setMulti" checked>
-            </div>
-            <button class="btn-gold" onclick="game.toggleSettings()">SALVA</button>
+            <button class="btn-primary" onclick="game.view('menuScreen')">SALVA</button>
         </div>
-    </div>
+    </section>
 
-    <section id="gameArea" class="screen arena-bg">
-        <div class="game-header">
-            <div id="turnTag">TURNO DI: <span>---</span></div>
-            <div id="stackValue"></div>
+    <section id="gameArea" class="screen arena">
+        <div class="game-info">
+            <div id="turnBadge">TURNO: <span id="activePlayer">---</span></div>
+            <div id="stackBadge"></div>
         </div>
 
-        <div id="opponents">
-            <div id="slot-1" class="bot-box left"></div>
-            <div id="slot-2" class="bot-box top"></div>
-            <div id="slot-3" class="bot-box right"></div>
+        <div class="opponents-grid">
+            <div id="opp-1" class="opp-box left"></div>
+            <div id="opp-2" class="opp-box top"></div>
+            <div id="opp-3" class="opp-box right"></div>
         </div>
 
-        <div class="table">
-            <div id="deck" onclick="game.userDraw()">
-                <div class="card card-back stack-1"></div>
-                <div class="card card-back stack-2"></div>
-                <div class="card card-back">
-                    <div class="master-text">MASTER<span>UNO</span></div>
+        <div class="table-center">
+            <div id="deck" class="deck-group" onclick="game.userDraw()">
+                <div class="card card-back stack-effect"></div>
+                <div class="card card-back main-deck">
+                    <div class="m-logo">MASTER<span>UNO</span></div>
                 </div>
             </div>
             <div id="discard-pile"></div>
         </div>
 
         <div class="chat-system">
-            <div id="emojiBar" class="hidden">
-                <button onclick="game.sendEmoji('🔥')">🔥</button>
-                <button onclick="game.sendEmoji('😎')">😎</button>
-                <button onclick="game.sendEmoji('🤡')">🤡</button>
-                <button onclick="game.sendEmoji('😡')">😡</button>
+            <div id="emojiGrid" class="emoji-grid hidden">
+                <button onclick="game.emoji('🔥')">🔥</button>
+                <button onclick="game.emoji('😎')">😎</button>
+                <button onclick="game.emoji('🤡')">🤡</button>
+                <button onclick="game.emoji('😡')">😡</button>
             </div>
-            <button class="chat-btn" onclick="game.toggleEmoji()">💬</button>
+            <button class="chat-toggle" onclick="game.toggleChat()">💬</button>
         </div>
 
-        <div class="player-hud">
+        <div class="hud">
             <div id="myHand" class="hand"></div>
-            <div class="hand-controls">
-                <button id="multiPlayBtn" class="btn-gold hidden" onclick="game.confirmMulti()">GIOCA COMBO</button>
+            <div class="controls">
+                <button id="multiBtn" class="btn-primary hidden" onclick="game.playMulti()">GIOCA COMBO</button>
             </div>
         </div>
 
-        <div id="wildPicker" class="overlay">
-            <div class="picker-box">
-                <div class="p-red" onclick="game.pickColor('red')"></div>
-                <div class="p-blue" onclick="game.pickColor('blue')"></div>
-                <div class="p-green" onclick="game.pickColor('green')"></div>
-                <div class="p-yellow" onclick="game.pickColor('yellow')"></div>
+        <div id="wildOverlay" class="overlay">
+            <div class="color-grid">
+                <div class="pick r" onclick="game.setWild('red')"></div>
+                <div class="pick b" onclick="game.setWild('blue')"></div>
+                <div class="pick g" onclick="game.setWild('green')"></div>
+                <div class="pick y" onclick="game.setWild('yellow')"></div>
             </div>
         </div>
     </section>
