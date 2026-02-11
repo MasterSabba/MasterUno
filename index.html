@@ -2,33 +2,95 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Master Uno</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>MasterUno - Bomba Edition 4 Players</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
 <body>
 
-<div id="gameArea">
+<!-- --- START SCREEN --- -->
+<div id="startScreen">
+    <div class="main-box">
+        <h1 class="logo-title">MASTER UNO</h1>
+        <div class="menu-section">
+            <div id="myPeerId" class="peer-display">----</div>
+            <div id="copyBtn" class="btn-yellow">Copia il tuo ID</div>
+        </div>
+        <div class="menu-section">
+            <input type="text" id="friendIdInput" placeholder="Inserisci ID Amico">
+            <div id="connectBtn" class="btn-white">Connettiti e Gioca</div>
+        </div>
+        <div class="menu-section">
+            <div id="playBotBtn" class="btn-yellow">Gioca contro Bot</div>
+        </div>
+    </div>
+</div>
 
-    <div id="turnIndicator">TURNO:</div>
+<!-- --- GAME AREA --- -->
+<div id="gameArea" class="hidden">
 
-    <!-- BOT -->
-    <div id="opp-top" class="opp-slot"></div>
-    <div id="opp-left" class="opp-slot"></div>
-    <div id="opp-right" class="opp-slot"></div>
+    <!-- INDICATORE TURNO -->
+    <div id="turnIndicator">CARICAMENTO...</div>
 
-    <!-- CENTRO -->
-    <div id="centerArea">
-        <div id="deck" class="card-back">MAZZO</div>
-        <div id="discardPile"></div>
-        <div id="stackBadge"></div>
+    <!-- GIOCATORE ALTO -->
+    <div id="playerTop" class="player-row">
+        <div id="playerTopBadge" class="gold-badge">AVVERSARIO: 7</div>
+        <div id="playerTopHand" class="hand"></div>
     </div>
 
-    <!-- PLAYER -->
-    <div class="player-section">
+    <!-- LATERALI -->
+    <div class="middle-row">
+        <div id="playerLeft" class="player-side">
+            <div id="playerLeftBadge" class="gold-badge">SINISTRA: 7</div>
+            <div id="playerLeftHand" class="hand vertical-hand"></div>
+        </div>
+
+        <!-- CENTRO: MAZZO E SCARTI -->
+        <div id="centerArea">
+            <div id="deck" class="card-back-classic">MAZZO</div>
+            <div id="discardPile"></div>
+        </div>
+
+        <div id="playerRight" class="player-side">
+            <div id="playerRightBadge" class="gold-badge">DESTRA: 7</div>
+            <div id="playerRightHand" class="hand vertical-hand"></div>
+        </div>
+    </div>
+
+    <!-- GIOCATORE BASSO -->
+    <div id="playerBottom" class="player-row">
+        <div id="playerBadge" class="gold-badge">TU: 7</div>
         <div id="playerHand" class="hand"></div>
     </div>
 
+    <button id="masterUnoBtn" class="hidden">MASTER UNO!</button>
+</div>
+
+<!-- --- COLOR PICKER --- -->
+<div id="colorPicker" class="hidden">
+    <div class="picker-box">
+        <h3>Scegli Colore</h3>
+        <div class="pick-grid">
+            <div class="pick red" onclick="setWildColor('red')"></div>
+            <div class="pick blue" onclick="setWildColor('blue')"></div>
+            <div class="pick green" onclick="setWildColor('green')"></div>
+            <div class="pick yellow" onclick="setWildColor('yellow')"></div>
+        </div>
+    </div>
+</div>
+
+<!-- --- END SCREEN --- -->
+<div id="endScreen" class="hidden">
+    <div class="main-box">
+        <h1 id="endTitle" class="end-title">VITTORIA!</h1>
+        <p id="endSubtitle">Ottima partita!</p>
+        <div class="menu-section">
+            <div id="playAgainBtn" class="btn-yellow">Gioca Ancora</div>
+            <div id="exitBtn" class="btn-white">Torna al Menu</div>
+        </div>
+    </div>
 </div>
 
 <script src="script.js"></script>
