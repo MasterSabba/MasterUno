@@ -2,112 +2,35 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>MasterUno Ultimate - 4 Players</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Uno</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
 <body>
 
-    <div id="toast-container"></div>
+<div id="gameArea">
 
-    <div id="loginScreen">
-        <div class="main-box">
-            <h1 class="logo-title">MASTER UNO</h1>
-            <div class="menu-section">
-                <input type="text" id="nickInput" placeholder="Inserisci Nickname">
-                <input type="password" id="passInput" placeholder="Inserisci Password">
-                <div id="loginBtn" class="btn-yellow" onclick="game.doLogin()">ACCEDI</div>
-            </div>
-        </div>
+    <div id="turnIndicator">TURNO:</div>
+
+    <!-- BOT -->
+    <div id="opp-top" class="opp-slot"></div>
+    <div id="opp-left" class="opp-slot"></div>
+    <div id="opp-right" class="opp-slot"></div>
+
+    <!-- CENTRO -->
+    <div id="centerArea">
+        <div id="deck" class="card-back">MAZZO</div>
+        <div id="discardPile"></div>
+        <div id="stackBadge"></div>
     </div>
 
-    <div id="startScreen" class="hidden">
-        <div class="main-box">
-            <div class="settings-icon" onclick="game.toggleSettings()">⚙️</div>
-            <h1 class="logo-title">ARENA</h1>
-            <div class="menu-section">
-                <div id="myPeerId" class="peer-display">----</div>
-                <div class="btn-yellow" onclick="game.copyId()">Copia il tuo ID</div>
-            </div>
-            <div class="menu-section">
-                <input type="text" id="friendIdInput" placeholder="ID Amico (Opzionale)">
-                <div class="btn-white" onclick="game.connectAndStart()">Gioca Multiplayer</div>
-            </div>
-            <div class="btn-yellow" onclick="game.startLocal()">Gioca contro BOT</div>
-        </div>
+    <!-- PLAYER -->
+    <div class="player-section">
+        <div id="playerHand" class="hand"></div>
     </div>
 
-    <div id="settingsPanel" class="hidden">
-        <div class="settings-box">
-            <h3>REGOLAMENTO</h3>
-            <div class="setting-row">
-                <label>Giocatori (Max 4)</label>
-                <select id="maxPlayers">
-                    <option value="2">2 Giocatori</option>
-                    <option value="3">3 Giocatori</option>
-                    <option value="4" selected>4 Giocatori</option>
-                </select>
-            </div>
-            <div class="setting-row">
-                <label>Regola 0-7 (Scambio)</label>
-                <input type="checkbox" id="rule07" checked>
-            </div>
-            <div class="setting-row">
-                <label>Scarto Multiplo (Combo)</label>
-                <input type="checkbox" id="ruleMulti" checked>
-            </div>
-            <div class="btn-yellow" onclick="game.toggleSettings()">Chiudi</div>
-        </div>
-    </div>
+</div>
 
-    <div id="gameArea" class="hidden">
-        <div id="turnIndicator">CARICAMENTO...</div>
-        
-        <div id="opp-top" class="opp-slot"></div>
-        <div id="opp-left" class="opp-slot"></div>
-        <div id="opp-right" class="opp-slot"></div>
-
-        <div id="centerArea">
-            <div id="deck" class="card-back-classic">
-                <span>MASTER</span><span>UNO</span>
-            </div>
-            <div id="discardPile"></div>
-            <div id="stackBadge"></div>
-        </div>
-
-        <div id="chatBox">
-            <div id="emojiList" class="hidden">
-                <span onclick="game.sendEmoji('🔥')">🔥</span>
-                <span onclick="game.sendEmoji('😂')">😂</span>
-                <span onclick="game.sendEmoji('😡')">😡</span>
-                <span onclick="game.sendEmoji('😎')">😎</span>
-            </div>
-            <div class="chat-trigger" onclick="game.toggleEmoji()">💬</div>
-        </div>
-
-        <div class="player-section">
-            <div id="playerHand" class="hand"></div>
-            <div id="multiControls" class="hidden">
-                <button class="btn-yellow" onclick="game.playCombo()">GIOCA COMBO</button>
-            </div>
-        </div>
-
-        <button id="masterUnoBtn" class="hidden" onclick="game.sayUno()">MASTER UNO!</button>
-    </div>
-
-    <div id="colorPicker" class="hidden">
-        <div class="picker-box">
-            <div class="pick-grid">
-                <div class="pick red" onclick="game.setWild('red')"></div>
-                <div class="pick blue" onclick="game.setWild('blue')"></div>
-                <div class="pick green" onclick="game.setWild('green')"></div>
-                <div class="pick yellow" onclick="game.setWild('yellow')"></div>
-            </div>
-        </div>
-    </div>
-
-    <script src="script.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
