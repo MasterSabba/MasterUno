@@ -22,9 +22,10 @@ MASTERUNO — BOMBA EDITION  |  style.css
 html, body { width: 100%; height: 100%; overflow: hidden; }
 body { font-family: ‘Nunito’, sans-serif; font-weight: 700; color: #fff; background: var(–bg); }
 
-/* ── screens managed by JS display:flex / display:none ── */
+/* ── screens: hidden by default, JS sets display:flex to show ── */
 #s-login, #s-lobby, #s-game, #s-end {
 position: fixed; inset: 0;
+display: none;
 flex-direction: column;
 align-items: center;
 justify-content: center;
