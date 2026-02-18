@@ -1,6 +1,7 @@
 /* ═══════════════════════════════════════════════
 MASTERUNO — BOMBA EDITION  |  script.js
 ═══════════════════════════════════════════════ */
+document.addEventListener(‘DOMContentLoaded’, () => {
 
 // ── CONSTANTS ──
 const COLORS = [“red”,“blue”,“green”,“yellow”];
@@ -300,7 +301,7 @@ document.getElementById(‘unoBtn’).style.display=‘none’;
 };
 
 // ── WILD COLOR ──
-window.setWildColor = (c) => {
+window.setWildColor = function(c) {
 currentColor = c;
 document.getElementById(‘colorPicker’).style.display=‘none’;
 toast(’COLORE: ‘+c.toUpperCase()+’ ’+{red:‘🔴’,blue:‘🔵’,green:‘🟢’,yellow:‘🟡’}[c]);
@@ -414,7 +415,7 @@ msgs.appendChild(d);
 msgs.scrollTop = msgs.scrollHeight;
 }
 
-function sendEmoji(e) {
+window.sendEmoji = function(e) {
 addMsg(myName, e, true);
 if (conn&&conn.open) conn.send({type:‘CHAT’,sender:myName,text:e});
 }
@@ -522,3 +523,5 @@ document.getElementById(‘exitBtn’).onclick = () => location.reload();
 
 // ── INIT: show login screen ──
 showScreen(‘s-login’);
+
+}); // end DOMContentLoaded
