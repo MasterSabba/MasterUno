@@ -1,239 +1,657 @@
 <!DOCTYPE html>
-
 <html lang="it">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>MasterUno — Bomba Edition</title>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
-  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>MasterUno — Bomba Edition</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{width:100%;height:100%;overflow:hidden;}
+body{font-family:'Nunito',sans-serif;font-weight:700;color:#fff;background:#0b1a0e;}
+
+/* SCREENS */
+.scr{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;}
+
+/* ═══ LOGIN ═══ */
+#sLogin{background:linear-gradient(150deg,#0d2218 0%,#091410 50%,#0b0b1a 100%);overflow:hidden;}
+.bgc{position:absolute;border-radius:16px;border:3px solid rgba(255,255,255,.1);animation:flt 7s ease-in-out infinite;}
+.bgc1{width:90px;height:130px;background:linear-gradient(145deg,#c0392b,#7b241c);top:-6%;left:7%;transform:rotate(-22deg);animation-delay:0s;}
+.bgc2{width:80px;height:116px;background:linear-gradient(145deg,#1a6fa8,#0e4673);top:22%;right:4%;transform:rotate(17deg);animation-delay:2s;}
+.bgc3{width:86px;height:124px;background:linear-gradient(145deg,#1e8449,#145a32);bottom:6%;left:3%;transform:rotate(-11deg);animation-delay:3.5s;}
+.bgc4{width:76px;height:110px;background:linear-gradient(145deg,#d4ac0d,#8a6c00);bottom:9%;right:9%;transform:rotate(26deg);animation-delay:1s;}
+@keyframes flt{0%,100%{translate:0 0;}50%{translate:0 -18px;}}
+
+.lbox{
+  position:relative;z-index:2;width:92%;max-width:370px;
+  background:rgba(10,22,14,.97);border:1.5px solid rgba(255,255,255,.08);
+  border-radius:30px;padding:40px 26px 34px;
+  display:flex;flex-direction:column;gap:22px;
+  box-shadow:0 40px 100px rgba(0,0,0,.85);
+  animation:popIn .5s cubic-bezier(.175,.885,.32,1.275) both;
+}
+@keyframes popIn{from{opacity:0;transform:scale(.85) translateY(28px);}to{opacity:1;transform:none;}}
+
+.logo-wrap{text-align:center;}
+.logo-m{font-family:'Bebas Neue',sans-serif;font-size:60px;letter-spacing:5px;color:#fff;line-height:.9;}
+.logo-u{font-family:'Bebas Neue',sans-serif;font-size:60px;letter-spacing:5px;color:#f0b429;text-shadow:0 0 40px rgba(240,180,41,.45);line-height:.9;}
+.logo-sub{font-size:9px;letter-spacing:6px;color:rgba(255,255,255,.25);text-transform:uppercase;margin-top:7px;}
+
+.fld{display:flex;flex-direction:column;gap:5px;}
+.flbl{font-size:9px;letter-spacing:3px;color:rgba(255,255,255,.3);text-transform:uppercase;}
+.finp{background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.09);border-radius:13px;padding:15px 17px;color:#fff;font-size:16px;font-family:'Nunito',sans-serif;font-weight:700;width:100%;transition:border-color .2s;}
+.finp:focus{outline:none;border-color:#f0b429;}
+.finp::placeholder{color:rgba(255,255,255,.17);}
+
+.btn-gold{width:100%;padding:18px;background:linear-gradient(140deg,#f0b429,#d49410);color:#000;border:none;border-radius:16px;font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:3px;cursor:pointer;box-shadow:0 6px 0 #8a5e00,0 14px 30px rgba(240,180,41,.2);transition:transform .12s,box-shadow .12s;}
+.btn-gold:active{transform:translateY(5px);box-shadow:0 1px 0 #8a5e00;}
+.lnote{text-align:center;font-size:11px;color:rgba(255,255,255,.22);line-height:1.6;}
+
+/* ═══ LOBBY ═══ */
+#sLobby{background:radial-gradient(ellipse at 50% -10%,#163320 0%,#0b1a0e 65%);justify-content:flex-start;}
+.lbhdr{width:100%;display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:rgba(0,0,0,.55);border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0;}
+.lbtag{background:#f0b429;color:#000;padding:7px 16px;border-radius:20px;font-size:12px;font-weight:900;}
+.lbttl{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:4px;}
+.lbttl span{color:#f0b429;}
+.icobtn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:9px 11px;font-size:18px;cursor:pointer;color:#fff;transition:background .2s;}
+.icobtn:hover{background:rgba(255,255,255,.15);}
+.lbbody{width:100%;flex:1;overflow-y:auto;display:flex;flex-direction:column;align-items:center;gap:14px;padding:20px 16px 30px;}
+.lbcard{width:100%;max-width:420px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:22px;padding:22px 20px;display:flex;flex-direction:column;align-items:center;gap:12px;box-shadow:0 8px 30px rgba(0,0,0,.4);}
+.slbl{font-size:9px;letter-spacing:3px;color:rgba(255,255,255,.28);text-transform:uppercase;}
+.pcode{font-family:'Bebas Neue',sans-serif;font-size:46px;letter-spacing:10px;color:#f0b429;text-shadow:0 0 30px rgba(240,180,41,.35);}
+.btn-outline{background:rgba(240,180,41,.1);border:1.5px solid rgba(240,180,41,.3);border-radius:11px;padding:11px 22px;color:#f0b429;font-size:13px;font-weight:900;cursor:pointer;transition:background .2s;width:100%;max-width:260px;text-align:center;}
+.btn-outline:hover{background:rgba(240,180,41,.2);}
+.sep{font-size:11px;color:rgba(255,255,255,.2);letter-spacing:2px;text-align:center;}
+.crow{display:flex;gap:10px;width:100%;}
+.icode{flex:1;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 16px;color:#fff;font-size:15px;font-family:'Nunito',sans-serif;font-weight:900;text-transform:uppercase;letter-spacing:2px;}
+.icode:focus{outline:none;border-color:#f0b429;}
+.icode::placeholder{color:rgba(255,255,255,.2);font-size:12px;letter-spacing:1px;text-transform:none;}
+.btn-blue{background:linear-gradient(135deg,#1d7fc4,#145d94);color:#fff;border:none;border-radius:12px;padding:14px 16px;font-size:13px;font-weight:900;cursor:pointer;white-space:nowrap;box-shadow:0 4px 0 #0d3d62;transition:transform .1s;flex-shrink:0;}
+.btn-blue:active{transform:translateY(3px);}
+.btn-green{width:100%;max-width:420px;padding:18px;background:linear-gradient(135deg,#27ae60,#1e8449);color:#fff;border:none;border-radius:18px;font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;cursor:pointer;box-shadow:0 6px 0 #145a32;transition:transform .1s,box-shadow .1s;}
+.btn-green:active{transform:translateY(4px);box-shadow:0 2px 0 #145a32;}
+.lbsts{font-size:12px;color:rgba(255,255,255,.22);letter-spacing:1px;text-align:center;}
+
+/* ═══ SETTINGS PANEL ═══ */
+.spanel{position:fixed;top:0;right:-110%;width:min(360px,96vw);height:100%;background:#0c1c10;border-left:1px solid rgba(255,255,255,.07);z-index:9000;overflow-y:auto;transition:right .35s cubic-bezier(.4,0,.2,1);}
+.spanel.open{right:0;}
+.sovl{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:8999;display:none;cursor:pointer;}
+.sovl.show{display:block;}
+.sphd{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;background:rgba(0,0,0,.35);border-bottom:1px solid rgba(255,255,255,.07);font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;position:sticky;top:0;z-index:1;}
+.spbd{padding:20px;display:flex;flex-direction:column;gap:22px;}
+.stg{display:flex;flex-direction:column;gap:8px;}
+.stitle{font-size:13px;font-weight:900;}
+.sdesc{font-size:11px;color:rgba(255,255,255,.38);line-height:1.55;}
+.pills{display:flex;gap:8px;}
+.pill{padding:8px 22px;background:rgba(255,255,255,.07);border:1.5px solid transparent;border-radius:20px;font-size:15px;font-weight:900;cursor:pointer;color:#fff;transition:all .15s;}
+.pill.on{background:#f0b429;color:#000;border-color:#f0b429;}
+.tog{position:relative;display:inline-block;width:52px;height:28px;}
+.tog input{display:none;}
+.tk{position:absolute;inset:0;background:rgba(255,255,255,.1);border-radius:28px;cursor:pointer;transition:background .25s;}
+.tk::after{content:'';position:absolute;width:20px;height:20px;border-radius:50%;background:#fff;top:4px;left:4px;transition:transform .25s;}
+.tog input:checked+.tk{background:#27ae60;}
+.tog input:checked+.tk::after{transform:translateX(24px);}
+.rbox{background:rgba(255,255,255,.04);border-radius:14px;padding:16px;}
+.rlist{padding-left:18px;display:flex;flex-direction:column;gap:7px;}
+.rlist li{font-size:12px;color:rgba(255,255,255,.38);line-height:1.5;}
+
+/* ═══ GAME ═══ */
+#sGame{background:radial-gradient(ellipse at center,#163320 0%,#080f09 100%);justify-content:space-between;}
+.gbar{width:100%;display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(0,0,0,.55);border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0;}
+.tbadge{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:2px;padding:7px 18px;background:rgba(255,255,255,.07);border-radius:30px;transition:background .3s,color .3s,box-shadow .3s;}
+.tbadge.mine{background:rgba(240,180,41,.18);color:#f0b429;box-shadow:0 0 22px rgba(240,180,41,.28);}
+#oppArea{width:100%;display:flex;justify-content:center;gap:16px;padding:8px 12px;flex-wrap:wrap;flex-shrink:0;}
+.osl{display:flex;flex-direction:column;align-items:center;gap:4px;opacity:.5;transition:opacity .25s,transform .25s;}
+.osl.act{opacity:1;transform:scale(1.1);}
+.osl.act .oname{color:#f0b429;}
+.oname{font-size:10px;letter-spacing:1px;color:rgba(255,255,255,.4);text-transform:uppercase;transition:color .25s;}
+.ocnt{font-size:10px;color:rgba(255,255,255,.38);}
+.ocards{display:flex;}
+.mb{width:28px;height:42px;background:#0e1a11;border:2px solid rgba(255,255,255,.2);border-radius:6px;margin:0 -5px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:6px;color:#f0b429;box-shadow:0 2px 6px rgba(0,0,0,.5);}
+.carea{display:flex;align-items:center;justify-content:center;gap:20px;flex-shrink:0;}
+.cback{width:82px;height:118px;background:#0e1a11;border:3px solid rgba(255,255,255,.22);border-radius:15px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1.5px;color:#f0b429;gap:3px;box-shadow:0 6px 20px rgba(0,0,0,.55);}
+.deckbtn{cursor:pointer;transition:transform .15s;}
+.deckbtn:active{transform:scale(.91);}
+.cdot{width:22px;height:22px;border-radius:50%;border:3px solid rgba(255,255,255,.4);visibility:hidden;transition:background .3s,box-shadow .3s;}
+.cdot.show{visibility:visible;}
+.cdot.red{background:#d63031;box-shadow:0 0 16px #d63031;}
+.cdot.blue{background:#1d7fc4;box-shadow:0 0 16px #1d7fc4;}
+.cdot.green{background:#27ae60;box-shadow:0 0 16px #27ae60;}
+.cdot.yellow{background:#f0b429;box-shadow:0 0 16px #f0b429;}
+#discardEl{min-width:82px;min-height:118px;display:flex;align-items:center;justify-content:center;}
+.parea{width:100%;display:flex;flex-direction:column;align-items:center;padding-bottom:12px;flex-shrink:0;}
+.myb{background:#f0b429;color:#000;padding:6px 16px;border-radius:20px;font-size:12px;font-weight:900;letter-spacing:.5px;margin-bottom:8px;}
+.hand{display:flex;justify-content:center;align-items:flex-end;width:100%;min-height:128px;overflow-x:auto;padding:4px 10px;scrollbar-width:none;}
+.hand::-webkit-scrollbar{display:none;}
+.card{width:82px;height:118px;border-radius:15px;border:3px solid rgba(255,255,255,.38);margin:0 -20px;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:36px;color:#fff;position:relative;box-shadow:0 7px 22px rgba(0,0,0,.55);cursor:pointer;user-select:none;flex-shrink:0;transition:transform .18s,box-shadow .18s,margin .18s;}
+.card::before,.card::after{content:attr(data-val);position:absolute;font-size:13px;font-weight:900;font-family:'Nunito',sans-serif;}
+.card::before{top:6px;left:8px;}
+.card::after{bottom:6px;right:8px;transform:rotate(180deg);}
+.card:hover{transform:translateY(-24px) scale(1.07);z-index:20;box-shadow:0 22px 38px rgba(0,0,0,.65);margin:0 -14px;}
+.card:active{transform:translateY(-30px) scale(1.1);}
+.card.dim{opacity:.3;cursor:default;}
+.card.dim:hover{transform:none;margin:0 -20px;box-shadow:0 7px 22px rgba(0,0,0,.55);}
+.card.red{background:linear-gradient(145deg,#e63946,#b02030);}
+.card.blue{background:linear-gradient(145deg,#1d7fc4,#145d94);}
+.card.green{background:linear-gradient(145deg,#27ae60,#1a7a42);}
+.card.yellow{background:linear-gradient(145deg,#f0b429,#c8940e);color:#000!important;}
+.card.yellow::before,.card.yellow::after{color:#000;}
+.card.wild,.card.wild4{background:linear-gradient(145deg,#2a2a3e,#18182a);border-color:#f0b429;}
+.unobtn{position:fixed;bottom:155px;right:16px;background:linear-gradient(135deg,#e63946,#b02030);color:#fff;padding:13px 20px;border-radius:50px;font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:2px;border:3px solid #fff;box-shadow:0 4px 22px rgba(230,57,70,.55);animation:unoP 1.2s ease-in-out infinite;cursor:pointer;z-index:500;}
+@keyframes unoP{0%,100%{transform:scale(1);}50%{transform:scale(1.1);box-shadow:0 8px 32px rgba(230,57,70,.9);}}
+
+/* ═══ MODALS ═══ */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.88);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:10000;}
+.mbox{background:#101e13;border:1.5px solid rgba(240,180,41,.25);border-radius:28px;padding:30px 26px;text-align:center;box-shadow:0 24px 70px rgba(0,0,0,.8);}
+.mtitle{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;color:#f0b429;margin-bottom:20px;}
+.cgrid{display:grid;grid-template-columns:repeat(2,100px);grid-template-rows:repeat(2,100px);gap:12px;}
+.cp{width:100px;height:100px;border-radius:18px;border:4px solid rgba(255,255,255,.2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:34px;transition:transform .15s;}
+.cp:hover{transform:scale(1.1);}
+.cp:active{transform:scale(.94);}
+.cp.red{background:#d63031;box-shadow:0 4px 20px rgba(214,48,49,.4);}
+.cp.blue{background:#1d7fc4;box-shadow:0 4px 20px rgba(29,127,196,.4);}
+.cp.green{background:#27ae60;box-shadow:0 4px 20px rgba(39,174,96,.4);}
+.cp.yellow{background:#f0b429;box-shadow:0 4px 20px rgba(240,180,41,.4);}
+.swlist{display:flex;flex-direction:column;gap:10px;min-width:200px;}
+.swopt{padding:14px 22px;background:rgba(255,255,255,.07);border-radius:12px;font-size:15px;font-weight:900;cursor:pointer;border:1.5px solid rgba(255,255,255,.08);transition:background .15s;}
+.swopt:hover{background:#f0b429;color:#000;}
+
+/* ═══ CHAT ═══ */
+.chatpnl{position:fixed;bottom:0;right:0;width:min(320px,100vw);height:420px;background:#101e13;border:1px solid rgba(255,255,255,.08);border-radius:20px 20px 0 0;z-index:6000;display:none;flex-direction:column;box-shadow:0 -12px 40px rgba(0,0,0,.6);}
+.chd{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:rgba(0,0,0,.4);border-radius:20px 20px 0 0;border-bottom:1px solid rgba(255,255,255,.07);font-size:14px;font-weight:900;flex-shrink:0;}
+.cmsgs{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:8px;}
+.cmsg{max-width:80%;padding:8px 12px;border-radius:12px;font-size:13px;line-height:1.4;word-break:break-word;}
+.cmsg.mine{background:#1d7fc4;align-self:flex-end;border-bottom-right-radius:3px;}
+.cmsg.them{background:rgba(255,255,255,.1);align-self:flex-start;border-bottom-left-radius:3px;}
+.csndr{font-size:9px;opacity:.5;margin-bottom:3px;}
+.cmsg.big{background:transparent!important;font-size:38px;padding:2px 4px;align-self:center;}
+.ebar{display:flex;gap:8px;padding:8px 14px;overflow-x:auto;border-top:1px solid rgba(255,255,255,.07);scrollbar-width:none;flex-shrink:0;}
+.ebar::-webkit-scrollbar{display:none;}
+.emo{font-size:26px;cursor:pointer;user-select:none;flex-shrink:0;transition:transform .15s;}
+.emo:hover{transform:scale(1.35);}
+.cinrow{display:flex;gap:8px;padding:10px 14px;border-top:1px solid rgba(255,255,255,.07);flex-shrink:0;}
+.cinp{flex:1;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.09);border-radius:10px;padding:10px 14px;color:#fff;font-size:14px;font-family:'Nunito',sans-serif;font-weight:700;}
+.cinp:focus{outline:none;border-color:#f0b429;}
+.cinp::placeholder{color:rgba(255,255,255,.2);}
+.csnd{background:#1d7fc4;color:#fff;border:none;border-radius:10px;padding:10px 14px;font-size:15px;font-weight:900;cursor:pointer;}
+
+/* ═══ DRAW ANIM ═══ */
+.danim{position:fixed;width:82px;height:118px;background:#0e1a11;border:3px solid rgba(255,255,255,.22);border-radius:15px;display:none;flex-direction:column;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1.5px;color:#f0b429;gap:3px;pointer-events:none;z-index:9999;box-shadow:0 10px 32px rgba(0,0,0,.7);}
+
+/* ═══ END ═══ */
+#sEnd{background:rgba(0,0,0,.97);z-index:9000;}
+.ebox{display:flex;flex-direction:column;align-items:center;gap:16px;animation:popIn .45s cubic-bezier(.175,.885,.32,1.275) both;}
+.eico{font-size:80px;line-height:1;}
+.etitle{font-family:'Bebas Neue',sans-serif;font-size:60px;letter-spacing:4px;text-align:center;}
+.etitle.win{color:#f0b429;text-shadow:0 0 36px rgba(240,180,41,.6);}
+.etitle.lose{color:#e63946;text-shadow:0 0 36px rgba(230,57,70,.5);}
+.esub{font-size:15px;color:rgba(255,255,255,.4);text-align:center;}
+.btn-ghost{background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.14);border-radius:14px;padding:15px 30px;color:#fff;font-size:16px;font-weight:900;cursor:pointer;}
+
+/* ═══ TOASTS ═══ */
+#toasts{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:20000;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;}
+.toast{background:#f0b429;color:#000;padding:11px 22px;border-radius:50px;font-weight:900;font-size:13px;border:3px solid rgba(255,255,255,.25);box-shadow:0 6px 24px rgba(0,0,0,.5);animation:tin .3s cubic-bezier(.175,.885,.32,1.275) both;white-space:nowrap;}
+@keyframes tin{from{transform:translateY(-20px) scale(.8);opacity:0;}to{transform:none;opacity:1;}}
+</style>
 </head>
 <body>
 
-<!-- ═══ LOGIN ═══ -->
-
-<div id="s-login">
-  <div class="login-bg">
-    <div class="bg-c bg-c1"></div>
-    <div class="bg-c bg-c2"></div>
-    <div class="bg-c bg-c3"></div>
-    <div class="bg-c bg-c4"></div>
-  </div>
-  <div class="login-box">
-    <div class="logo-block">
-      <div class="logo-line">
-        <span class="logo-m">MASTER</span><span class="logo-u">UNO</span>
-      </div>
+<!-- LOGIN -->
+<div id="sLogin" class="scr">
+  <div class="bgc bgc1"></div><div class="bgc bgc2"></div>
+  <div class="bgc bgc3"></div><div class="bgc bgc4"></div>
+  <div class="lbox">
+    <div class="logo-wrap">
+      <div><span class="logo-m">MASTER</span><span class="logo-u">UNO</span></div>
       <div class="logo-sub">BOMBA EDITION</div>
     </div>
-    <div class="field">
-      <div class="field-lbl">NICKNAME</div>
-      <input class="field-inp" type="text" id="loginName" placeholder="Il tuo nome..." maxlength="16" autocomplete="off">
+    <div class="fld">
+      <div class="flbl">NICKNAME</div>
+      <input class="finp" id="lName" type="text" placeholder="Il tuo nome..." maxlength="16" autocomplete="off">
     </div>
-    <div class="field">
-      <div class="field-lbl">PASSWORD</div>
-      <input class="field-inp" type="password" id="loginPass" placeholder="Password..." maxlength="32">
+    <div class="fld">
+      <div class="flbl">PASSWORD</div>
+      <input class="finp" id="lPass" type="password" placeholder="Password..." maxlength="32">
     </div>
     <button class="btn-gold" id="loginBtn">ENTRA NEL GIOCO</button>
-    <div class="login-note">Prima volta? Crea l'account scrivendo nome e password.</div>
+    <div class="lnote">Prima volta? Crea l'account scrivendo nome e password.</div>
   </div>
 </div>
 
-<!-- ═══ LOBBY ═══ -->
-
-<div id="s-lobby" style="display:none">
-  <div class="lb-header">
-    <div class="lb-tag" id="lb-tag">PLAYER</div>
-    <div class="lb-logo">MASTER<span>UNO</span></div>
-    <button class="icon-btn" id="settingsBtn">⚙️</button>
+<!-- LOBBY -->
+<div id="sLobby" class="scr">
+  <div class="lbhdr">
+    <div class="lbtag" id="lbTag">PLAYER</div>
+    <div class="lbttl">MASTER<span>UNO</span></div>
+    <button class="icobtn" id="settingsBtn">⚙️</button>
   </div>
-  <div class="lb-body">
-
-```
-<div class="lb-card">
-  <div class="lbl-small">IL TUO CODICE PARTITA</div>
-  <div class="peer-code" id="myPeerId">——</div>
-  <button class="btn-outline" id="copyBtn">📋 Copia &amp; Condividi</button>
-</div>
-
-<div class="divider-text">— o connettiti —</div>
-
-<div class="lb-card">
-  <div class="conn-row">
-    <input class="inp-code" type="text" id="friendIdInput" placeholder="Codice amico..." autocomplete="off">
-    <button class="btn-blue" id="connectBtn">🔗 CONNETTI</button>
-  </div>
-</div>
-
-<div class="divider-text">— o gioca da solo —</div>
-
-<button class="btn-green" id="playBotBtn">🤖 GIOCA VS COMPUTER</button>
-
-<div class="lb-status" id="lb-status">In attesa di connessione...</div>
-```
-
+  <div class="lbbody">
+    <div class="lbcard">
+      <div class="slbl">IL TUO CODICE PARTITA</div>
+      <div class="pcode" id="myCode">——</div>
+      <button class="btn-outline" id="copyBtn">📋 Copia &amp; Condividi</button>
+    </div>
+    <div class="sep">— o connettiti —</div>
+    <div class="lbcard">
+      <div class="crow">
+        <input class="icode" id="friendId" type="text" placeholder="Codice amico..." autocomplete="off">
+        <button class="btn-blue" id="connectBtn">🔗 CONNETTI</button>
+      </div>
+    </div>
+    <div class="sep">— o gioca da solo —</div>
+    <button class="btn-green" id="botBtn">🤖 GIOCA VS COMPUTER</button>
+    <div class="lbsts" id="lbSts">In attesa di connessione...</div>
   </div>
 </div>
 
-<!-- ═══ IMPOSTAZIONI ═══ -->
-
-<div class="side-panel" id="settingsPanel">
-  <div class="sp-head">
+<!-- SETTINGS -->
+<div class="spanel" id="spanel">
+  <div class="sphd">
     <span>⚙️ IMPOSTAZIONI</span>
-    <button class="icon-btn" id="closeSettings">✕</button>
+    <button class="icobtn" id="closeSettings">✕</button>
   </div>
-  <div class="sp-body">
-
-```
-<div class="setting">
-  <div class="setting-title">👥 NUMERO GIOCATORI</div>
-  <div class="setting-desc">I posti liberi vengono riempiti da bot</div>
-  <div class="pill-row" id="numPlayersGroup">
-    <button class="pill active" data-val="2">2</button>
-    <button class="pill" data-val="3">3</button>
-    <button class="pill" data-val="4">4</button>
-  </div>
-</div>
-
-<div class="setting">
-  <div class="setting-title">🔄 REGOLA 0 — Scambio automatico</div>
-  <div class="setting-desc">Tutti passano le carte in senso di gioco quando giochi uno 0</div>
-  <label class="toggle"><input type="checkbox" id="rule0"><span class="tk"></span></label>
-</div>
-
-<div class="setting">
-  <div class="setting-title">🤝 REGOLA 7 — Scegli con chi scambiare</div>
-  <div class="setting-desc">Quando giochi un 7, scegli con chi vuoi scambiarti le carte</div>
-  <label class="toggle"><input type="checkbox" id="rule7"><span class="tk"></span></label>
-</div>
-
-<div class="setting">
-  <div class="setting-title">🎣 PESCA A STRASCIO</div>
-  <div class="setting-desc">+2 e +4 si accumulano — il malcapitato pesca tutto lo stack</div>
-  <label class="toggle"><input type="checkbox" id="ruleStack" checked><span class="tk"></span></label>
-</div>
-
-<div class="setting">
-  <div class="setting-title">🃏 MULTI-CARTA stesso numero</div>
-  <div class="setting-desc">Puoi giocare più carte con lo stesso numero nello stesso turno</div>
-  <label class="toggle"><input type="checkbox" id="ruleMulti"><span class="tk"></span></label>
-</div>
-
-<div class="setting rules-box">
-  <div class="setting-title">📋 REGOLE CLASSICHE</div>
-  <ul class="rules-list">
-    <li>Abbina per colore o numero alla carta in cima</li>
-    <li>Wild 🎨 → scegli il colore che vuoi</li>
-    <li>+4 → solo senza il colore attivo; attacca gli stack</li>
-    <li>Dì <strong>MASTERUNO!</strong> con 2 carte, altrimenti +2</li>
-    <li>Vince chi finisce le carte per primo</li>
-  </ul>
-</div>
-```
-
-  </div>
-</div>
-<div class="sp-overlay" id="spOverlay"></div>
-
-<!-- ═══ GIOCO ═══ -->
-
-<div id="s-game" style="display:none">
-  <div class="game-bar">
-    <div class="turn-badge" id="turnBadge">CARICAMENTO...</div>
-    <button class="icon-btn" id="chatBtn">💬</button>
-  </div>
-
-  <div id="opponentsArea"></div>
-
-  <div class="center-area">
-    <div id="deckEl" class="card-back deck-btn">
-      <span>MASTER</span><span>UNO</span>
+  <div class="spbd">
+    <div class="stg">
+      <div class="stitle">👥 GIOCATORI AL TAVOLO</div>
+      <div class="sdesc">I posti liberi vengono riempiti da bot</div>
+      <div class="pills" id="npGroup">
+        <button class="pill on" data-v="2">2</button>
+        <button class="pill" data-v="3">3</button>
+        <button class="pill" data-v="4">4</button>
+      </div>
     </div>
+    <div class="stg">
+      <div class="stitle">🔄 REGOLA 0 — Scambio automatico</div>
+      <div class="sdesc">Tutti passano le carte al successivo quando giochi uno 0</div>
+      <label class="tog"><input type="checkbox" id="r0"><span class="tk"></span></label>
+    </div>
+    <div class="stg">
+      <div class="stitle">🤝 REGOLA 7 — Scegli con chi scambiare</div>
+      <div class="sdesc">Con un 7 puoi scegliere con chi scambiare la mano</div>
+      <label class="tog"><input type="checkbox" id="r7"><span class="tk"></span></label>
+    </div>
+    <div class="stg">
+      <div class="stitle">🎣 PESCA A STRASCIO</div>
+      <div class="sdesc">+2 e +4 si accumulano — il malcapitato pesca tutto lo stack</div>
+      <label class="tog"><input type="checkbox" id="rStack" checked><span class="tk"></span></label>
+    </div>
+    <div class="stg">
+      <div class="stitle">🃏 MULTI-CARTA stesso numero</div>
+      <div class="sdesc">Puoi giocare più carte con lo stesso numero nel tuo turno</div>
+      <label class="tog"><input type="checkbox" id="rMulti"><span class="tk"></span></label>
+    </div>
+    <div class="stg rbox">
+      <div class="stitle">📋 REGOLE BASE</div>
+      <ul class="rlist">
+        <li>Abbina per colore o numero alla carta in cima</li>
+        <li>Wild 🎨 → scegli il colore che vuoi</li>
+        <li>+4 → solo senza il colore attivo; impila gli stack</li>
+        <li>Dì <strong>MASTERUNO!</strong> con 2 carte, altrimenti +2</li>
+        <li>Vince chi esaurisce le carte per primo</li>
+      </ul>
+    </div>
+  </div>
+</div>
+<div class="sovl" id="sovl"></div>
+
+<!-- GAME -->
+<div id="sGame" class="scr">
+  <div class="gbar">
+    <div class="tbadge" id="tbadge">CARICAMENTO...</div>
+    <button class="icobtn" id="chatBtn">💬</button>
+  </div>
+  <div id="oppArea"></div>
+  <div class="carea">
+    <div id="deckEl" class="cback deckbtn"><span>MASTER</span><span>UNO</span></div>
     <div id="discardEl"></div>
-    <div id="colorDot" class="color-dot"></div>
+    <div id="cdot" class="cdot"></div>
   </div>
-
-  <div class="player-area">
-    <div class="player-bar">
-      <span class="my-badge" id="myBadge">TU: 7</span>
-    </div>
-    <div id="playerHand" class="hand"></div>
+  <div class="parea">
+    <div class="myb" id="myBadge">TU: 7</div>
+    <div id="myHand" class="hand"></div>
   </div>
-
-<button id="unoBtn" class="uno-btn" style="display:none">🔥 MASTER UNO!</button>
-
+  <button class="unobtn" id="unoBtn" style="display:none">🔥 MASTER UNO!</button>
 </div>
 
-<!-- ═══ SCELTA COLORE ═══ -->
-
-<div id="colorPicker" class="fullscreen-modal" style="display:none">
-  <div class="modal-box">
-    <div class="modal-title">SCEGLI COLORE</div>
-    <div class="color-grid">
-      <div class="cpick red"    onclick="setWildColor('red')">🔴</div>
-      <div class="cpick blue"   onclick="setWildColor('blue')">🔵</div>
-      <div class="cpick green"  onclick="setWildColor('green')">🟢</div>
-      <div class="cpick yellow" onclick="setWildColor('yellow')">🟡</div>
+<!-- COLOR PICKER -->
+<div id="colorPicker" class="modal">
+  <div class="mbox">
+    <div class="mtitle">SCEGLI COLORE</div>
+    <div class="cgrid">
+      <div class="cp red"    onclick="pickColor('red')">🔴</div>
+      <div class="cp blue"   onclick="pickColor('blue')">🔵</div>
+      <div class="cp green"  onclick="pickColor('green')">🟢</div>
+      <div class="cp yellow" onclick="pickColor('yellow')">🟡</div>
     </div>
   </div>
 </div>
 
-<!-- ═══ SCAMBIO 7 ═══ -->
-
-<div id="swapPicker" class="fullscreen-modal" style="display:none">
-  <div class="modal-box">
-    <div class="modal-title">CON CHI SCAMBI?</div>
-    <div id="swapTargets" class="swap-list"></div>
+<!-- SWAP PICKER -->
+<div id="swapPicker" class="modal">
+  <div class="mbox">
+    <div class="mtitle">CON CHI SCAMBI?</div>
+    <div class="swlist" id="swList"></div>
   </div>
 </div>
 
-<!-- ═══ CHAT ═══ -->
-
-<div id="chatPanel" class="chat-panel" style="display:none">
-  <div class="chat-head">
+<!-- CHAT -->
+<div id="chatPnl" class="chatpnl">
+  <div class="chd">
     <span>💬 CHAT</span>
-    <button class="icon-btn" id="chatClose">✕</button>
+    <button class="icobtn" id="chatClose">✕</button>
   </div>
-  <div id="chatMsgs" class="chat-msgs"></div>
-  <div class="emoji-bar">
-    <span class="emo" onclick="sendEmoji('🔥')">🔥</span>
-    <span class="emo" onclick="sendEmoji('😂')">😂</span>
-    <span class="emo" onclick="sendEmoji('😤')">😤</span>
-    <span class="emo" onclick="sendEmoji('🎉')">🎉</span>
-    <span class="emo" onclick="sendEmoji('💀')">💀</span>
-    <span class="emo" onclick="sendEmoji('👀')">👀</span>
-    <span class="emo" onclick="sendEmoji('🤡')">🤡</span>
-    <span class="emo" onclick="sendEmoji('⚡')">⚡</span>
+  <div id="chatMsgs" class="cmsgs"></div>
+  <div class="ebar">
+    <span class="emo" onclick="doEmoji('🔥')">🔥</span>
+    <span class="emo" onclick="doEmoji('😂')">😂</span>
+    <span class="emo" onclick="doEmoji('😤')">😤</span>
+    <span class="emo" onclick="doEmoji('🎉')">🎉</span>
+    <span class="emo" onclick="doEmoji('💀')">💀</span>
+    <span class="emo" onclick="doEmoji('👀')">👀</span>
+    <span class="emo" onclick="doEmoji('🤡')">🤡</span>
+    <span class="emo" onclick="doEmoji('⚡')">⚡</span>
   </div>
-  <div class="chat-input-row">
-    <input type="text" id="chatInput" class="field-inp" placeholder="Scrivi..." maxlength="80" style="font-size:14px;padding:10px 14px;">
-    <button id="chatSend" class="btn-blue" style="padding:10px 14px;font-size:15px;">➤</button>
+  <div class="cinrow">
+    <input class="cinp" id="chatIn" type="text" placeholder="Scrivi..." maxlength="80">
+    <button class="csnd" id="chatSend">➤</button>
   </div>
 </div>
 
-<!-- ═══ ANIMAZIONE CARTA ═══ -->
+<!-- DRAW ANIM -->
+<div id="danim" class="danim"><span>MASTER</span><span>UNO</span></div>
 
-<div id="drawAnim" class="draw-anim" style="display:none">
-  <span>MASTER</span><span>UNO</span>
-</div>
-
-<!-- ═══ FINE ═══ -->
-
-<div id="s-end" style="display:none">
-  <div class="end-box">
-    <div class="end-icon" id="endIcon">🏆</div>
-    <div class="end-title" id="endTitle">VITTORIA!</div>
-    <div class="end-sub"   id="endSub"></div>
-    <button class="btn-gold" id="playAgainBtn" style="margin-top:10px">🔄 RIVINCITA</button>
+<!-- END -->
+<div id="sEnd" class="scr">
+  <div class="ebox">
+    <div class="eico" id="eIco">🏆</div>
+    <div class="etitle" id="eTitle">VITTORIA!</div>
+    <div class="esub" id="eSub"></div>
+    <button class="btn-gold" id="replayBtn" style="margin-top:8px;max-width:320px">🔄 RIVINCITA</button>
     <button class="btn-ghost" id="exitBtn">🚪 MENU PRINCIPALE</button>
   </div>
 </div>
 
 <div id="toasts"></div>
 
-<script src="script.js"></script>
+<script>
+// ── show/hide screens ──
+const SCRS = ['sLogin','sLobby','sGame','sEnd'];
+function go(id){
+  SCRS.forEach(s => document.getElementById(s).style.display = s===id ? 'flex' : 'none');
+}
 
+// ── toast ──
+function toast(msg,ms=2800){
+  const t=document.createElement('div');
+  t.className='toast';t.textContent=msg;
+  document.getElementById('toasts').appendChild(t);
+  setTimeout(()=>{t.style.transition='opacity .4s';t.style.opacity='0';setTimeout(()=>t.remove(),450);},ms);
+}
+
+// ── game state ──
+const COLS=['red','blue','green','yellow'];
+const VALS=['0','1','2','3','4','5','6','7','8','9','skip','reverse','draw2'];
+const BOTS=['🤖 ROBO','🦾 JARVIS','👾 MEGA'];
+let deck=[],hands=[],names=[],top=null,curCol='';
+let stack=0,turn=0,dir=1,active=false,saidUno=false;
+let myI=0,np=2;
+let cfg={r0:false,r7:false,stk:true,multi:false,np:2};
+let peer,conn,isMP=false,amHost=false,myName='PLAYER';
+
+function fmt(v){return{draw2:'+2',wild4:'+4',skip:'Ø',reverse:'⇄',W:'🎨'}[v]??v;}
+
+function buildDeck(){
+  deck=[];
+  COLS.forEach(c=>VALS.forEach(v=>{
+    deck.push({c,v});if(v!=='0')deck.push({c,v});
+  }));
+  for(let i=0;i<4;i++){deck.push({c:'wild',v:'W'});deck.push({c:'wild4',v:'wild4'});}
+  for(let i=deck.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]];}
+}
+
+function draw(pi,n){for(let i=0;i<n;i++){if(!deck.length)buildDeck();hands[pi].push(deck.pop());}}
+
+function valid(card){
+  if(stack>0){
+    if(!cfg.stk)return false;
+    if(top.v==='draw2')return card.v==='draw2'||card.v==='wild4';
+    if(top.v==='wild4')return card.v==='wild4';
+    return false;
+  }
+  return card.c===curCol||card.v===top.v||card.c==='wild'||card.c==='wild4';
+}
+
+// ── render ──
+function render(){
+  if(!active)return;
+  // opponents
+  const oa=document.getElementById('oppArea');oa.innerHTML='';
+  for(let i=0;i<np;i++){
+    if(i===myI)continue;
+    const act=turn===i;
+    const cnt=(hands[i]||[]).length;
+    const cards=Array.from({length:Math.min(cnt,6)},()=>`<div class="mb"><span>M</span><span>U</span></div>`).join('');
+    const d=document.createElement('div');
+    d.className='osl'+(act?' act':'');
+    d.innerHTML=`<div class="oname">${names[i]}</div><div class="ocards">${cards}</div><div class="ocnt">${cnt} carte</div>`;
+    oa.appendChild(d);
+  }
+  // hand
+  const hel=document.getElementById('myHand');hel.innerHTML='';
+  (hands[myI]||[]).forEach((card,idx)=>{
+    const el=document.createElement('div');
+    const v=fmt(card.v);
+    el.className=`card ${card.c}`;
+    el.setAttribute('data-val',v);el.textContent=v;
+    if(turn!==myI||!valid(card))el.classList.add('dim');
+    el.onclick=()=>play(myI,idx);
+    hel.appendChild(el);
+  });
+  document.getElementById('myBadge').textContent=`TU: ${(hands[myI]||[]).length}`;
+  // discard
+  const de=document.getElementById('discardEl');
+  if(top){const v=fmt(top.v);de.innerHTML=`<div class="card ${curCol}" data-val="${v}" style="pointer-events:none;margin:0">${v}</div>`;}
+  // turn badge
+  const tb=document.getElementById('tbadge');
+  const mine=turn===myI;
+  tb.textContent=mine?'🟢 IL TUO TURNO':`🔴 TURNO DI ${names[turn]}`;
+  tb.className='tbadge'+(mine?' mine':'');
+  // color dot
+  const cd=document.getElementById('cdot');
+  cd.className=top?`cdot show ${curCol}`:'cdot';
+  // uno btn
+  const ub=document.getElementById('unoBtn');
+  const myH=hands[myI]||[];
+  ub.style.display=(myH.length===2&&turn===myI&&active&&myH.some(c=>valid(c)))?'block':'none';
+}
+
+// ── play ──
+function play(pi,ci){
+  if(turn!==pi||!active)return;
+  const hand=hands[pi];const card=hand[ci];
+  if(!valid(card))return;
+  if(pi===myI&&hand.length===2&&!saidUno){toast('NON HAI DETTO MASTERUNO! +2 🃏');draw(pi,2);nextTurn();return;}
+  hand.splice(ci,1);top=card;saidUno=false;
+  if(card.v==='draw2')stack+=2;
+  if(card.v==='wild4')stack+=4;
+  if(card.v==='reverse'){dir*=-1;if(np===2)turn=(turn+dir+np)%np;}
+  if(card.v==='skip')turn=(turn+dir+np)%np;
+  if(card.v==='0'&&cfg.r0){toast('REGOLA 0: TUTTI SCAMBIANO! 🔄');const snap=hands.map(h=>[...h]);for(let i=0;i<np;i++)hands[(i+dir+np)%np]=snap[i];}
+  if(card.v==='7'&&cfg.r7){
+    if(pi===myI){render();showSwap(pi);return;}
+    else{const pool=[...Array(np).keys()].filter(i=>i!==pi);const t=pool[Math.floor(Math.random()*pool.length)];[hands[pi],hands[t]]=[hands[t],hands[pi]];toast(`${names[pi]} SCAMBIA CON ${names[t]}! 🤝`);}
+  }
+  if(card.c==='wild'||card.c==='wild4'){
+    if(pi===myI){render();document.getElementById('colorPicker').style.display='flex';return;}
+    else curCol=COLS[Math.floor(Math.random()*4)];
+  } else curCol=card.c;
+  if(isMP&&amHost)bcast();
+  after();
+}
+
+function after(){
+  render();
+  for(let i=0;i<np;i++){
+    if((hands[i]||[]).length===0){
+      active=false;
+      if(isMP&&conn&&conn.open)conn.send({t:'END',wi:i,wn:names[i]});
+      setTimeout(()=>showEnd(i===myI,names[i]),600);return;
+    }
+  }
+  turn=(turn+dir+np)%np;
+  if(isMP&&amHost)bcast();
+  render();
+  if(turn!==myI&&!isMP)setTimeout(bot,900+Math.random()*500);
+}
+
+function nextTurn(){turn=(turn+dir+np)%np;if(isMP&&amHost)bcast();render();if(turn!==myI&&!isMP)setTimeout(bot,900+Math.random()*500);}
+
+function bot(){
+  if(!active||turn===myI)return;
+  const hand=hands[turn];const idx=hand.findIndex(c=>valid(c));
+  if(idx!==-1){if(hand.length===2)toast(`${names[turn]} dice MASTERUNO! 🔥`);play(turn,idx);}
+  else{if(stack>0){toast(`${names[turn]} PESCA ${stack} CARTE 🃏`);draw(turn,stack);stack=0;}else draw(turn,1);nextTurn();}
+}
+
+// deck click
+document.getElementById('deckEl').onclick=()=>{
+  if(turn!==myI||!active)return;
+  const de=document.getElementById('deckEl'),he=document.getElementById('myHand');
+  const an=document.getElementById('danim');
+  const fr=de.getBoundingClientRect(),tr=he.getBoundingClientRect();
+  Object.assign(an.style,{left:fr.left+'px',top:fr.top+'px',opacity:'1',transition:'none',display:'flex'});
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    Object.assign(an.style,{transition:'left .38s,top .38s,opacity .38s',left:(tr.left+tr.width/2-41)+'px',top:tr.top+'px',opacity:'0.1'});
+    setTimeout(()=>{
+      an.style.display='none';
+      if(stack>0){toast(`PESCHI ${stack} CARTE 🃏`);draw(myI,stack);stack=0;}else draw(myI,1);
+      if(isMP&&amHost)bcast();nextTurn();
+    },420);
+  }));
+};
+
+document.getElementById('unoBtn').onclick=()=>{saidUno=true;toast('🔥 MASTERUNO!');document.getElementById('unoBtn').style.display='none';};
+
+// wild color
+function pickColor(c){curCol=c;document.getElementById('colorPicker').style.display='none';toast('COLORE: '+c.toUpperCase()+' '+{red:'🔴',blue:'🔵',green:'🟢',yellow:'🟡'}[c]);if(isMP&&amHost)bcast();after();}
+window.pickColor=pickColor;
+
+// swap
+function showSwap(pi){
+  const list=document.getElementById('swList');list.innerHTML='';
+  for(let i=0;i<np;i++){
+    if(i===pi)continue;
+    const b=document.createElement('div');b.className='swopt';b.textContent=names[i];
+    b.onclick=()=>{[hands[pi],hands[i]]=[hands[i],hands[pi]];toast(`HAI SCAMBIATO CON ${names[i]}! 🤝`);document.getElementById('swapPicker').style.display='none';curCol=top.c.includes('wild')?curCol:top.c;if(isMP&&amHost)bcast();after();};
+    list.appendChild(b);
+  }
+  document.getElementById('swapPicker').style.display='flex';
+}
+
+// start
+function startGame(){
+  np=cfg.np;active=true;saidUno=false;dir=1;stack=0;myI=0;
+  buildDeck();hands=[];names=[];
+  for(let i=0;i<np;i++){hands.push([]);names.push(i===0?myName:(BOTS[i-1]||`BOT ${i}`));draw(i,7);}
+  top=deck.pop();let s=0;while(top.c.includes('wild')&&s++<30){deck.unshift(top);top=deck.pop();}
+  curCol=top.c;turn=0;
+  go('sGame');render();
+  if(isMP&&amHost&&conn)conn.send({t:'START',state:snap(),ri:1,names});
+  if(!isMP&&turn!==myI)setTimeout(bot,1200);
+}
+
+// multiplayer
+function snap(){return{deck,hands,top,curCol,stack,turn,dir,np,cfg};}
+function load(s){({deck,hands,top,curCol,stack,turn,dir,np,cfg}=s);}
+function bcast(){if(conn&&conn.open)conn.send({t:'ST',state:snap()});}
+
+function initPeer(){
+  const id=Math.random().toString(36).substr(2,5).toUpperCase();
+  peer=new Peer(id);
+  peer.on('open',id=>{document.getElementById('myCode').textContent=id;document.getElementById('lbSts').textContent='Online! Condividi il tuo codice.';});
+  peer.on('connection',c=>{conn=c;isMP=true;amHost=true;setupConn();toast('AVVERSARIO CONNESSO! 🎮');setTimeout(startGame,1500);});
+}
+
+function doConnect(fid){isMP=true;amHost=false;conn=peer.connect(fid);setupConn();}
+
+function setupConn(){
+  conn.on('open',()=>toast('CONNESSO! ✅'));
+  conn.on('data',d=>{
+    if(d.t==='START'){myI=d.ri;names=d.names;load(d.state);active=true;go('sGame');render();}
+    else if(d.t==='ST'){load(d.state);render();}
+    else if(d.t==='CHAT'){addMsg(d.snd,d.msg,false);}
+    else if(d.t==='END'){active=false;setTimeout(()=>showEnd(d.wi===myI,d.wn),600);}
+  });
+  conn.on('close',()=>{toast('Avversario disconnesso 😢');active=false;});
+}
+
+// chat
+function addMsg(snd,msg,mine){
+  const m=document.getElementById('chatMsgs');
+  const emo=/^\p{Emoji}+$/u.test(msg.trim());
+  const d=document.createElement('div');
+  d.className=`cmsg ${mine?'mine':'them'}${emo?' big':''}`;
+  d.innerHTML=emo?msg:`<div class="csndr">${snd}</div>${msg}`;
+  m.appendChild(d);m.scrollTop=m.scrollHeight;
+}
+function doEmoji(e){addMsg(myName,e,true);if(conn&&conn.open)conn.send({t:'CHAT',snd:myName,msg:e});}
+window.doEmoji=doEmoji;
+
+document.getElementById('chatSend').onclick=()=>{const i=document.getElementById('chatIn');const t=i.value.trim();if(!t)return;i.value='';addMsg(myName,t,true);if(conn&&conn.open)conn.send({t:'CHAT',snd:myName,msg:t});};
+document.getElementById('chatIn').onkeydown=e=>{if(e.key==='Enter')document.getElementById('chatSend').click();};
+document.getElementById('chatBtn').onclick=()=>{const p=document.getElementById('chatPnl');p.style.display=p.style.display==='flex'?'none':'flex';};
+document.getElementById('chatClose').onclick=()=>{document.getElementById('chatPnl').style.display='none';};
+
+// end
+function showEnd(win,wn){
+  document.getElementById('eIco').textContent=win?'🏆':'💀';
+  const t=document.getElementById('eTitle');t.className='etitle '+(win?'win':'lose');t.textContent=win?'VITTORIA!':'HAI PERSO!';
+  document.getElementById('eSub').textContent=win?`Complimenti ${myName}!`:`${wn||'Qualcuno'} ha vinto.`;
+  if(win)confetti({particleCount:200,spread:90,origin:{y:.5},zIndex:15000});
+  go('sEnd');
+}
+
+// settings
+document.getElementById('settingsBtn').onclick=()=>{document.getElementById('spanel').classList.add('open');document.getElementById('sovl').classList.add('show');};
+document.getElementById('closeSettings').onclick=closePanel;
+document.getElementById('sovl').onclick=closePanel;
+function closePanel(){document.getElementById('spanel').classList.remove('open');document.getElementById('sovl').classList.remove('show');}
+document.getElementById('npGroup').querySelectorAll('.pill').forEach(b=>{
+  b.onclick=()=>{document.querySelectorAll('.pill').forEach(x=>x.classList.remove('on'));b.classList.add('on');cfg.np=parseInt(b.dataset.v);};
+});
+document.getElementById('r0').onchange=e=>cfg.r0=e.target.checked;
+document.getElementById('r7').onchange=e=>cfg.r7=e.target.checked;
+document.getElementById('rStack').onchange=e=>cfg.stk=e.target.checked;
+document.getElementById('rMulti').onchange=e=>cfg.multi=e.target.checked;
+
+// login
+function doLogin(){
+  const name=document.getElementById('lName').value.trim();
+  const pass=document.getElementById('lPass').value;
+  if(!name||!pass){toast('Inserisci nome e password! ⚠️');return;}
+  const acc=JSON.parse(localStorage.getItem('mu_acc')||'{}');
+  if(acc[name]){if(acc[name]!==pass){toast('Password errata! ❌');return;}toast(`Bentornato, ${name}! 👋`);}
+  else{acc[name]=pass;localStorage.setItem('mu_acc',JSON.stringify(acc));toast(`Benvenuto, ${name}! 🎉`);}
+  myName=name.toUpperCase();
+  document.getElementById('lbTag').textContent=myName;
+  go('sLobby');
+  initPeer();
+}
+document.getElementById('loginBtn').onclick=doLogin;
+document.getElementById('lPass').onkeydown=e=>{if(e.key==='Enter')doLogin();};
+document.getElementById('lName').onkeydown=e=>{if(e.key==='Enter')document.getElementById('lPass').focus();};
+
+// lobby
+document.getElementById('copyBtn').onclick=()=>{const id=document.getElementById('myCode').textContent;navigator.clipboard.writeText(id).then(()=>toast('📋 Codice copiato!')).catch(()=>toast('ID: '+id));};
+document.getElementById('connectBtn').onclick=()=>{const id=document.getElementById('friendId').value.trim().toUpperCase();if(!id){toast("Inserisci il codice! ⚠️");return;}doConnect(id);document.getElementById('lbSts').textContent='Connessione...';};
+document.getElementById('botBtn').onclick=()=>{isMP=false;amHost=false;startGame();};
+document.getElementById('replayBtn').onclick=()=>{active=false;isMP=false;conn=null;startGame();};
+document.getElementById('exitBtn').onclick=()=>location.reload();
+
+// init
+go('sLogin');
+</script>
 </body>
 </html>
