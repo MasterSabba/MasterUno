@@ -12,115 +12,82 @@
 <body>
 
 <div id="sLogin" class="scr">
-  <div class="bgc bgc1"></div><div class="bgc bgc2"></div>
-  <div class="bgc bgc3"></div><div class="bgc bgc4"></div>
-  <div class="lbox">
-    <div class="logo-wrap">
-      <div><span class="logo-m">MASTER</span><span class="logo-u">UNO</span></div>
-      <div class="logo-sub">BOMBA EDITION</div>
+    <div class="bgc bgc1"></div><div class="bgc bgc2"></div>
+    <div class="lbox">
+        <div class="logo-wrap">
+            <div><span class="logo-m">MASTER</span><span class="logo-u">UNO</span></div>
+            <div class="logo-sub">BOMBA EDITION</div>
+        </div>
+        <div class="fld">
+            <div class="flbl">NICKNAME</div>
+            <input class="finp" id="lName" type="text" placeholder="Il tuo nome..." maxlength="16">
+        </div>
+        <button class="btn-gold" id="loginBtn">ENTRA</button>
+        <div class="lnote">Vittorie totali: <span id="winCount">0</span></div>
     </div>
-    <div class="fld">
-      <div class="flbl">NICKNAME</div>
-      <input class="finp" id="lName" type="text" placeholder="Il tuo nome..." maxlength="16" autocomplete="off">
-    </div>
-    <div class="fld">
-      <div class="flbl">PASSWORD</div>
-      <input class="finp" id="lPass" type="password" placeholder="Password..." maxlength="32">
-    </div>
-    <button class="btn-gold" id="loginBtn">ENTRA NEL GIOCO</button>
-    <div class="lnote">Vittorie salvate localmente: <span id="localWins">0</span></div>
-  </div>
 </div>
 
 <div id="sLobby" class="scr">
-  <div class="lbhdr">
-    <div class="lbtag" id="lbTag">PLAYER</div>
-    <div class="lbttl">MASTER<span>UNO</span></div>
-    <button class="icobtn" id="settingsBtn">⚙️</button>
-  </div>
-  <div class="lbbody">
-    <div class="lbcard">
-      <div class="slbl">IL TUO CODICE PARTITA</div>
-      <div class="pcode" id="myCode">——</div>
-      <button class="btn-outline" id="copyBtn">📋 Copia &amp; Condividi</button>
+    <div class="lbhdr">
+        <div class="lbttl">LOBBY <span>ATTESA</span></div>
     </div>
-    <div class="sep">— o connettiti —</div>
-    <div class="lbcard">
-      <div class="crow">
-        <input class="icode" id="friendId" type="text" placeholder="Codice amico..." autocomplete="off">
-        <button class="btn-blue" id="connectBtn">🔗 CONNETTI</button>
-      </div>
+    <div class="lbbody">
+        <div class="lbcard">
+            <div class="slbl">IL TUO CODICE</div>
+            <div class="pcode" id="myCode">...</div>
+            <button class="btn-outline" id="copyBtn">📋 COPIA</button>
+        </div>
+        <div class="sep">OPPURE CONNETTI</div>
+        <div class="lbcard">
+            <div class="crow">
+                <input class="icode" id="friendId" type="text" placeholder="Incolla codice...">
+                <button class="btn-blue" id="connectBtn">🔗 VAI</button>
+            </div>
+        </div>
+        <button class="btn-green" id="botBtn">🤖 VS COMPUTER</button>
+        <div class="lbsts" id="lbSts">Pronto a giocare...</div>
     </div>
-    <div class="sep">— o gioca da solo —</div>
-    <button class="btn-green" id="botBtn">🤖 GIOCA VS COMPUTER</button>
-    <div class="lbsts" id="lbSts">In attesa di connessione...</div>
-  </div>
 </div>
-
-<div class="spanel" id="spanel">
-  <div class="sphd">
-    <span>⚙️ IMPOSTAZIONI</span>
-    <button class="icobtn" id="closeSettings">✕</button>
-  </div>
-  <div class="spbd">
-    <div class="stg">
-      <div class="stitle">👥 GIOCATORI AL TAVOLO</div>
-      <div class="pills" id="npGroup">
-        <button class="pill on" data-v="2">2</button>
-        <button class="pill" data-v="3">3</button>
-        <button class="pill" data-v="4">4</button>
-      </div>
-    </div>
-    <div class="stg">
-      <div class="stitle">🎣 PESCA A STRASCIO</div>
-      <label class="tog"><input type="checkbox" id="rStack" checked><span class="tk"></span></label>
-    </div>
-  </div>
-</div>
-<div class="sovl" id="sovl"></div>
 
 <div id="sGame" class="scr">
-  <div class="gbar">
-    <div class="tbadge" id="tbadge">CARICAMENTO...</div>
-    <button class="icobtn" id="chatBtn">💬</button>
-  </div>
-  <div id="oppArea"></div>
-  <div class="carea">
-    <div id="deckEl" class="cback deckbtn"><span>MASTER</span><span>UNO</span></div>
-    <div id="discardEl"></div>
-    <div id="cdot" class="cdot"></div>
-  </div>
-  <div class="parea">
-    <div class="myb" id="myBadge">TU: 7</div>
-    <div id="myHand" class="hand"></div>
-  </div>
-  <button class="unobtn" id="unoBtn" style="display:none">🔥 MASTER UNO!</button>
+    <div class="gbar">
+        <div class="tbadge" id="tbadge">ATTESA...</div>
+    </div>
+    <div id="oppArea"></div>
+    <div class="carea">
+        <div id="deckEl" class="cback deckbtn"><span>MASTER</span><span>UNO</span></div>
+        <div id="discardEl"></div>
+        <div id="cdot" class="cdot"></div>
+    </div>
+    <div class="parea">
+        <div class="myb" id="myBadge">TU: 7</div>
+        <div id="myHand" class="hand"></div>
+    </div>
+    <button class="unobtn" id="unoBtn" style="display:none">🔥 UNO!</button>
 </div>
 
 <div id="colorPicker" class="modal">
-  <div class="mbox">
-    <div class="mtitle">SCEGLI COLORE</div>
-    <div class="cgrid">
-      <div class="cp red" onclick="pickColor('red')">🔴</div>
-      <div class="cp blue" onclick="pickColor('blue')">🔵</div>
-      <div class="cp green" onclick="pickColor('green')">🟢</div>
-      <div class="cp yellow" onclick="pickColor('yellow')">🟡</div>
+    <div class="mbox">
+        <div class="mtitle">COLORE</div>
+        <div class="cgrid">
+            <div class="cp red" onclick="pickColor('red')">🔴</div>
+            <div class="cp blue" onclick="pickColor('blue')">🔵</div>
+            <div class="cp green" onclick="pickColor('green')">🟢</div>
+            <div class="cp yellow" onclick="pickColor('yellow')">🟡</div>
+        </div>
     </div>
-  </div>
+</div>
+
+<div id="sEnd" class="scr">
+    <div class="ebox">
+        <div class="eico" id="eIco">🏆</div>
+        <div class="etitle" id="eTitle">VITTORIA!</div>
+        <button class="btn-gold" onclick="location.reload()">🔄 MENU</button>
+    </div>
 </div>
 
 <div id="toasts"></div>
-<div id="danim" class="danim"><span>MASTER</span><span>UNO</span></div>
-
-<div id="sEnd" class="scr">
-  <div class="ebox">
-    <div class="eico" id="eIco">🏆</div>
-    <div class="etitle" id="eTitle">VITTORIA!</div>
-    <div class="esub" id="eSub"></div>
-    <button class="btn-gold" id="replayBtn">🔄 RIVINCITA</button>
-    <button class="btn-ghost" id="exitBtn">🚪 MENU PRINCIPALE</button>
-  </div>
-</div>
+<div id="danim" class="danim"></div>
 
 <script src="script.js"></script>
 </body>
