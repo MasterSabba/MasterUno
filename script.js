@@ -1,124 +1,140 @@
-// --- CONFIGURAZIONE E STATO ---
-const SCRS = ['sLogin','sLobby','sGame','sEnd'];
-const COLS = ['red','blue','green','yellow'];
-const VALS = ['0','1','2','3','4','5','6','7','8','9','skip','reverse','draw2'];
+let peer, conn, myId, isHost = false, myName = "Player";
+let deck = [], hands = [[], []], turn = 0, topCard, curCol, active = false;
 
-let deck=[], hands=[], names=[], topCard=null, curCol='';
-let stack=0, turn=0, dir=1, active=false, saidUno=false;
-let myI=0, np=2;
-let myName = 'PLAYER';
-
-// --- SISTEMA SALVATAGGIO AUTOMATICO (LocalStorage) ---
-function saveWin() {
-    let wins = parseInt(localStorage.getItem('masteruno_wins') || 0);
-    wins++;
-    localStorage.setItem('masteruno_wins', wins);
-    loadWins();
+// SALVATAGGIO AUTOMATICO
+function updateWins(win) {
+    let w = parseInt(localStorage.getItem('mu_wins') || 0);
+    if(win) { w++; localStorage.setItem('mu_wins', w); }
+    document.getElementById('winCount').innerText = w;
 }
 
-function loadWins() {
-    const winEl = document.getElementById('localWins');
-    if(winEl) winEl.textContent = localStorage.getItem('masteruno_wins') || 0;
+// NAVIGAZIONE E UI
+function go(id) {
+    document.querySelectorAll('.scr').forEach(s => s.style.display = 'none');
+    document.getElementById(id).style.display = 'flex';
 }
 
-// --- NAVIGAZIONE ---
-function go(id){
-    SCRS.forEach(s => document.getElementById(s).style.display = s===id ? 'flex' : 'none');
-}
-
-function toast(msg,ms=2800){
-    const t=document.createElement('div');
-    t.className='toast'; t.textContent=msg;
+function toast(m) {
+    const t = document.createElement('div'); t.className='toast'; t.innerText=m;
     document.getElementById('toasts').appendChild(t);
-    setTimeout(()=>{
-        t.style.opacity='0';
-        setTimeout(()=>t.remove(),450);
-    },ms);
+    setTimeout(() => t.remove(), 2500);
 }
 
-// --- LOGICA GIOCO ---
-function buildDeck(){
-    deck=[];
-    COLS.forEach(c => VALS.forEach(v => {
-        deck.push({c,v}); if(v!=='0') deck.push({c,v});
-    }));
-    for(let i=0;i<4;i++){ deck.push({c:'wild',v:'W'}); deck.push({c:'wild4',v:'wild4'}); }
-    deck.sort(() => Math.random() - 0.5);
-}
-
-function draw(pi,n){
-    for(let i=0;i<n;i++){
-        if(!deck.length) buildDeck();
-        hands[pi].push(deck.pop());
-    }
-}
-
-function fmt(v){ return {draw2:'+2', wild4:'+4', skip:'Ø', reverse:'⇄', W:'🎨'}[v] ?? v; }
-
-function render(){
-    if(!active) return;
-    // Rendering avversari
-    const oa = document.getElementById('oppArea'); oa.innerHTML='';
-    // Rendering mano giocatore
-    const hel = document.getElementById('myHand'); hel.innerHTML='';
-    hands[myI].forEach((card, idx) => {
-        const el = document.createElement('div');
-        el.className = `card ${card.c}`;
-        el.textContent = fmt(card.v);
-        el.onclick = () => play(myI, idx);
-        hel.appendChild(el);
+// LOGICA GIOCO
+function createDeck() {
+    const colors = ['red','blue','green','yellow'];
+    let d = [];
+    colors.forEach(c => {
+        for(let i=0; i<=9; i++) d.push({c, v:i.toString()});
+        ['skip','draw2'].forEach(v => d.push({c, v}));
     });
-    // Badge e Stato
-    document.getElementById('myBadge').textContent = `TU: ${hands[myI].length}`;
+    for(let i=0; i<4; i++) d.push({c:'wild', v:'W'});
+    return d.sort(() => Math.random() - 0.5);
 }
 
-function play(pi, ci){
-    // Logica semplificata per esempio
-    const card = hands[pi][ci];
-    hands[pi].splice(ci,1);
-    topCard = card;
-    curCol = card.c === 'wild' ? 'red' : card.c; // Semplificato
-    
-    if(hands[pi].length === 0){
-        active = false;
-        if(pi === myI) {
-            saveWin();
-            confetti();
-            showEnd(true);
-        } else {
-            showEnd(false);
-        }
-        return;
-    }
+function startMP(asHost) {
+    isHost = asHost;
+    deck = createDeck();
+    hands = [ [], [] ];
+    for(let i=0; i<7; i++) { hands[0].push(deck.pop()); hands[1].push(deck.pop()); }
+    topCard = deck.pop();
+    curCol = topCard.c === 'wild' ? 'red' : topCard.c;
+    active = true;
+    broadcastState();
     render();
 }
 
-function showEnd(win){
-    go('sEnd');
-    document.getElementById('eTitle').textContent = win ? "VITTORIA!" : "SCONFITTA!";
-    document.getElementById('eIco').textContent = win ? "🏆" : "💀";
+function render() {
+    const hEl = document.getElementById('myHand');
+    hEl.innerHTML = '';
+    const myIdx = isHost ? 0 : 1;
+    hands[myIdx].forEach((card, i) => {
+        const c = document.createElement('div');
+        c.className = `card ${card.c}`;
+        c.innerText = card.v === 'W' ? '🎨' : card.v;
+        c.onclick = () => playCard(myIdx, i);
+        hEl.appendChild(c);
+    });
+    
+    document.getElementById('discardEl').innerHTML = `<div class="card ${curCol}">${topCard.v === 'W' ? '🎨' : topCard.v}</div>`;
+    document.getElementById('tbadge').innerText = (turn === myIdx) ? "TUO TURNO" : "ATTESA...";
+    document.getElementById('myBadge').innerText = `CARTE: ${hands[myIdx].length}`;
 }
 
-// --- EVENTI ---
-document.addEventListener('DOMContentLoaded', () => {
-    loadWins();
+function playCard(pIdx, cIdx) {
+    if(turn !== pIdx || !active) return;
+    const card = hands[pIdx][cIdx];
     
-    document.getElementById('loginBtn').onclick = () => {
-        const n = document.getElementById('lName').value;
-        if(n) { myName = n.toUpperCase(); go('sLobby'); }
-    };
+    if(card.c === 'wild' || card.c === curCol || card.v === topCard.v) {
+        hands[pIdx].splice(cIdx, 1);
+        topCard = card;
+        if(card.c !== 'wild') curCol = card.c;
+        
+        if(hands[pIdx].length === 0) {
+            updateWins(true);
+            confetti();
+            go('sEnd');
+            return;
+        }
+        
+        if(card.c === 'wild') {
+            document.getElementById('colorPicker').style.display = 'flex';
+        } else {
+            turn = 1 - turn;
+            if(conn) broadcastState();
+            render();
+        }
+    }
+}
 
-    document.getElementById('botBtn').onclick = () => {
-        active = true;
-        hands = [[], []];
-        buildDeck();
-        draw(0, 7); draw(1, 7);
+function pickColor(c) {
+    curCol = c;
+    document.getElementById('colorPicker').style.display = 'none';
+    turn = 1 - turn;
+    broadcastState();
+    render();
+}
+
+// NETWORKING
+function broadcastState() {
+    if(conn && conn.open) {
+        conn.send({ deck, hands, topCard, curCol, turn, active });
+    }
+}
+
+document.getElementById('loginBtn').onclick = () => {
+    myName = document.getElementById('lName').value || "Player";
+    updateWins(false);
+    peer = new Peer();
+    peer.on('open', id => {
+        myId = id;
+        document.getElementById('myCode').innerText = id;
+        go('sLobby');
+    });
+    peer.on('connection', c => {
+        conn = c; setupConn();
+        startMP(true);
         go('sGame');
+    });
+};
+
+document.getElementById('connectBtn').onclick = () => {
+    const fId = document.getElementById('friendId').value;
+    conn = peer.connect(fId);
+    setupConn();
+    go('sGame');
+};
+
+function setupConn() {
+    conn.on('data', data => {
+        deck = data.deck; hands = data.hands;
+        topCard = data.topCard; curCol = data.curCol;
+        turn = data.turn; active = data.active;
         render();
-    };
+    });
+}
 
-    document.getElementById('exitBtn').onclick = () => location.reload();
-});
-
-// Esposizione funzioni globali per gli onclick HTML
-window.pickColor = (c) => { /* logica colore */ };
+document.getElementById('copyBtn').onclick = () => {
+    navigator.clipboard.writeText(myId);
+    toast("Codice Copiato!");
+};
