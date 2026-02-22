@@ -13,44 +13,45 @@
     <div id="loginScreen">
         <div class="main-box">
             <h1 class="logo-title">MASTER <span>UNO</span></h1>
-            <input type="text" id="nickInput" placeholder="NICKNAME" maxlength="12">
-            <div id="enterBtn" class="btn-yellow">GIOCA ORA</div>
-            <p style="font-size:12px; color:#aaa;">Punti salvati localmente</p>
+            <input type="text" id="nickInput" placeholder="IL TUO NICKNAME" maxlength="12">
+            <div id="enterBtn" class="btn-yellow">ENTRA NEL GIOCO</div>
         </div>
     </div>
 
     <div id="startScreen" class="hidden">
         <div class="main-box">
             <div style="display:flex; justify-content:space-between; align-items:center; width:100%">
-                <div id="settingsBtn" style="font-size:28px; cursor:pointer;">⚙️</div>
+                <div id="settingsBtn" style="font-size:30px; cursor:pointer; padding:5px;">⚙️</div>
                 <h1 class="logo-title">LOBBY</h1>
-                <div style="width:28px;"></div>
+                <div style="width:30px;"></div>
             </div>
             <div id="myPeerId" class="peer-display">----</div>
             <div id="copyBtn" class="btn-white">COPIA IL TUO ID</div>
-            <input type="text" id="friendIdInput" placeholder="INCOLLA ID AMICO">
+            <input type="text" id="friendIdInput" placeholder="ID AMICO">
             <div id="connectBtn" class="btn-white">CONNETTI AMICO</div>
-            <div id="startMatchBtn" class="btn-yellow">AVVIA CON BOT</div>
+            <div id="startMatchBtn" class="btn-yellow">AVVIA CON 3 BOT</div>
         </div>
     </div>
 
-    <div id="settingsModal" class="hidden">
+    <div id="settingsModal" class="hidden" style="z-index:9000;">
         <div class="modal-overlay">
             <div class="main-box">
                 <h3>IMPOSTAZIONI</h3>
                 <div class="stg-row">
-                    <label>Regola 0-7</label><input type="checkbox" id="check07">
+                    <label>Regola 0-7</label>
+                    <input type="checkbox" id="check07" style="width:25px; height:25px;">
                 </div>
                 <div class="stg-row">
-                    <label>Strascio (+)</label><input type="checkbox" id="checkStack" checked>
+                    <label>Strascio (+)</label>
+                    <input type="checkbox" id="checkStack" checked style="width:25px; height:25px;">
                 </div>
-                <div id="saveSettings" class="btn-yellow">SALVA</div>
+                <div id="saveSettings" class="btn-yellow">SALVA E CHIUDI</div>
             </div>
         </div>
     </div>
 
     <div id="gameArea" class="hidden">
-        <div id="turnIndicator">TURNO...</div>
+        <div id="turnIndicator">CARICAMENTO...</div>
         <div id="opponentsArea"></div>
         
         <div id="centerArea">
@@ -59,7 +60,7 @@
             <div id="stackBadge"></div>
         </div>
 
-        <div class="player-section">
+        <div class="player-section" style="width:100%;">
             <div id="playerBadge" class="gold-badge">TU: 0</div>
             <div id="playerHand" class="hand"></div>
         </div>
