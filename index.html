@@ -3,41 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>MasterUno Ultimate</title>
+    <title>MasterUno Mobile</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
 <body>
+    <div id="toast-container"></div>
 
     <div id="loginScreen">
         <div class="main-box">
-            <h1 class="logo-title">MASTER <span class="win-text">UNO</span></h1>
-            <input type="text" id="nickInput" placeholder="Nickname" maxlength="12">
-            <input type="password" id="passInput" placeholder="Password">
-            <div id="enterBtn" class="btn-yellow">ENTRA NEL TAVOLO</div>
-            <p style="font-size:12px; color:#aaa;">Vittorie: <span id="savedWins">0</span></p>
+            <h1 class="logo-title">MASTER <span>UNO</span></h1>
+            <input type="text" id="nickInput" placeholder="NICKNAME" maxlength="12">
+            <div id="enterBtn" class="btn-yellow">GIOCA ORA</div>
+            <p style="font-size:12px; color:#aaa;">Punti salvati localmente</p>
         </div>
     </div>
 
     <div id="startScreen" class="hidden">
         <div class="main-box">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <div id="settingsBtn" style="cursor:pointer; font-size:24px;">⚙️</div>
+            <div style="display:flex; justify-content:space-between; align-items:center; width:100%">
+                <div id="settingsBtn" style="font-size:28px; cursor:pointer;">⚙️</div>
                 <h1 class="logo-title">LOBBY</h1>
-                <div style="width:24px;"></div>
+                <div style="width:28px;"></div>
             </div>
-            <div class="menu-section">
-                <div id="myPeerId" class="peer-display">----</div>
-                <div id="copyBtn" class="btn-yellow">Copia ID Invito</div>
-            </div>
-            <div class="menu-section">
-                <input type="text" id="friendIdInput" placeholder="Incolla ID Amico">
-                <div id="connectBtn" class="btn-white">Connettiti</div>
-            </div>
-            <div class="menu-section">
-                <div id="startMatchBtn" class="btn-yellow">Avvia Partita</div>
-            </div>
+            <div id="myPeerId" class="peer-display">----</div>
+            <div id="copyBtn" class="btn-white">COPIA IL TUO ID</div>
+            <input type="text" id="friendIdInput" placeholder="INCOLLA ID AMICO">
+            <div id="connectBtn" class="btn-white">CONNETTI AMICO</div>
+            <div id="startMatchBtn" class="btn-yellow">AVVIA CON BOT</div>
         </div>
     </div>
 
@@ -46,17 +39,10 @@
             <div class="main-box">
                 <h3>IMPOSTAZIONI</h3>
                 <div class="stg-row">
-                    <label>Giocatori: </label>
-                    <select id="maxP"><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option></select>
+                    <label>Regola 0-7</label><input type="checkbox" id="check07">
                 </div>
                 <div class="stg-row">
-                    <label>Regola 0-7: </label><input type="checkbox" id="check07">
-                </div>
-                <div class="stg-row">
-                    <label>Strascio (+): </label><input type="checkbox" id="checkStack" checked>
-                </div>
-                <div class="stg-row">
-                    <label>Combo: </label><input type="checkbox" id="checkCombo">
+                    <label>Strascio (+)</label><input type="checkbox" id="checkStack" checked>
                 </div>
                 <div id="saveSettings" class="btn-yellow">SALVA</div>
             </div>
@@ -64,49 +50,24 @@
     </div>
 
     <div id="gameArea" class="hidden">
-        <div id="turnIndicator">CARICAMENTO...</div>
-        
+        <div id="turnIndicator">TURNO...</div>
         <div id="opponentsArea"></div>
-
+        
         <div id="centerArea">
             <div id="deck" class="card-back-classic"><span>MASTER</span><span>UNO</span></div>
             <div id="discardPile"></div>
             <div id="stackBadge"></div>
         </div>
 
-        <div class="game-row">
-            <div id="playerBadge" class="gold-badge">TU: 7</div>
+        <div class="player-section">
+            <div id="playerBadge" class="gold-badge">TU: 0</div>
             <div id="playerHand" class="hand"></div>
         </div>
 
         <div id="emojiPanel">
             <button onclick="sendEmoji('🔥')">🔥</button>
             <button onclick="sendEmoji('😂')">😂</button>
-            <button onclick="sendEmoji('🤡')">🤡</button>
             <button onclick="sendEmoji('😠')">😠</button>
-        </div>
-
-        <button id="masterUnoBtn" class="hidden">MASTER UNO!</button>
-    </div>
-
-    <div id="colorPicker" class="hidden">
-        <div class="picker-box">
-            <h3>Scegli Colore</h3>
-            <div class="pick-grid">
-                <div class="pick red" onclick="setWildColor('red')"></div>
-                <div class="pick blue" onclick="setWildColor('blue')"></div>
-                <div class="pick green" onclick="setWildColor('green')"></div>
-                <div class="pick yellow" onclick="setWildColor('yellow')"></div>
-            </div>
-        </div>
-    </div>
-
-    <div id="endScreen" class="hidden">
-        <div class="main-box">
-            <h1 id="endTitle" class="end-title">VITTORIA!</h1>
-            <div class="menu-section">
-                <div onclick="location.reload()" class="btn-yellow">Nuova Partita</div>
-            </div>
         </div>
     </div>
 
