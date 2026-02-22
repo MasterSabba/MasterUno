@@ -1,222 +1,36 @@
-/* --- RESET E BASICS --- */
-* { 
-    box-sizing: border-box; 
-    -webkit-tap-highlight-color: transparent; 
-    outline: none; 
-    border: none; 
-}
-
-body { 
-    margin: 0; 
-    background: #1a472a; 
-    color: white; 
-    font-family: 'Arial Black', sans-serif; 
-    overflow: hidden; 
-    width: 100vw; 
-    height: 100vh; 
-}
-
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: 'Arial Black', sans-serif; }
+body { margin: 0; background: #1a472a; color: white; overflow: hidden; height: 100vh; width: 100vw; }
 .hidden { display: none !important; }
 
-/* --- SCHERMATE DI ACCESSO E LOBBY --- */
-#loginScreen, #startScreen, #endScreen, #settingsModal { 
-    position: fixed; 
-    inset: 0; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    background: radial-gradient(circle, #2d5a3f 0%, #1a472a 100%); 
-    z-index: 2000; 
-}
+/* UI Screens */
+#loginScreen, #startScreen, #settingsModal { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 1000; background: #1a472a; }
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; }
+.main-box { background: #000; padding: 25px; border-radius: 30px; border: 3px solid #f1c40f; width: 85%; max-width: 400px; display: flex; flex-direction: column; gap: 15px; text-align: center; }
 
-#loginScreen { z-index: 5000; }
-#endScreen { background: rgba(0,0,0,0.95); z-index: 6000; }
-#settingsModal { background: rgba(0,0,0,0.8); z-index: 5500; }
+.btn-yellow { background: #f1c40f; color: #000; padding: 15px; border-radius: 15px; font-weight: 900; cursor: pointer; }
+.btn-white { background: #fff; color: #000; padding: 12px; border-radius: 15px; font-size: 14px; cursor: pointer; }
+input { background: #222; border: 2px solid #f1c40f; padding: 12px; border-radius: 10px; color: #fff; text-align: center; }
 
-.main-box { 
-    background: rgba(0,0,0,0.9); 
-    padding: 30px; 
-    border-radius: 40px; 
-    text-align: center; 
-    width: 92%; 
-    max-width: 440px; 
-    display: flex; 
-    flex-direction: column; 
-    gap: 20px; 
-    border: 4px solid #f1c40f; 
-    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
-}
+/* Game Area */
+#gameArea { height: 100vh; display: flex; flex-direction: column; justify-content: space-between; padding: 10px 0; }
+#opponentsArea { display: flex; justify-content: center; gap: 10px; }
+.opp-mini { background: #000; border: 2px solid #fff; padding: 5px 10px; border-radius: 10px; font-size: 12px; transition: 0.3s; }
+.active-p { border-color: #f1c40f; box-shadow: 0 0 15px #f1c40f; transform: scale(1.05); }
 
-/* --- ELEMENTI UI --- */
-.logo-title { color: #f1c40f; font-size: 32px; margin: 0; text-transform: uppercase; }
-.logo-title span { color: #fff; }
+#centerArea { display: flex; justify-content: center; align-items: center; gap: 20px; flex: 1; position: relative; }
+#stackBadge { position: absolute; top: -30px; background: red; padding: 2px 10px; border-radius: 10px; font-weight: 900; }
 
-.btn-yellow { background: #f1c40f; color: #000; padding: 15px; border-radius: 18px; font-weight: 900; cursor: pointer; box-shadow: 0 6px 0 #b7950b; text-transform: uppercase; transition: 0.1s; }
-.btn-yellow:active { transform: translateY(3px); box-shadow: 0 3px 0 #b7950b; }
-
-.btn-white { background: #fff; color: #1a472a; padding: 15px; border-radius: 18px; font-weight: 900; box-shadow: 0 6px 0 #ccc; text-transform: uppercase; cursor: pointer; }
-
-input, select { 
-    background: rgba(255,255,255,0.1); 
-    border: 2px solid #f1c40f !important; 
-    padding: 12px; 
-    border-radius: 12px; 
-    color: white; 
-    text-align: center; 
-    font-size: 16px; 
-    width: 100%; 
-}
-
-.peer-display { background: rgba(255,255,255,0.1); padding: 10px; border-radius: 10px; font-family: monospace; font-size: 18px; color: #f1c40f; border: 1px dashed #f1c40f; }
-
-/* --- IMPOSTAZIONI (INGRANAGGIO) --- */
-.stg-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-}
-.stg-row label { font-size: 14px; text-align: left; flex: 1; }
-.stg-row input[type="checkbox"] { width: 25px; height: 25px; cursor: pointer; }
-
-/* --- TAVOLO DA GIOCO --- */
-#gameArea { 
-    height: 100vh; 
-    display: flex; 
-    flex-direction: column; 
-    justify-content: space-between; 
-    align-items: center; 
-    padding: 10px 0; 
-}
-
-#turnIndicator { 
-    font-size: 16px; 
-    font-weight: 900; 
-    background: rgba(0,0,0,0.5); 
-    padding: 5px 20px; 
-    border-radius: 20px;
-    border: 1px solid #f1c40f;
-}
-
-/* AVVERSARI (MAX 4) */
-#opponentsArea {
-    display: flex;
-    gap: 15px;
-    justify-content: center;
-    width: 100%;
-}
-
-.opp-mini {
-    background: rgba(0,0,0,0.7);
-    border: 2px solid #fff;
-    padding: 8px;
-    border-radius: 12px;
-    text-align: center;
-    min-width: 90px;
-    transition: 0.3s;
-}
-
-.active-p { 
-    border-color: #f1c40f !important; 
-    box-shadow: 0 0 15px #f1c40f; 
-    transform: scale(1.1); 
-}
-
-/* --- CARTE E ANIMAZIONI --- */
-.hand { display: flex; justify-content: center; width: 100%; min-height: 130px; padding: 10px; }
-
+.hand { display: flex; overflow-x: auto; padding: 20px 10px; width: 100vw; justify-content: center; min-height: 150px; }
 .card { 
-    width: 80px; height: 115px; border-radius: 12px; border: 3px solid #fff; 
-    margin: 0 -20px; display: flex; align-items: center; justify-content: center; 
-    font-size: 32px; font-weight: 900; color: white; position: relative; 
-    box-shadow: 0 5px 15px rgba(0,0,0,0.4); transition: transform 0.2s, z-index 0.2s;
-    cursor: pointer;
-    background: #222;
+    width: 70px; height: 100px; border-radius: 10px; border: 2px solid #fff; 
+    margin-left: -20px; display: flex; align-items: center; justify-content: center; 
+    font-size: 24px; font-weight: 900; color: #fff; box-shadow: 2px 2px 10px rgba(0,0,0,0.5);
+    flex-shrink: 0;
 }
+.card:first-child { margin-left: 0; }
+.red { background: #e74c3c; } .blue { background: #3498db; } .green { background: #2ecc71; } .yellow { background: #f1c40f; color: #000; }
 
-.card:hover { transform: translateY(-25px); z-index: 100; }
+.card-back-classic { width: 75px; height: 105px; background: #000; border: 3px solid #fff; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; color: #f1c40f; }
 
-/* Animazione Pesca */
-.card.drawing {
-    animation: cardIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-}
-
-@keyframes cardIn {
-    from { transform: translateY(-300px) rotate(20deg); opacity: 0; }
-    to { transform: translateY(0) rotate(0); opacity: 1; }
-}
-
-/* COLORI CARTE */
-.red { background: #d63031; } 
-.blue { background: #0984e3; } 
-.green { background: #27ae60; } 
-.yellow { background: #f1c40f; color: #000 !important; }
-.wild { background: linear-gradient(45deg, #d63031, #0984e3, #27ae60, #f1c40f); border-color: #fff; }
-
-/* RETRO CARTA MASTERUNO */
-.card-back-classic { 
-    width: 85px; height: 120px; background: #000; 
-    border: 4px solid #fff; border-radius: 15px; 
-    color: #f1c40f; display: flex; flex-direction: column; 
-    align-items: center; justify-content: center; 
-    font-weight: 900; text-align: center; font-size: 14px; 
-    line-height: 1.1; gap: 2px;
-}
-
-/* --- AREA CENTRALE --- */
-#centerArea { display: flex; gap: 40px; align-items: center; margin: 20px 0; position: relative; }
-
-#stackBadge {
-    position: absolute;
-    top: -40px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #e74c3c;
-    color: white;
-    padding: 5px 15px;
-    border-radius: 10px;
-    font-weight: 900;
-    font-size: 20px;
-    border: 2px solid white;
-}
-
-/* --- CHAT EMOJI --- */
-#emojiPanel {
-    position: fixed;
-    right: 15px;
-    bottom: 180px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    z-index: 1000;
-}
-
-#emojiPanel button {
-    background: rgba(0,0,0,0.7);
-    border: 2px solid #f1c40f;
-    border-radius: 50%;
-    width: 45px;
-    height: 45px;
-    font-size: 22px;
-    cursor: pointer;
-    transition: 0.2s;
-}
-
-#emojiPanel button:hover { transform: scale(1.2); background: #000; }
-
-/* --- TOAST ALERTS --- */
-#toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 10000; }
-.toast { 
-    background: #f1c40f; color: #000; padding: 12px 25px; border-radius: 50px; 
-    font-weight: 900; border: 3px solid #fff; margin-bottom: 8px; 
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3); animation: slideIn 0.3s forwards;
-}
-
-@keyframes slideIn { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
-/* --- RESPONSIVE --- */
-@media (max-height: 600px) {
-    .card { width: 60px; height: 90px; font-size: 24px; }
-    .main-box { padding: 20px; gap: 15px; }
-}
+#toast-container { position: fixed; top: 10px; width: 100%; display: flex; flex-direction: column; align-items: center; z-index: 5000; }
+.toast { background: #f1c40f; color: #000; padding: 10px 20px; border-radius: 20px; margin-bottom: 5px; font-weight: 900; font-size: 14px; }
