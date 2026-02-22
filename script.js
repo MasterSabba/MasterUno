@@ -1,131 +1,98 @@
+// VARIABILI GLOBALI
+let myName = "", myId = "", peer, conn = [], isHost = false;
+let gameData = {
+    players: [], hands: {}, deck: [], topCard: null, 
+    curColor: "", turn: 0, dir: 1, stack: 0, 
+    rules: { rule07: false, stack: true, maxP: 4 },
+    active: false
+};
+
+// --- INIZIALIZZAZIONE ALL'AVVIO ---
+window.onload = () => {
+    console.log("JS CARICATO CORRETTAMENTE");
+    
+    // LOGIN CLICK
+    document.getElementById('enterBtn').addEventListener('click', () => {
+        myName = document.getElementById('nickInput').value.trim().toUpperCase() || "PLAYER";
+        document.getElementById('loginScreen').classList.add('hidden');
+        document.getElementById('startScreen').classList.remove('hidden');
+        initPeer();
+    });
+
+    // COPIA ID
+    document.getElementById('copyBtn').addEventListener('click', () => {
+        const idText = document.getElementById('myPeerId').innerText;
+        navigator.clipboard.writeText(idText);
+        toast("ID Copiato!");
+    });
+
+    // AVVIA PARTITA
+    document.getElementById('startMatchBtn').addEventListener('click', () => {
+        isHost = true;
+        gameData.players = [{id: myPeerId.innerText, name: myName, isBot: false}];
+        
+        // Aggiungi Bot per arrivare a 4
+        while(gameData.players.length < 4) {
+            gameData.players.push({id: 'bot-'+Math.random(), name: 'BOT '+gameData.players.length, isBot: true});
+        }
+        
+        prepareGame();
+    });
+};
+
+function initPeer() {
+    peer = new Peer(Math.random().toString(36).substr(2, 5).toUpperCase());
+    peer.on('open', id => {
+        myId = id;
+        document.getElementById('myPeerId').innerText = id;
+    });
+    peer.on('connection', c => {
+        conn.push(c);
+        toast("Giocatore connesso!");
+    });
+}
+
+function prepareGame() {
+    gameData.deck = []; // Qui andrebbe la funzione createDeck()
+    const colors = ["red", "blue", "green", "yellow"];
+    for(let c of colors) for(let i=0; i<=9; i++) gameData.deck.push({color: c, value: i.toString()});
+    gameData.deck.sort(() => Math.random() - 0.5);
+
+    gameData.players.forEach(p => {
+        gameData.hands[p.id] = [];
+        for(let i=0; i<7; i++) gameData.hands[p.id].push(gameData.deck.pop());
+    });
+
+    gameData.topCard = gameData.deck.pop();
+    gameData.curColor = gameData.topCard.color;
+    gameData.active = true;
+
+    document.getElementById('startScreen').classList.add('hidden');
+    document.getElementById('gameArea').classList.remove('hidden');
+    render();
+}
+
 function render() {
     const handDiv = document.getElementById('playerHand');
-    const oppDiv = document.getElementById('opponentsArea');
-    const discardDiv = document.getElementById('discardPile');
-    const turnTxt = document.getElementById('turnIndicator');
+    handDiv.innerHTML = "";
     
-    // 1. Pulisci tutto prima di ridisegnare
-    handDiv.innerHTML = ""; 
-    oppDiv.innerHTML = "";
-
-    // 2. Visualizza Avversari (Bot o Umani)
-    gameData.players.forEach((p, i) => {
-        if (p.id !== myId) {
-            const isHisTurn = (gameData.turn === i);
-            const oppBox = document.createElement('div');
-            oppBox.className = `opp-mini ${isHisTurn ? 'active-p' : ''}`;
-            
-            // Calcola quante carte ha l'avversario
-            const cardCount = gameData.hands[p.id] ? gameData.hands[p.id].length : 7;
-            
-            oppBox.innerHTML = `
-                <div style="font-size:10px">${p.name}</div>
-                <div style="font-size:18px">🎴 ${cardCount}</div>
-            `;
-            oppDiv.appendChild(oppBox);
-        }
-    });
-
-    // 3. Visualizza la TUA mano
     const myHand = gameData.hands[myId] || [];
-    myHand.forEach((card, index) => {
-        const cDiv = document.createElement('div');
-        // Se è il tuo turno e la carta è giocabile, aggiungi una classe speciale
-        const playable = isCardPlayable(card);
-        cDiv.className = `card ${card.color} drawing ${playable ? 'playable' : ''}`;
-        
-        // Simboli speciali
-        const displayVal = formatCardValue(card.value);
-        cDiv.innerHTML = `<span>${displayVal}</span>`;
-        cDiv.setAttribute('data-val', displayVal);
-        
-        // Click per giocare la carta
-        cDiv.onclick = () => playMyCard(index);
-        handDiv.appendChild(cDiv);
+    myHand.forEach(card => {
+        const div = document.createElement('div');
+        div.className = `card ${card.color} drawing`;
+        div.innerText = card.value;
+        handDiv.appendChild(div);
     });
 
-    // 4. Carta in cima alla pila degli scarti
-    if (gameData.topCard) {
-        const top = gameData.topCard;
-        const displayTop = formatCardValue(top.value);
-        discardDiv.innerHTML = `
-            <div class="card ${gameData.curColor}" data-val="${displayTop}">
-                ${displayTop}
-            </div>
-        `;
-    }
-
-    // 5. Indicatore Turno
-    const currentPlayer = gameData.players[gameData.turn];
-    if (currentPlayer.id === myId) {
-        turnTxt.innerText = "🟢 TOCCA A TE!";
-        turnTxt.style.color = "#f1c40f";
-    } else {
-        turnTxt.innerText = `🔴 TURNO DI ${currentPlayer.name.toUpperCase()}`;
-        turnTxt.style.color = "#fff";
-    }
-
-    // 6. Badge MasterUno
-    const btnUno = document.getElementById('masterUnoBtn');
-    if (myHand.length === 2 && currentPlayer.id === myId) {
-        btnUno.classList.remove('hidden');
-    } else {
-        btnUno.classList.add('hidden');
-    }
+    document.getElementById('playerBadge').innerText = `TU: ${myHand.length}`;
+    document.getElementById('discardPile').innerHTML = `<div class="card ${gameData.curColor}">${gameData.topCard.value}</div>`;
+    document.getElementById('turnIndicator').innerText = "PARTITA INIZIATA";
 }
 
-// --- FUNZIONI DI SUPPORTO PER IL RENDER ---
-
-function formatCardValue(v) {
-    if (v === "skip") return "Ø";
-    if (v === "reverse") return "⇄";
-    if (v === "draw2") return "+2";
-    if (v === "wild") return "🎨";
-    return v;
-}
-
-function isCardPlayable(card) {
-    const isMyTurn = gameData.players[gameData.turn].id === myId;
-    if (!isMyTurn) return false;
-    
-    // Regola base: stesso colore o stesso valore o Jolly
-    if (card.color === gameData.curColor || 
-        card.value === gameData.topCard.value || 
-        card.color === "wild") {
-        return true;
-    }
-    return false;
-}
-
-function playMyCard(index) {
-    const card = gameData.hands[myId][index];
-    if (!isCardPlayable(card)) {
-        toast("Mossa non valida!");
-        return;
-    }
-
-    // Rimuovi carta dalla mano
-    gameData.hands[myId].splice(index, 1);
-    gameData.topCard = card;
-    gameData.curColor = (card.color === "wild") ? "scegli" : card.color;
-
-    if (gameData.curColor === "scegli") {
-        document.getElementById('colorPicker').classList.remove('hidden');
-    } else {
-        finalizeMove();
-    }
-}
-
-function finalizeMove() {
-    // Passa al prossimo giocatore
-    gameData.turn = (gameData.turn + gameData.dir + gameData.players.length) % gameData.players.length;
-    
-    // Se l'host, gestisci il turno del Bot
-    if (isHost) {
-        broadcast({ type: 'UPDATE', data: gameData });
-        checkBotTurn();
-    } else {
-        broadcast({ type: 'MOVE', data: gameData });
-    }
-    render();
+function toast(m) {
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.innerText = m;
+    document.getElementById('toast-container').appendChild(t);
+    setTimeout(() => t.remove(), 2000);
 }
