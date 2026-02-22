@@ -1,140 +1,109 @@
-let peer, conn, myId, isHost = false, myName = "Player";
-let deck = [], hands = [[], []], turn = 0, topCard, curCol, active = false;
+let peer, conn = [], myId, isHost = false;
+let gameState = {
+    players: [], // {id, name, cardsCount, isBot}
+    deck: [],
+    hands: {},
+    turn: 0,
+    dir: 1,
+    topCard: null,
+    curCol: '',
+    stack: 0,
+    rules: { rule07: false, ruleStack: true, ruleCombo: false, maxP: 4 }
+};
 
-// SALVATAGGIO AUTOMATICO
-function updateWins(win) {
-    let w = parseInt(localStorage.getItem('mu_wins') || 0);
-    if(win) { w++; localStorage.setItem('mu_wins', w); }
-    document.getElementById('winCount').innerText = w;
-}
-
-// NAVIGAZIONE E UI
-function go(id) {
-    document.querySelectorAll('.scr').forEach(s => s.style.display = 'none');
-    document.getElementById(id).style.display = 'flex';
-}
-
-function toast(m) {
-    const t = document.createElement('div'); t.className='toast'; t.innerText=m;
-    document.getElementById('toasts').appendChild(t);
-    setTimeout(() => t.remove(), 2500);
-}
-
-// LOGICA GIOCO
-function createDeck() {
-    const colors = ['red','blue','green','yellow'];
-    let d = [];
-    colors.forEach(c => {
-        for(let i=0; i<=9; i++) d.push({c, v:i.toString()});
-        ['skip','draw2'].forEach(v => d.push({c, v}));
-    });
-    for(let i=0; i<4; i++) d.push({c:'wild', v:'W'});
-    return d.sort(() => Math.random() - 0.5);
-}
-
-function startMP(asHost) {
-    isHost = asHost;
-    deck = createDeck();
-    hands = [ [], [] ];
-    for(let i=0; i<7; i++) { hands[0].push(deck.pop()); hands[1].push(deck.pop()); }
-    topCard = deck.pop();
-    curCol = topCard.c === 'wild' ? 'red' : topCard.c;
-    active = true;
-    broadcastState();
-    render();
-}
-
-function render() {
-    const hEl = document.getElementById('myHand');
-    hEl.innerHTML = '';
-    const myIdx = isHost ? 0 : 1;
-    hands[myIdx].forEach((card, i) => {
-        const c = document.createElement('div');
-        c.className = `card ${card.c}`;
-        c.innerText = card.v === 'W' ? '🎨' : card.v;
-        c.onclick = () => playCard(myIdx, i);
-        hEl.appendChild(c);
-    });
-    
-    document.getElementById('discardEl').innerHTML = `<div class="card ${curCol}">${topCard.v === 'W' ? '🎨' : topCard.v}</div>`;
-    document.getElementById('tbadge').innerText = (turn === myIdx) ? "TUO TURNO" : "ATTESA...";
-    document.getElementById('myBadge').innerText = `CARTE: ${hands[myIdx].length}`;
-}
-
-function playCard(pIdx, cIdx) {
-    if(turn !== pIdx || !active) return;
-    const card = hands[pIdx][cIdx];
-    
-    if(card.c === 'wild' || card.c === curCol || card.v === topCard.v) {
-        hands[pIdx].splice(cIdx, 1);
-        topCard = card;
-        if(card.c !== 'wild') curCol = card.c;
-        
-        if(hands[pIdx].length === 0) {
-            updateWins(true);
-            confetti();
-            go('sEnd');
-            return;
-        }
-        
-        if(card.c === 'wild') {
-            document.getElementById('colorPicker').style.display = 'flex';
-        } else {
-            turn = 1 - turn;
-            if(conn) broadcastState();
-            render();
-        }
-    }
-}
-
-function pickColor(c) {
-    curCol = c;
-    document.getElementById('colorPicker').style.display = 'none';
-    turn = 1 - turn;
-    broadcastState();
-    render();
-}
-
-// NETWORKING
-function broadcastState() {
-    if(conn && conn.open) {
-        conn.send({ deck, hands, topCard, curCol, turn, active });
-    }
-}
-
+// --- LOGIN & INIZIALIZZAZIONE ---
 document.getElementById('loginBtn').onclick = () => {
-    myName = document.getElementById('lName').value || "Player";
-    updateWins(false);
+    const name = document.getElementById('lName').value || "Player";
+    document.getElementById('sLogin').style.display = 'none';
+    initPeer(name);
+};
+
+function initPeer(name) {
     peer = new Peer();
     peer.on('open', id => {
         myId = id;
         document.getElementById('myCode').innerText = id;
-        go('sLobby');
+        document.getElementById('sLobby').style.display = 'flex';
+        gameState.players.push({id, name, cards: 7, isBot: false});
+        updatePlayerList();
     });
+
     peer.on('connection', c => {
-        conn = c; setupConn();
-        startMP(true);
-        go('sGame');
+        if (gameState.players.length < gameState.rules.maxP) {
+            conn.push(c);
+            setupConn(c);
+        }
     });
+}
+
+// --- GESTIONE IMPOSTAZIONI ---
+document.getElementById('openSettings').onclick = () => {
+    document.getElementById('settingsPanel').style.display = 'flex';
 };
 
-document.getElementById('connectBtn').onclick = () => {
-    const fId = document.getElementById('friendId').value;
-    conn = peer.connect(fId);
-    setupConn();
-    go('sGame');
+document.getElementById('closeSettings').onclick = () => {
+    gameState.rules.maxP = parseInt(document.getElementById('setPlayers').value);
+    gameState.rules.rule07 = document.getElementById('rule07').checked;
+    gameState.rules.ruleStack = document.getElementById('ruleStack').checked;
+    gameState.rules.ruleCombo = document.getElementById('ruleCombo').checked;
+    document.getElementById('settingsPanel').style.display = 'none';
+    toast("Impostazioni salvate!");
 };
 
-function setupConn() {
-    conn.on('data', data => {
-        deck = data.deck; hands = data.hands;
-        topCard = data.topCard; curCol = data.curCol;
-        turn = data.turn; active = data.active;
-        render();
-    });
+// --- AVVIO GIOCO (Host aggiunge bot se mancano player) ---
+document.getElementById('startBtn').onclick = () => {
+    isHost = true;
+    while (gameState.players.length < gameState.rules.maxP) {
+        gameState.players.push({id: 'bot-'+Math.random(), name: "Bot "+(gameState.players.length), isBot: true, cards: 7});
+    }
+    startGame();
+};
+
+function startGame() {
+    // Genera Mazzo, Distribuisce Mani, Sincronizza tutti
+    // Logica di gioco complessa qui...
+    document.getElementById('sLobby').style.display = 'none';
+    document.getElementById('sGame').style.display = 'flex';
+    toast("Partita Iniziata!");
+    renderGame();
+}
+
+// --- CHAT & EMOJI ---
+function sendEmoji(emoji) {
+    const msg = { type: 'chat', content: emoji, sender: myId };
+    if (isHost) broadcast(msg); else conn[0].send(msg);
+    showEmoji(emoji);
+}
+
+function showEmoji(emoji) {
+    const el = document.createElement('div');
+    el.innerText = emoji;
+    el.className = "floating-emoji";
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 2000);
+}
+
+// --- LOGICA REGOLE SPECIALI ---
+function handleSpecialCards(card) {
+    if (card.v === '0' && gameState.rules.rule07) {
+        // Logica rotazione mani a tutti
+        rotateAllHands();
+    }
+    if (card.v === '7' && gameState.rules.rule07) {
+        // Scegli con chi scambiare
+        toast("Scegli un giocatore per scambiare la mano!");
+    }
+}
+
+// --- UTILITY ---
+function toast(txt) {
+    const t = document.createElement('div');
+    t.className = 'toast'; t.innerText = txt;
+    document.getElementById('toasts').appendChild(t);
+    setTimeout(() => t.remove(), 2500);
 }
 
 document.getElementById('copyBtn').onclick = () => {
     navigator.clipboard.writeText(myId);
-    toast("Codice Copiato!");
+    toast("Codice Copiato! Inviaro agli amici.");
 };
