@@ -1,109 +1,134 @@
-let peer, conn = [], myId, isHost = false;
-let gameState = {
-    players: [], // {id, name, cardsCount, isBot}
-    deck: [],
-    hands: {},
-    turn: 0,
-    dir: 1,
-    topCard: null,
-    curCol: '',
-    stack: 0,
-    rules: { rule07: false, ruleStack: true, ruleCombo: false, maxP: 4 }
+let myName = "", myId = "", peer, conn = [], isHost = false;
+let gameData = {
+    players: [], // {id, name, handCount, isBot}
+    deck: [], hands: {}, topCard: null, curColor: "", 
+    turn: 0, dir: 1, stack: 0, rules: { rule07: false, stack: true, combo: false, maxP: 4 },
+    active: false
 };
 
-// --- LOGIN & INIZIALIZZAZIONE ---
-document.getElementById('loginBtn').onclick = () => {
-    const name = document.getElementById('lName').value || "Player";
-    document.getElementById('sLogin').style.display = 'none';
-    initPeer(name);
+// --- LOGIN E SALVATAGGIO ---
+document.getElementById('enterBtn').onclick = () => {
+    myName = document.getElementById('nickInput').value || "User";
+    const wins = localStorage.getItem('mu_wins') || 0;
+    document.getElementById('savedWins').innerText = wins;
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('startScreen').classList.remove('hidden');
+    initPeer();
 };
 
-function initPeer(name) {
-    peer = new Peer();
-    peer.on('open', id => {
-        myId = id;
-        document.getElementById('myCode').innerText = id;
-        document.getElementById('sLobby').style.display = 'flex';
-        gameState.players.push({id, name, cards: 7, isBot: false});
-        updatePlayerList();
-    });
+function saveWin() {
+    let wins = parseInt(localStorage.getItem('mu_wins') || 0);
+    localStorage.setItem('mu_wins', wins + 1);
+}
 
+// --- PEERJS & LOBBY ---
+function initPeer() {
+    peer = new Peer(Math.random().toString(36).substr(2, 5).toUpperCase());
+    peer.on('open', id => { myId = id; document.getElementById('myPeerId').innerText = id; });
     peer.on('connection', c => {
-        if (gameState.players.length < gameState.rules.maxP) {
-            conn.push(c);
-            setupConn(c);
+        if(gameData.players.length < gameData.rules.maxP) {
+            conn.push(c); setupConn(c);
+            toast("Nuovo giocatore connesso!");
         }
     });
 }
 
-// --- GESTIONE IMPOSTAZIONI ---
-document.getElementById('openSettings').onclick = () => {
-    document.getElementById('settingsPanel').style.display = 'flex';
-};
-
-document.getElementById('closeSettings').onclick = () => {
-    gameState.rules.maxP = parseInt(document.getElementById('setPlayers').value);
-    gameState.rules.rule07 = document.getElementById('rule07').checked;
-    gameState.rules.ruleStack = document.getElementById('ruleStack').checked;
-    gameState.rules.ruleCombo = document.getElementById('ruleCombo').checked;
-    document.getElementById('settingsPanel').style.display = 'none';
+// --- IMPOSTAZIONI ---
+document.getElementById('settingsBtn').onclick = () => document.getElementById('settingsModal').classList.remove('hidden');
+document.getElementById('saveSettings').onclick = () => {
+    gameData.rules = {
+        rule07: document.getElementById('check07').checked,
+        stack: document.getElementById('checkStack').checked,
+        combo: document.getElementById('checkCombo').checked,
+        maxP: parseInt(document.getElementById('maxP').value)
+    };
+    document.getElementById('settingsModal').classList.add('hidden');
     toast("Impostazioni salvate!");
 };
 
-// --- AVVIO GIOCO (Host aggiunge bot se mancano player) ---
-document.getElementById('startBtn').onclick = () => {
+// --- LOGICA GIOCO ---
+document.getElementById('startMatchBtn').onclick = () => {
     isHost = true;
-    while (gameState.players.length < gameState.rules.maxP) {
-        gameState.players.push({id: 'bot-'+Math.random(), name: "Bot "+(gameState.players.length), isBot: true, cards: 7});
+    // Aggiungi Bot se mancano player
+    let currentPlayers = [{id: myId, name: myName, isBot: false}];
+    conn.forEach(c => currentPlayers.push({id: c.peer, name: "Amico", isBot: false}));
+    while(currentPlayers.length < gameData.rules.maxP) {
+        currentPlayers.push({id: 'bot-'+Math.random(), name: "Bot "+currentPlayers.length, isBot: true});
     }
-    startGame();
+    gameData.players = currentPlayers;
+    prepareGame();
 };
 
-function startGame() {
-    // Genera Mazzo, Distribuisce Mani, Sincronizza tutti
-    // Logica di gioco complessa qui...
-    document.getElementById('sLobby').style.display = 'none';
-    document.getElementById('sGame').style.display = 'flex';
-    toast("Partita Iniziata!");
-    renderGame();
+function prepareGame() {
+    // Generazione mazzo e distribuzione
+    gameData.deck = createDeck();
+    gameData.players.forEach(p => {
+        gameData.hands[p.id] = [];
+        for(let i=0; i<7; i++) gameData.hands[p.id].push(gameData.deck.pop());
+    });
+    gameData.topCard = gameData.deck.pop();
+    gameData.curColor = gameData.topCard.color === "wild" ? "red" : gameData.topCard.color;
+    gameData.active = true;
+    broadcast({type: 'START', data: gameData});
+    startUI();
 }
 
-// --- CHAT & EMOJI ---
-function sendEmoji(emoji) {
-    const msg = { type: 'chat', content: emoji, sender: myId };
-    if (isHost) broadcast(msg); else conn[0].send(msg);
-    showEmoji(emoji);
+function render() {
+    const handDiv = document.getElementById('playerHand');
+    const oppDiv = document.getElementById('opponentsArea');
+    handDiv.innerHTML = ""; oppDiv.innerHTML = "";
+
+    // Il mio Badge
+    document.getElementById('playerBadge').innerText = `TU: ${gameData.hands[myId].length}`;
+    if(gameData.players[gameData.turn].id === myId) document.getElementById('playerBadge').classList.add('active-p');
+    else document.getElementById('playerBadge').classList.remove('active-p');
+
+    // Avversari
+    gameData.players.forEach((p, i) => {
+        if(p.id !== myId) {
+            const div = document.createElement('div');
+            div.className = `opp-mini ${gameData.turn === i ? 'active-p' : ''}`;
+            div.innerHTML = `<div>${p.name}</div><div>🎴 ${gameData.hands[p.id] ? gameData.hands[p.id].length : 7}</div>`;
+            oppDiv.appendChild(div);
+        }
+    });
+
+    // Mia Mano
+    gameData.hands[myId].forEach((c, i) => {
+        const div = document.createElement('div');
+        div.className = `card ${c.color} drawing`;
+        div.innerText = c.value;
+        div.onclick = () => tryPlayCard(i);
+        handDiv.appendChild(div);
+    });
+
+    // Centro
+    document.getElementById('discardPile').innerHTML = `<div class="card ${gameData.curColor}">${gameData.topCard.value}</div>`;
+    document.getElementById('stackBadge').innerText = gameData.stack > 0 ? `+${gameData.stack}` : "";
+    document.getElementById('turnIndicator').innerText = gameData.players[gameData.turn].id === myId ? "🟢 TOCCA A TE" : "🔴 TURNO DI " + gameData.players[gameData.turn].name;
 }
 
-function showEmoji(emoji) {
-    const el = document.createElement('div');
-    el.innerText = emoji;
-    el.className = "floating-emoji";
-    document.body.appendChild(el);
-    setTimeout(() => el.remove(), 2000);
+// --- UTILS ---
+function toast(m) {
+    const t = document.createElement('div'); t.className="toast"; t.innerText=m;
+    document.body.appendChild(t); setTimeout(() => t.remove(), 2000);
 }
 
-// --- LOGICA REGOLE SPECIALI ---
-function handleSpecialCards(card) {
-    if (card.v === '0' && gameState.rules.rule07) {
-        // Logica rotazione mani a tutti
-        rotateAllHands();
-    }
-    if (card.v === '7' && gameState.rules.rule07) {
-        // Scegli con chi scambiare
-        toast("Scegli un giocatore per scambiare la mano!");
-    }
+function sendEmoji(e) {
+    toast(myName + ": " + e);
+    broadcast({type: 'EMOJI', emoji: e, sender: myName});
 }
 
-// --- UTILITY ---
-function toast(txt) {
-    const t = document.createElement('div');
-    t.className = 'toast'; t.innerText = txt;
-    document.getElementById('toasts').appendChild(t);
-    setTimeout(() => t.remove(), 2500);
+function broadcast(msg) {
+    if(isHost) conn.forEach(c => c.send(msg));
+    else if(conn[0]) conn[0].send(msg);
 }
 
-document.getElementById('copyBtn').onclick = () => {
-    navigator.clipboard.writeText(myId);
-    toast("Codice Copiato! Inviaro agli amici.");
-};
+function createDeck() {
+    const c = ["red", "blue", "green", "yellow"];
+    const v = ["0","1","2","3","4","5","6","7","8","9","skip","reverse","draw2"];
+    let d = [];
+    c.forEach(color => v.forEach(val => { d.push({color, value: val}); if(val!=="0") d.push({color, value: val}); }));
+    for(let i=0; i<4; i++) { d.push({color:"wild", value:"W"}); d.push({color:"wild", value:"+4"}); }
+    return d.sort(() => Math.random() - 0.5);
+}
