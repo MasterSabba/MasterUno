@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>MasterUno — Bomba Edition</title>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+    <title>MasterUno Ultimate</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <link rel="stylesheet" href="style.css">
@@ -12,83 +12,106 @@
 <body>
 
 <div id="sLogin" class="scr">
-    <div class="bgc bgc1"></div><div class="bgc bgc2"></div>
-    <div class="lbox">
-        <div class="logo-wrap">
-            <div><span class="logo-m">MASTER</span><span class="logo-u">UNO</span></div>
-            <div class="logo-sub">BOMBA EDITION</div>
+    <div class="glass-box">
+        <div class="logo-area">
+            <h1>MASTER<span>UNO</span></h1>
+            <p>ULTIMATE EDITION</p>
         </div>
-        <div class="fld">
-            <div class="flbl">NICKNAME</div>
-            <input class="finp" id="lName" type="text" placeholder="Il tuo nome..." maxlength="16">
+        <div class="input-group">
+            <input type="text" id="lName" placeholder="Nickname" maxlength="12">
+            <input type="password" id="lPass" placeholder="Password">
         </div>
-        <button class="btn-gold" id="loginBtn">ENTRA</button>
-        <div class="lnote">Vittorie totali: <span id="winCount">0</span></div>
+        <button class="btn-main" id="loginBtn">ENTRA NEL TAVOLO</button>
+        <div class="stats-mini">Vittorie: <span id="winCount">0</span></div>
     </div>
 </div>
 
 <div id="sLobby" class="scr">
-    <div class="lbhdr">
-        <div class="lbttl">LOBBY <span>ATTESA</span></div>
+    <div class="lobby-header">
+        <button class="icon-btn" id="openSettings">⚙️</button>
+        <h2>SALA D'ATTESA</h2>
     </div>
-    <div class="lbbody">
-        <div class="lbcard">
-            <div class="slbl">IL TUO CODICE</div>
-            <div class="pcode" id="myCode">...</div>
-            <button class="btn-outline" id="copyBtn">📋 COPIA</button>
+    
+    <div class="lobby-main">
+        <div class="card-lobby">
+            <span>CODICE STANZA</span>
+            <div id="myCode" class="room-code">----</div>
+            <button class="btn-sub" id="copyBtn">INVITA AMICI (COPIA)</button>
         </div>
-        <div class="sep">OPPURE CONNETTI</div>
-        <div class="lbcard">
-            <div class="crow">
-                <input class="icode" id="friendId" type="text" placeholder="Incolla codice...">
-                <button class="btn-blue" id="connectBtn">🔗 VAI</button>
+        
+        <div class="player-list" id="pList">
             </div>
+
+        <div class="input-connect">
+            <input type="text" id="friendId" placeholder="Incolla codice amico...">
+            <button class="btn-blue" id="connectBtn">UNISCITI</button>
         </div>
-        <button class="btn-green" id="botBtn">🤖 VS COMPUTER</button>
-        <div class="lbsts" id="lbSts">Pronto a giocare...</div>
+
+        <button class="btn-gold" id="startBtn">AVVIA PARTITA</button>
+    </div>
+</div>
+
+<div id="settingsPanel" class="modal">
+    <div class="modal-content">
+        <h3>IMPOSTAZIONI GIOCO</h3>
+        <div class="stg-row">
+            <label>Giocatori Totali (Max 4)</label>
+            <select id="setPlayers">
+                <option value="2">2 Giocatori</option>
+                <option value="3">3 Giocatori</option>
+                <option value="4" selected>4 Giocatori</option>
+            </select>
+        </div>
+        <div class="stg-row">
+            <label>Regola 0-7 (Inversione)</label>
+            <input type="checkbox" id="rule07">
+            <p class="desc">Lo 0 e il 7 scambiano le mani tra giocatori.</p>
+        </div>
+        <div class="stg-row">
+            <label>Pesca a Strascio (+2/+4)</label>
+            <input type="checkbox" id="ruleStack" checked>
+            <p class="desc">I simboli + si sommano!</p>
+        </div>
+        <div class="stg-row">
+            <label>Combo Stesso Numero</label>
+            <input type="checkbox" id="ruleCombo">
+            <p class="desc">Lancia più carte dello stesso numero insieme.</p>
+        </div>
+        <button class="btn-main" id="closeSettings">SALVA</button>
     </div>
 </div>
 
 <div id="sGame" class="scr">
-    <div class="gbar">
-        <div class="tbadge" id="tbadge">ATTESA...</div>
+    <div id="opponents-container"></div>
+    
+    <div class="table-center">
+        <div id="deck" class="deck-main">
+            <div class="card-back-inner">MASTER<span>UNO</span></div>
+        </div>
+        <div id="discard-pile"></div>
+        <div id="current-info">
+            <div id="turn-text">Tocca a: ---</div>
+            <div id="stack-count"></div>
+        </div>
     </div>
-    <div id="oppArea"></div>
-    <div class="carea">
-        <div id="deckEl" class="cback deckbtn"><span>MASTER</span><span>UNO</span></div>
-        <div id="discardEl"></div>
-        <div id="cdot" class="cdot"></div>
-    </div>
-    <div class="parea">
-        <div class="myb" id="myBadge">TU: 7</div>
-        <div id="myHand" class="hand"></div>
-    </div>
-    <button class="unobtn" id="unoBtn" style="display:none">🔥 UNO!</button>
-</div>
 
-<div id="colorPicker" class="modal">
-    <div class="mbox">
-        <div class="mtitle">COLORE</div>
-        <div class="cgrid">
-            <div class="cp red" onclick="pickColor('red')">🔴</div>
-            <div class="cp blue" onclick="pickColor('blue')">🔵</div>
-            <div class="cp green" onclick="pickColor('green')">🟢</div>
-            <div class="cp yellow" onclick="pickColor('yellow')">🟡</div>
+    <div class="player-area">
+        <div id="my-hand" class="hand"></div>
+    </div>
+
+    <div id="chat-box">
+        <div id="chat-messages"></div>
+        <div class="emoji-bar">
+            <span onclick="sendEmoji('🔥')">🔥</span>
+            <span onclick="sendEmoji('😂')">😂</span>
+            <span onclick="sendEmoji('🤡')">🤡</span>
+            <span onclick="sendEmoji('😠')">😠</span>
+            <span onclick="sendEmoji('👋')">👋</span>
         </div>
     </div>
 </div>
 
-<div id="sEnd" class="scr">
-    <div class="ebox">
-        <div class="eico" id="eIco">🏆</div>
-        <div class="etitle" id="eTitle">VITTORIA!</div>
-        <button class="btn-gold" onclick="location.reload()">🔄 MENU</button>
-    </div>
-</div>
-
 <div id="toasts"></div>
-<div id="danim" class="danim"></div>
-
 <script src="script.js"></script>
 </body>
 </html>
