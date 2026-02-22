@@ -1,24 +1,74 @@
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-body{font-family:'Nunito',sans-serif;background:#0b1a0e;color:#fff;overflow:hidden;height:100vh;}
-.scr{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;}
+:root {
+    --gold: #f1c40f;
+    --blue: #3498db;
+    --red: #e74c3c;
+    --bg: #0f172a;
+}
 
-/* Distanza trattini/tastiera adattata per MasterUno (distanza tra aree) */
-.carea { margin: 40px 0; display: flex; gap: 20px; align-items: center; }
+body {
+    margin: 0; font-family: 'Nunito', sans-serif;
+    background: var(--bg); color: white; overflow: hidden;
+}
 
-#sLogin{background:radial-gradient(#163320, #080f09);}
-.lbox{background:rgba(10,22,14,.95);padding:30px;border-radius:25px;width:90%;max-width:350px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,0.5);}
-.logo-m{font-family:'Bebas Neue';font-size:50px;}
-.logo-u{font-family:'Bebas Neue';font-size:50px;color:#f0b429;}
+.scr { position: fixed; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; }
 
-.btn-gold{background:linear-gradient(#f0b429,#d49410);color:#000;border:none;padding:15px;border-radius:12px;font-family:'Bebas Neue';font-size:22px;width:100%;cursor:pointer;}
-.card{width:75px;height:110px;border-radius:12px;border:3px solid #fff;margin:0 -15px;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue';font-size:30px;transition:0.2s;box-shadow:0 5px 15px rgba(0,0,0,0.4);}
-.card.red{background:#e63946;} .card.blue{background:#1d7fc4;} .card.green{background:#27ae60;} .card.yellow{background:#f0b429;color:#000;}
-.card.wild{background:#2a2a3e;border-color:#f0b429;}
+/* Login Box */
+.glass-box {
+    background: rgba(255,255,255,0.05); backdrop-filter: blur(15px);
+    padding: 40px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1);
+    text-align: center; width: 320px; box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+}
 
-.hand{display:flex;padding:20px;min-height:130px;overflow-x:auto;width:100%;justify-content:center;}
-.cdot{width:20px;height:20px;border-radius:50%;display:none;}
-.cdot.show{display:block;}
-.red{background:#e63946;} .blue{background:#1d7fc4;} .green{background:#27ae60;} .yellow{background:#f0b429;}
+h1 span { color: var(--gold); }
 
-#toasts{position:fixed;top:20px;z-index:999;}
-.toast{background:#f0b429;color:#000;padding:10px 20px;border-radius:20px;margin-bottom:5px;font-weight:900;}
+/* Tavolo e Carte */
+.table-center { display: flex; gap: 40px; align-items: center; margin-bottom: 50px; }
+
+.deck-main {
+    width: 80px; height: 120px; background: #2c3e50; border-radius: 10px;
+    border: 3px solid white; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; position: relative;
+    box-shadow: -5px 5px 0px #1a252f;
+}
+
+.card-back-inner {
+    font-family: 'Bebas Neue'; font-size: 14px; transform: rotate(-45deg);
+    color: var(--gold);
+}
+
+.card {
+    width: 80px; height: 120px; border-radius: 10px; border: 3px solid white;
+    background: #444; position: relative; display: flex; align-items: center;
+    justify-content: center; font-family: 'Bebas Neue'; font-size: 32px;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    cursor: pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+}
+
+/* Animazione Pesca */
+@keyframes drawCard {
+    0% { transform: translate(-100px, -200px) rotate(0deg); opacity: 0; }
+    100% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+}
+.draw-anim { animation: drawCard 0.5s ease-out; }
+
+/* Turno Illuminato */
+.active-player {
+    box-shadow: 0 0 20px var(--gold);
+    border: 2px solid var(--gold);
+    transform: scale(1.1);
+}
+
+/* Chat */
+#chat-box {
+    position: fixed; bottom: 20px; right: 20px; width: 200px;
+    background: rgba(0,0,0,0.6); border-radius: 15px; padding: 10px;
+}
+.emoji-bar { display: flex; justify-content: space-around; cursor: pointer; font-size: 20px; }
+
+/* Alerts */
+.toast {
+    position: fixed; top: 20px; background: var(--gold); color: black;
+    padding: 10px 20px; border-radius: 20px; font-weight: bold;
+    animation: fadeOut 2.5s forwards;
+}
+@keyframes fadeOut { 0% {opacity:1} 80% {opacity:1} 100% {opacity:0} }
