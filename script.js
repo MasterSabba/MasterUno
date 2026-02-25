@@ -6,15 +6,26 @@ let isMyTurn = true, hasSaidUno = false, drawStack = 0, peer, conn, isMultiplaye
 // --- INIZIALIZZAZIONE ---
 function createDeck() {
     deck = [];
-    colors.forEach(c => { values.forEach(v => { deck.push({color: c, value: v}); if(v !== "0") deck.push({color: c, value: v}); }); });
+    colors.forEach(c => { 
+        values.forEach(v => { 
+            deck.push({color: c, value: v}); 
+            if(v !== "0") deck.push({color: c, value: v}); 
+        }); 
+    });
     for(let i=0; i<4; i++){ deck.push({color: "wild", value: "W"}, {color: "wild4", value: "wild4"}); }
     deck.sort(() => Math.random() - 0.5);
 }
 
 function showToast(m) {
     let container = document.getElementById('toast-container');
-    if (!container) { container = document.createElement('div'); container.id = 'toast-container'; document.body.appendChild(container); }
-    const t = document.createElement('div'); t.className = 'toast'; t.innerText = m;
+    if (!container) { 
+        container = document.createElement('div'); 
+        container.id = 'toast-container'; 
+        document.body.appendChild(container); 
+    }
+    const t = document.createElement('div'); 
+    t.className = 'toast'; 
+    t.innerText = m;
     container.appendChild(t);
     setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 500); }, 2500);
 }
@@ -22,7 +33,7 @@ function showToast(m) {
 // --- LOGICA DI GIOCO ---
 function isValidMove(card) {
     if (drawStack > 0) {
-        if (topCard.value === "draw2") return card.value === "draw2";
+        if (topCard.value === "draw2") return card.value === "draw2" || card.value === "wild4";
         if (topCard.value === "wild4") return card.value === "wild4";
         return false;
     }
@@ -71,6 +82,7 @@ function finishAction() {
     }
     let skip = (topCard.value === "skip" || topCard.value === "reverse") && drawStack === 0;
     if (!skip) isMyTurn = !isMyTurn;
+    
     if (isMultiplayer && conn) sendMove();
     else if (!isMyTurn) setTimeout(botTurn, 1200);
     renderGame();
@@ -125,7 +137,6 @@ function renderGame() {
     const vTop = (topCard.value === "draw2" ? "+2" : topCard.value === "wild4" ? "+4" : topCard.value === "skip" ? "Ø" : topCard.value === "reverse" ? "⇄" : topCard.value);
     discard.innerHTML = `<div class="card ${currentColor}" data-val="${vTop}">${vTop}</div>`;
     
-    // FIX: TASTO MASTER UNO SOLO SE HAI CARTE GIOCABILI
     const hasPlayableCard = playerHand.some(card => isValidMove(card));
     const btnUno = document.getElementById("masterUnoBtn");
     if (playerHand.length === 2 && isMyTurn && gameActive && hasPlayableCard) {
@@ -152,7 +163,13 @@ document.getElementById("deck").onclick = () => {
 const initPeer = () => {
     peer = new Peer(Math.random().toString(36).substr(2, 5).toUpperCase());
     peer.on('open', id => { document.getElementById("myPeerId").innerText = id; });
-    peer.on('connection', c => { conn = c; isMultiplayer = true; setupChat(); });
+    
+    peer.on('connection', c => { 
+        conn = c; 
+        isMultiplayer = true; 
+        setupChat(); 
+        showToast("AMICO CONNESSO!");
+    });
 };
 initPeer();
 
@@ -162,7 +179,8 @@ function setupChat() {
             gameActive = true; deck = d.deck; playerHand = d.oppHand; opponentHand = d.plHand;
             topCard = d.top; currentColor = d.color; isMyTurn = d.turn; drawStack = 0;
             document.querySelectorAll("#startScreen, #endScreen, #colorPicker").forEach(s => s.classList.add("hidden"));
-            document.getElementById("gameArea").classList.remove("hidden"); renderGame();
+            document.getElementById("gameArea").classList.remove("hidden"); 
+            renderGame();
         } else if (d.type === 'MOVE') {
             if (d.plHand.length === 1) showToast("L'AVVERSARIO DICE: MASTERUNO! 🔥");
             playerHand = d.oppHand; opponentHand = d.plHand; topCard = d.top;
@@ -180,29 +198,58 @@ function startG(me) {
     for(let i=0; i<7; i++){ playerHand.push(deck.pop()); opponentHand.push(deck.pop()); }
     topCard = deck.pop(); while(topCard.color.includes("wild")) topCard = deck.pop();
     currentColor = topCard.color; isMyTurn = me; drawStack = 0;
-    if (isMultiplayer && conn) conn.send({ type: 'START', deck, plHand: playerHand, oppHand: opponentHand, top: topCard, color: currentColor, turn: !me });
+    
+    if (isMultiplayer && conn) {
+        conn.send({ type: 'START', deck, plHand: playerHand, oppHand: opponentHand, top: topCard, color: currentColor, turn: !me });
+    }
+    
     document.querySelectorAll("#startScreen, #endScreen").forEach(s => s.classList.add("hidden"));
     document.getElementById("gameArea").classList.remove("hidden"); renderGame();
 }
 
-function sendMove() { if (conn && conn.open) conn.send({ type: 'MOVE', plHand: playerHand, oppHand: opponentHand, top: topCard, color: currentColor, stack: drawStack, deck: deck, turn: !isMyTurn }); }
+function sendMove() { 
+    if (conn && conn.open) conn.send({ type: 'MOVE', plHand: playerHand, oppHand: opponentHand, top: topCard, color: currentColor, stack: drawStack, deck: deck, turn: !isMyTurn }); 
+}
 
 // --- BOTTONI UI ---
 document.getElementById("copyBtn").onclick = () => { 
     navigator.clipboard.writeText(document.getElementById("myPeerId").innerText); 
     showToast("ID COPIATO! 📋");
 };
+
 document.getElementById("playBotBtn").onclick = () => { isMultiplayer = false; startG(true); };
+
 document.getElementById("connectBtn").onclick = () => { 
     let id = document.getElementById("friendIdInput").value.trim().toUpperCase(); 
-    if (id) { conn = peer.connect(id); isMultiplayer = true; setupChat(); conn.on('open', () => startG(true)); } 
+    if (id) { 
+        showToast("CONNESSIONE...");
+        conn = peer.connect(id); 
+        isMultiplayer = true; 
+        conn.on('open', () => {
+            setupChat();
+            setTimeout(() => startG(true), 500);
+        });
+    } 
 };
+
 document.getElementById("masterUnoBtn").onclick = () => { hasSaidUno = true; showToast("MASTERUNO! 🔥"); };
 document.getElementById("playAgainBtn").onclick = () => startG(true);
 document.getElementById("exitBtn").onclick = () => location.reload();
 
+// --- LOCAL STORAGE (PUNTEGGI) ---
+function updateStats(isWin) {
+    let wins = parseInt(localStorage.getItem('masteruno_wins') || "0");
+    let plays = parseInt(localStorage.getItem('masteruno_plays') || "0");
+    
+    localStorage.setItem('masteruno_plays', plays + 1);
+    if(isWin) localStorage.setItem('masteruno_wins', wins + 1);
+    
+    console.log(`Stats: ${localStorage.getItem('masteruno_wins')}/${localStorage.getItem('masteruno_plays')}`);
+}
+
 function showEndScreen(win) { 
     gameActive = false;
+    updateStats(win); // Salva in locale
     const screen = document.getElementById("endScreen");
     const title = document.getElementById("endTitle");
     screen.classList.remove("hidden");
