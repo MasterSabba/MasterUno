@@ -2,85 +2,71 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Master Uno Ultimate</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>MasterUno - Bomba Edition</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="preload" as="image" href="card-back.png">
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
 <body>
 
-    <div id="loginScreen" class="screen">
+    <div id="startScreen">
         <div class="main-box">
-            <h1>MASTER UNO</h1>
-            <input type="text" id="nickInput" placeholder="IL TUO NICK..." maxlength="10">
-            <div id="enterBtn" class="btn-yellow">ENTRA</div>
-        </div>
-    </div>
-
-    <div id="startScreen" class="screen hidden">
-        <div class="main-box">
-            <h2 id="welcomeMsg">BENVENUTO</h2>
-            <div id="myPeerId" class="peer-id">ID: ----</div>
-            <div id="startMatchBtn" class="btn-yellow">AVVIA PARTITA</div>
-            <div id="settingsBtn" class="btn-grey">IMPOSTAZIONI ⚙️</div>
-            <div id="copyBtn" class="btn-grey">COPIA ID INVITO 📋</div>
-        </div>
-    </div>
-
-    <div id="settingsModal" class="hidden modal-overlay">
-        <div class="main-box">
-            <h3>IMPOSTAZIONI</h3>
-            <div class="stg-row">
-                <label>Giocatori</label>
-                <select id="numPlayersSelect">
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4" selected>4</option>
-                </select>
+            <h1 class="logo-title">MASTER UNO</h1>
+            <div class="menu-section">
+                <div id="myPeerId" class="peer-display">----</div>
+                <div id="copyBtn" class="btn-yellow">Copia il tuo ID</div>
             </div>
-            <div class="stg-row">
-                <label>Regola 0-7</label>
-                <input type="checkbox" id="check07">
+            <div class="menu-section">
+                <input type="text" id="friendIdInput" placeholder="Inserisci ID Amico">
+                <div id="connectBtn" class="btn-white">Connettiti e Gioca</div>
             </div>
-            <div id="saveSettings" class="btn-yellow">SALVA</div>
+            <div class="menu-section">
+                <div id="playBotBtn" class="btn-yellow">Gioca contro Computer</div>
+            </div>
         </div>
     </div>
 
-    <div id="gameArea" class="screen hidden">
-        <div id="opponentsArea"></div>
-        
-        <div id="centerBoard">
-            <div id="deck" class="card-back-classic"></div>
+    <div id="gameArea" class="hidden">
+        <div id="turnIndicator">CARICAMENTO...</div>
+        <div class="game-row">
+            <div id="opponentBadge" class="gold-badge">AVVERSARIO: 7</div>
+            <div id="opponentHand" class="hand"></div>
+        </div>
+        <div id="centerArea">
+            <div id="deck" class="card-back-classic">MAZZO</div>
             <div id="discardPile"></div>
         </div>
-
-        <div id="statusInfo">
-            <div id="turnIndicator">TURNO DI...</div>
-            <div id="unoContainer">
-                <button id="masterUnoBtn" class="hidden">UNO!</button>
-            </div>
-        </div>
-
-        <div id="playerSection">
-            <div id="playerBadge">TU: 7</div>
+        <div class="game-row">
+            <div id="playerBadge" class="gold-badge">TU: 7</div>
             <div id="playerHand" class="hand"></div>
         </div>
+        <button id="masterUnoBtn" class="hidden">MASTER UNO!</button>
     </div>
 
-    <div id="colorPicker" class="hidden modal-overlay">
-        <div class="main-box">
-            <h3>SCEGLI COLORE</h3>
-            <div class="color-grid">
-                <div onclick="selectNewColor('red')" class="btn-color red"></div>
-                <div onclick="selectNewColor('blue')" class="btn-color blue"></div>
-                <div onclick="selectNewColor('green')" class="btn-color green"></div>
-                <div onclick="selectNewColor('yellow')" class="btn-color yellow"></div>
+    <div id="colorPicker" class="hidden">
+        <div class="picker-box">
+            <h3>Scegli Colore</h3>
+            <div class="pick-grid">
+                <div class="pick red" onclick="setWildColor('red')"></div>
+                <div class="pick blue" onclick="setWildColor('blue')"></div>
+                <div class="pick green" onclick="setWildColor('green')"></div>
+                <div class="pick yellow" onclick="setWildColor('yellow')"></div>
             </div>
         </div>
     </div>
 
-    <div id="toast-container"></div>
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <div id="endScreen" class="hidden">
+        <div class="main-box">
+            <h1 id="endTitle" class="end-title">VITTORIA!</h1>
+            <p id="endSubtitle">Ottima partita!</p>
+            <div class="menu-section">
+                <div id="playAgainBtn" class="btn-yellow">Gioca Ancora</div>
+                <div id="exitBtn" class="btn-white">Torna al Menu</div>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
