@@ -14,6 +14,6 @@ Il gioco include:
 - Sistema confetti per vittoria
 - Schermata finale con restart o exit
 
-È collegato alla repository centrale MasterHub (https://mastersabba.github.io/MasterSabba/), che contiene tutti i minigiochi della serie Master.
+È collegato alla repository centrale MasterGames (https://mastersabba.github.io/MasterSabba/), che contiene tutti i minigiochi della serie Master.
 
 ![Immagine](IMG_9434.jpeg)
