@@ -225,5 +225,12 @@ function showEndScreen(win) {
     gameActive = false;
     document.getElementById("endScreen").classList.remove("hidden");
     document.getElementById("endTitle").innerText = win ? "HAI VINTO!" : "HAI PERSO!";
-    if (win) confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+    
+    if (win) {
+        // --- NUOVO: SALVATAGGIO DEI PUNTI PER L'HUB ---
+        let currentPoints = parseInt(localStorage.getItem("points_masteruno")) || 0;
+        localStorage.setItem("points_masteruno", currentPoints + 1);
+        
+        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+    }
 }
