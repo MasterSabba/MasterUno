@@ -3,7 +3,24 @@ const values = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "skip", "rever
 let deck = [], playerHand = [], opponentHand = [], topCard = null, currentColor = "";
 let isMyTurn = true, hasSaidUno = false, drawStack = 0, peer, conn, isMultiplayer = false, gameActive = true;
 
-// --- INIZIALIZZAZIONE ---
+// --- INIZIALIZZAZIONE & CLOUD/HUB SYNC ---
+let myHackerTag = localStorage.getItem('mv_hacker_tag') || localStorage.getItem('nickname') || localStorage.getItem('username') || "GUEST_USER";
+let myScore = parseInt(localStorage.getItem('points_masteruno')) || 0;
+
+async function savePointsToCloud(newScore) {
+    myScore = newScore;
+    localStorage.setItem('points_masteruno', myScore);
+    try {
+        if (typeof db !== 'undefined') {
+            await db.collection("users").doc(myHackerTag).set({
+                MasterUno: myScore
+            }, { merge: true });
+        }
+    } catch (e) {
+        console.error("Errore di scrittura database: ", e);
+    }
+}
+
 function createDeck() {
     deck = [];
     colors.forEach(c => { 
@@ -157,7 +174,6 @@ const initPeer = () => {
         conn = c; 
         isMultiplayer = true; 
         setupChat(); 
-        // L'host non fa nulla, aspetta che il client mandi lo START
     });
 };
 initPeer();
@@ -212,7 +228,7 @@ document.getElementById("connectBtn").onclick = () => {
         isMultiplayer = true; 
         conn.on('open', () => {
             setupChat();
-            startG(true); // Appena apre, lancia il gioco per entrambi!
+            startG(true); 
         });
     } 
 };
@@ -227,10 +243,11 @@ function showEndScreen(win) {
     document.getElementById("endTitle").innerText = win ? "HAI VINTO!" : "HAI PERSO!";
     
     if (win) {
-        // --- NUOVO: SALVATAGGIO DEI PUNTI PER L'HUB ---
         let currentPoints = parseInt(localStorage.getItem("points_masteruno")) || 0;
-        localStorage.setItem("points_masteruno", currentPoints + 1);
+        savePointsToCloud(currentPoints + 1);
         
-        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+        if (typeof confetti === 'function') {
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+        }
     }
 }
