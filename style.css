@@ -14,9 +14,30 @@ body {
     overflow: hidden; 
     width: 100vw; 
     height: 100vh; 
+    position: relative;
 }
 
 .hidden { display: none !important; }
+
+/* --- PULSANTE X DI USCITA --- */
+.exit-button {
+    position: fixed;
+    top: 15px;
+    left: 20px;
+    font-size: 2.2rem;
+    line-height: 1;
+    color: white;
+    text-decoration: none;
+    z-index: 9999;
+    transition: transform 0.2s ease, color 0.2s ease;
+    font-family: Arial, sans-serif;
+    cursor: pointer;
+    text-shadow: 0 2px 5px rgba(0,0,0,0.8);
+}
+.exit-button:hover { 
+    color: #f1c40f; 
+    transform: scale(1.15); 
+}
 
 /* --- SCHERMATE PRINCIPALI (START/END) --- */
 #startScreen, #endScreen { 
@@ -98,6 +119,7 @@ input { background: rgba(255,255,255,0.1); border: 2px solid #f1c40f !important;
 .wild, .wild4 { background: #2d3436; border-color: #f1c40f; }
 
 #centerArea { display: flex; gap: 30px; align-items: center; margin: 15px 0; }
+
 /* RETRO CARTA CON TESTO SPEZZATO */
 .card-back-classic { 
     width: 85px; 
@@ -107,14 +129,14 @@ input { background: rgba(255,255,255,0.1); border: 2px solid #f1c40f !important;
     border-radius: 15px; 
     color: #f1c40f; 
     display: flex; 
-    flex-direction: column; /* Forza la disposizione verticale */
+    flex-direction: column; 
     align-items: center; 
     justify-content: center; 
     font-weight: 900; 
     text-align: center; 
-    font-size: 15px; /* Leggermente più grande per leggibilità */
+    font-size: 15px; 
     line-height: 1.2; 
-    gap: 5px; /* Crea spazio tra MASTER e UNO */
+    gap: 5px; 
     box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
 
@@ -145,7 +167,6 @@ input { background: rgba(255,255,255,0.1); border: 2px solid #f1c40f !important;
 
 .picker-box h3 { color: #f1c40f; margin: 0 0 20px 0; text-transform: uppercase; }
 
-/* Forza la griglia 2x2 */
 .pick-grid { 
     display: grid !important; 
     grid-template-columns: repeat(2, 100px) !important; 
@@ -169,11 +190,3 @@ input { background: rgba(255,255,255,0.1); border: 2px solid #f1c40f !important;
 /* --- ANIMAZIONI --- */
 @keyframes slideIn { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
-
-    .exit-button {
-            position: absolute; top: 15px; left: 20px; font-size: 2rem; line-height: 1;
-            color: var(--empty-border); text-decoration: none; z-index: 100;
-            transition: all 0.2s ease; -webkit-tap-highlight-color: transparent; font-family: Arial, sans-serif;
-        }
-        .exit-button:hover { color: var(--text-color); transform: scale(1.1); }
-    
