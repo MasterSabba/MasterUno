@@ -169,3 +169,11 @@ input { background: rgba(255,255,255,0.1); border: 2px solid #f1c40f !important;
 /* --- ANIMAZIONI --- */
 @keyframes slideIn { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+
+    .exit-button {
+            position: absolute; top: 15px; left: 20px; font-size: 2rem; line-height: 1;
+            color: var(--empty-border); text-decoration: none; z-index: 100;
+            transition: all 0.2s ease; -webkit-tap-highlight-color: transparent; font-family: Arial, sans-serif;
+        }
+        .exit-button:hover { color: var(--text-color); transform: scale(1.1); }
+    
