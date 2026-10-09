@@ -11,20 +11,15 @@ async function savePointsToCloud(newScore) {
     myScore = newScore;
     localStorage.setItem('points_masteruno', myScore);
 
-    // Notifica all'Hub Arcade
+    // 🟢 NOTIFICA ALL'HUB ARCADE
     const target = window.opener || (window.parent !== window ? window.parent : null);
     if (target) {
-        target.postMessage({
-            gameKey: 'master-uno',
-            points: myScore
-        }, '*');
+        target.postMessage({ gameKey: 'master-uno', points: 50 }, '*');
     }
 
     try {
         if (typeof db !== 'undefined') {
-            await db.collection("users").doc(myHackerTag).set({
-                MasterUno: myScore
-            }, { merge: true });
+            await db.collection("users").doc(myHackerTag).set({ MasterUno: myScore }, { merge: true });
         }
     } catch (e) {
         console.error("Errore di scrittura database: ", e);
