@@ -10,6 +10,16 @@ let myScore = parseInt(localStorage.getItem('points_masteruno')) || 0;
 async function savePointsToCloud(newScore) {
     myScore = newScore;
     localStorage.setItem('points_masteruno', myScore);
+
+    // Notifica all'Hub Arcade
+    const target = window.opener || (window.parent !== window ? window.parent : null);
+    if (target) {
+        target.postMessage({
+            gameKey: 'master-uno',
+            points: myScore
+        }, '*');
+    }
+
     try {
         if (typeof db !== 'undefined') {
             await db.collection("users").doc(myHackerTag).set({
