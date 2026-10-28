@@ -14,7 +14,7 @@ async function savePointsToCloud(newScore) {
     // 🟢 NOTIFICA ALL'HUB ARCADE
     const target = window.opener || (window.parent !== window ? window.parent : null);
     if (target) {
-        target.postMessage({ gameKey: 'master-uno', points: 50 }, '*');
+        target.postMessage({ gameKey: 'master-uno', points: 150 }, '*');
     }
 
     try {
