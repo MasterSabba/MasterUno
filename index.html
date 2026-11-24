@@ -3,29 +3,691 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>MasterUno - Bomba Edition</title>
-    <link rel="stylesheet" href="style.css">
+    <title>MasterUno</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
+            border: none;
+        }
+
+        body {
+            margin: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+            color: #ffffff;
+            font-family: 'Arial Black', sans-serif;
+            background: radial-gradient(circle at 50% 45%, #1f5837 0%, #07140c 92%);
+        }
+
+        .hidden { display: none !important; }
+
+        /* --- PULSANTE X SOLO NELLA SCHERMATA INIZIALE --- */
+        .exit-button {
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: #0b130e;
+            border: 2px solid #f1c40f;
+            font-size: 1.6rem;
+            line-height: 1;
+            color: #ffffff;
+            text-decoration: none;
+            z-index: 3000;
+            font-family: Arial, sans-serif;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.14s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.14s ease;
+        }
+        .exit-button:hover { color: #f1c40f; transform: scale(1.08); }
+
+        /* --- SCHERMATA INIZIALE PULITA --- */
+        #startScreen {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at 50% 25%, #194a2e 0%, #06100a 100%);
+            z-index: 2000;
+            padding: 18px;
+        }
+
+        .lobby-shell {
+            width: 100%;
+            max-width: 680px;
+            background: #0b130e;
+            border: 2.5px solid #f1c40f;
+            border-radius: 26px;
+            padding: 26px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            animation: boxEnter 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+
+        .lobby-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid rgba(241, 196, 15, 0.25);
+        }
+
+        .logo-title {
+            color: #f1c40f;
+            font-size: 30px;
+            margin: 0;
+            letter-spacing: 0.8px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .edition-tag {
+            background: #142219;
+            color: #f1c40f;
+            border: 1.5px solid rgba(241, 196, 15, 0.5);
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 11px;
+            letter-spacing: 0.7px;
+            text-transform: uppercase;
+        }
+
+        .btn-rules {
+            background: #142219;
+            color: #ffffff;
+            border: 1.5px solid #f1c40f;
+            padding: 7px 14px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 900;
+            letter-spacing: 0.7px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: transform 0.12s ease, background 0.12s ease;
+        }
+        .btn-rules:hover { background: #f1c40f; color: #0b130e; transform: translateY(-1px); }
+
+        .lobby-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .lobby-card {
+            background: #121f17;
+            border: 1.5px solid rgba(241, 196, 15, 0.22);
+            border-radius: 18px;
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .lobby-card-title {
+            font-size: 11px;
+            color: #f1c40f;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            margin: 0;
+        }
+
+        .peer-display {
+            background: #080e0a;
+            border: 2px solid #f1c40f;
+            padding: 11px;
+            border-radius: 11px;
+            font-family: monospace;
+            font-size: 21px;
+            font-weight: 900;
+            letter-spacing: 3px;
+            color: #f1c40f;
+            text-align: center;
+        }
+
+        input {
+            background: #080e0a;
+            border: 2px solid #f1c40f !important;
+            padding: 12px 14px;
+            border-radius: 11px;
+            color: #ffffff;
+            text-align: center;
+            font-size: 14px;
+            width: 100%;
+        }
+
+        .btn-yellow, .btn-white, .btn-green {
+            padding: 13px 16px;
+            border-radius: 12px;
+            font-weight: 900;
+            font-size: 12.5px;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            cursor: pointer;
+            text-align: center;
+            transition: transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .btn-yellow { background: #f1c40f; color: #0b130e; border-bottom: 4px solid #b7950b; }
+        .btn-white { background: #ffffff; color: #0f2b19; border-bottom: 4px solid #cbd5e1; }
+        .btn-green { background: #27ae60; color: #ffffff; border-bottom: 4px solid #166534; }
+        .btn-yellow:hover, .btn-white:hover, .btn-green:hover { transform: translateY(-2px); }
+        .btn-yellow:active, .btn-white:active, .btn-green:active { transform: translateY(2px); border-bottom-width: 2px; }
+
+        @media (max-width: 640px) {
+            .lobby-grid { grid-template-columns: 1fr; }
+            .lobby-header { flex-direction: column; align-items: flex-start; padding-left: 44px; }
+            .lobby-shell { padding: 20px 16px; }
+        }
+
+        /* --- PANNELLO REGOLE --- */
+        #rulesModal {
+            position: fixed;
+            inset: 0;
+            background: rgba(6, 14, 9, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 6000;
+            padding: 16px;
+        }
+
+        .rules-box {
+            width: 100%;
+            max-width: 480px;
+            background: #0b130e;
+            border: 2.5px solid #f1c40f;
+            border-radius: 24px;
+            padding: 24px 22px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            animation: popupShake 0.36s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+
+        .rules-title {
+            margin: 0;
+            color: #f1c40f;
+            font-size: 20px;
+            text-transform: uppercase;
+            text-align: center;
+        }
+
+        .rules-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            font-family: Arial, sans-serif;
+            font-size: 13.5px;
+            font-weight: 600;
+            line-height: 1.45;
+            color: #e2e8f0;
+        }
+
+        .rules-list li {
+            background: #121f17;
+            border-left: 3px solid #f1c40f;
+            padding: 10px 12px;
+            border-radius: 8px;
+        }
+
+        .rules-list strong {
+            color: #f1c40f;
+        }
+
+        /* --- SCHERMATE VITTORIA / SCONFITTA --- */
+        #endScreen {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(5, 12, 8, 0.96);
+            z-index: 5000;
+            padding: 18px;
+        }
+
+        .end-box {
+            background: #0b130e;
+            padding: 32px 26px;
+            border-radius: 26px;
+            text-align: center;
+            width: 100%;
+            max-width: 420px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            border: 3px solid #f1c40f;
+            animation: popupShake 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+        .end-box.lose-mode {
+            border-color: #e74c3c;
+        }
+
+        .end-pill {
+            padding: 5px 14px;
+            border-radius: 999px;
+            font-size: 11px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            background: rgba(241, 196, 15, 0.16);
+            color: #f1c40f;
+            border: 1px solid #f1c40f;
+        }
+        .end-box.lose-mode .end-pill {
+            background: rgba(231, 76, 60, 0.16);
+            color: #ff6b5b;
+            border-color: #e74c3c;
+        }
+
+        .end-title { font-size: 38px; margin: 0; text-transform: uppercase; line-height: 1.05; }
+        .win-text { color: #f1c40f; }
+        .lose-text { color: #e74c3c; }
+
+        .end-sub {
+            margin: 0;
+            font-size: 13px;
+            font-family: Arial, sans-serif;
+            font-weight: 700;
+            color: #cbd5e1;
+        }
+
+        .end-score {
+            background: #121f17;
+            border: 1.5px solid rgba(241, 196, 15, 0.35);
+            padding: 10px 18px;
+            border-radius: 12px;
+            font-size: 12px;
+            color: #f1c40f;
+            letter-spacing: 0.6px;
+        }
+
+        .end-actions {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 4px;
+        }
+
+        /* --- TAVOLO DA GIOCO --- */
+        #gameArea {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0 18px;
+        }
+
+        #turnIndicator {
+            background: #0b130e;
+            border: 2px solid #f1c40f;
+            padding: 7px 18px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 900;
+            letter-spacing: 0.8px;
+            animation: badgeSlide 0.2s ease both;
+        }
+
+        .game-row { position: relative; width: 100%; display: flex; justify-content: center; }
+
+        .player-zone {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .gold-badge {
+            background: #f1c40f;
+            color: #0b130e;
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-weight: 900;
+            font-size: 11px;
+            position: absolute;
+            left: 16px;
+            top: -25px;
+            z-index: 50;
+            border-bottom: 2px solid #b7950b;
+        }
+
+        .hand {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            min-height: 120px;
+            padding: 4px 20px;
+        }
+
+        #endTurnBtn {
+            background: #27ae60;
+            color: #ffffff;
+            border: 2px solid #ffffff;
+            border-bottom: 4px solid #14532d;
+            padding: 10px 26px;
+            border-radius: 14px;
+            font-size: 12px;
+            font-weight: 900;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            cursor: pointer;
+            animation: popupShake 0.36s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+            transition: transform 0.12s ease;
+        }
+        #endTurnBtn:hover { transform: translateY(-2px); filter: brightness(1.06); }
+        #endTurnBtn:active { transform: translateY(2px); border-bottom-width: 2px; }
+
+        /* --- CARTE --- */
+        .card {
+            --rot: 0deg;
+            width: 80px;
+            height: 115px;
+            border-radius: 12px;
+            border: 2px solid #ffffff;
+            margin: 0 -18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 31px;
+            font-weight: 900;
+            color: #ffffff;
+            position: relative;
+            cursor: pointer;
+            transform: rotate(var(--rot));
+            transition: transform 0.14s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.14s ease, opacity 0.14s ease;
+            animation: cardPopIn 0.18s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+
+        #playerHand .card.dimmed {
+            opacity: 0.72;
+            filter: brightness(0.88);
+        }
+
+        #playerHand .card.playable::after {
+            content: attr(data-val) " •";
+            color: #fef08a;
+        }
+        #playerHand .card.yellow.playable::after {
+            color: #0b130e;
+        }
+
+        #playerHand .card:hover {
+            transform: translateY(-10px) rotate(var(--rot)) scale(1.03);
+            opacity: 1;
+        }
+        .card:active {
+            transform: translateY(-15px) rotate(var(--rot));
+        }
+
+        .card.shake {
+            animation: cardShake 0.28s ease both !important;
+        }
+
+        .card::before, .card::after {
+            content: attr(data-val);
+            position: absolute;
+            font-size: 11px;
+        }
+        .card::before { top: 5px; left: 7px; }
+        .card::after { bottom: 5px; right: 7px; transform: rotate(180deg); }
+
+        .card-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            line-height: 1.05;
+        }
+
+        .card-tag {
+            font-size: 8px;
+            letter-spacing: 0.6px;
+            margin-top: 2px;
+            text-transform: uppercase;
+            opacity: 0.92;
+        }
+
+        /* COLORI */
+        .red { background: #d63031; }
+        .blue { background: #0984e3; }
+        .green { background: #27ae60; }
+        .yellow { background: #f1c40f; color: #0b130e !important; }
+        .wild4 { background: #181e24; border-color: #f1c40f; }
+
+        /* CARTA CAMBIO COLORE SVG */
+        .cambio-colore-card {
+            background: #0b130e;
+            border-color: #ffffff;
+            padding: 2px;
+        }
+        .cambio-colore-card svg {
+            width: 100%;
+            height: 100%;
+            border-radius: 9px;
+            display: block;
+        }
+        .cambio-colore-card::before, .cambio-colore-card::after {
+            background: #0b130e;
+            color: #f1c40f;
+            padding: 1px 4px;
+            border-radius: 4px;
+            font-size: 8px;
+            z-index: 3;
+        }
+
+        #centerArea { display: flex; gap: 32px; align-items: center; margin: 10px 0; }
+
+        .card-back-classic {
+            width: 84px;
+            height: 118px;
+            background: #0b130e;
+            border: 2px solid #ffffff;
+            border-radius: 12px;
+            color: #f1c40f;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            text-align: center;
+            font-size: 13px;
+            line-height: 1.2;
+            gap: 3px;
+            cursor: pointer;
+            transition: transform 0.14s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        #deck:hover { transform: translateY(-4px) scale(1.03); }
+
+        /* --- POP-UP / TOAST MIGLIORATI CON SCOSSA --- */
+        #toast-container {
+            position: fixed;
+            top: 22px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 11000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            pointer-events: none;
+            max-width: 92vw;
+        }
+        .toast {
+            background: #f1c40f;
+            color: #0b130e;
+            padding: 12px 24px;
+            border-radius: 14px;
+            font-weight: 900;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+            border: 2px solid #ffffff;
+            border-bottom: 4px solid #b7950b;
+            text-align: center;
+            transition: opacity 0.25s ease, transform 0.25s ease;
+            animation: popupShake 0.44s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+        .toast.alert {
+            background: #e74c3c;
+            color: #ffffff;
+            border-bottom-color: #991b1b;
+        }
+        .toast.out {
+            opacity: 0;
+            transform: translateY(-10px) scale(0.95);
+        }
+
+        #masterUnoBtn {
+            background: #e74c3c;
+            color: #ffffff;
+            padding: 13px 24px;
+            border-radius: 999px;
+            font-weight: 900;
+            position: fixed;
+            bottom: 165px;
+            right: 20px;
+            border: 2px solid #ffffff;
+            z-index: 1000;
+            cursor: pointer;
+            animation: unoBounce 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) infinite alternate;
+        }
+
+        /* --- SELETTORE COLORE --- */
+        #colorPicker {
+            position: fixed;
+            inset: 0;
+            background: rgba(7, 18, 11, 0.92);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+        .picker-box {
+            background: #0b130e;
+            padding: 24px;
+            border-radius: 24px;
+            border: 2.5px solid #f1c40f;
+            text-align: center;
+            animation: popupShake 0.36s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+        .picker-box h3 { color: #f1c40f; margin: 0 0 16px 0; text-transform: uppercase; font-size: 15px; }
+        .pick-grid {
+            display: grid !important;
+            grid-template-columns: repeat(2, 92px) !important;
+            grid-template-rows: repeat(2, 92px) !important;
+            gap: 12px !important;
+        }
+        .pick {
+            width: 92px !important;
+            height: 92px !important;
+            border-radius: 16px;
+            border: 2.5px solid #ffffff;
+            cursor: pointer;
+            transition: transform 0.13s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .pick:hover { transform: scale(1.07); }
+        .pick.red { background: #d63031; }
+        .pick.blue { background: #0984e3; }
+        .pick.green { background: #27ae60; }
+        .pick.yellow { background: #f1c40f; }
+
+        @keyframes boxEnter {
+            0% { transform: scale(0.9) translateY(10px); opacity: 0; }
+            100% { transform: scale(1) translateY(0); opacity: 1; }
+        }
+        @keyframes badgeSlide {
+            0% { transform: translateY(-10px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes cardPopIn {
+            0% { transform: translateY(10px) rotate(var(--rot)) scale(0.9); opacity: 0; }
+            100% { transform: translateY(0) rotate(var(--rot)) scale(1); opacity: 1; }
+        }
+        @keyframes popupShake {
+            0% { transform: scale(0.75) translateX(0); opacity: 0; }
+            35% { transform: scale(1.05) translateX(-10px); opacity: 1; }
+            55% { transform: scale(1.02) translateX(10px); }
+            75% { transform: scale(1.01) translateX(-6px); }
+            90% { transform: scale(1) translateX(4px); }
+            100% { transform: scale(1) translateX(0); opacity: 1; }
+        }
+        @keyframes cardShake {
+            0%, 100% { transform: translateX(0) rotate(var(--rot)); }
+            25% { transform: translateX(-7px) rotate(-3deg); }
+            75% { transform: translateX(7px) rotate(3deg); }
+        }
+        @keyframes unoBounce {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.08); }
+        }
+    </style>
 </head>
 <body>
 
-    <a href="#" onclick="window.close(); return false;" class="exit-button" title="Torna all'Hub">×</a>
+    <a href="#" onclick="window.close(); return false;" id="startExitBtn" class="exit-button" title="Chiudi">×</a>
 
     <div id="startScreen">
-        <div class="main-box">
-            <h1 class="logo-title">MASTER UNO</h1>
-            <div class="menu-section">
-                <div id="myPeerId" class="peer-display">----</div>
-                <div id="copyBtn" class="btn-yellow">Copia il tuo ID</div>
+        <div class="lobby-shell">
+            <div class="lobby-header">
+                <h1 class="logo-title">MASTER UNO</h1>
+                <div class="header-actions">
+                    <button id="openRulesBtn" class="btn-rules">Regole</button>
+                    
+                </div>
             </div>
-            <div class="menu-section">
-                <input type="text" id="friendIdInput" placeholder="Inserisci ID Amico">
-                <div id="connectBtn" class="btn-white">Connettiti e Gioca</div>
+
+            <div class="lobby-grid">
+                <div class="lobby-card">
+                    <p class="lobby-card-title">Online • PeerJS</p>
+                    <div id="myPeerId" class="peer-display">----</div>
+                    <div id="copyBtn" class="btn-yellow">Copia ID</div>
+                    <input type="text" id="friendIdInput" placeholder="Inserisci ID Amico">
+                    <div id="connectBtn" class="btn-white">Connettiti e Gioca</div>
+                </div>
+
+                <div class="lobby-card">
+                    <p class="lobby-card-title">Offline • Singolo</p>
+                    <div class="peer-display">VS BOT</div>
+                    <div id="playBotBtn" class="btn-green">Gioca contro Computer</div>
+                </div>
             </div>
-            <div class="menu-section">
-                <div id="playBotBtn" class="btn-yellow">Gioca contro Computer</div>
-            </div>
+        </div>
+    </div>
+
+    <div id="rulesModal" class="hidden">
+        <div class="rules-box">
+            <h2 class="rules-title">Regole MasterUno</h2>
+            <ul class="rules-list">
+                <li><strong>Catene nello stesso turno:</strong> dopo aver calato una carta, puoi aggiungere altre carte con lo stesso valore (es. 8 giallo + 8 rosso, o +2 + +2) e poi premere <strong>FINE TURNO</strong> in basso.</li>
+                <li><strong>Cumulo +2 / +4:</strong> somma i pescare con +2 o +4; il +4 assume il colore scelto.</li>
+                <li><strong>Chiusura:</strong> non puoi chiudere l'ultima carta con una carta speciale (+2, +4, Salta, Giro o Cambio Colore).</li>
+                <li><strong>Master Uno:</strong> quando resti con 2 carte e stai per calarne una, premi <strong>MASTER UNO!</strong> prima di giocare.</li>
+            </ul>
+            <div id="closeRulesBtn" class="btn-yellow">Ho Capito</div>
         </div>
     </div>
 
@@ -36,12 +698,15 @@
             <div id="opponentHand" class="hand"></div>
         </div>
         <div id="centerArea">
-            <div id="deck" class="card-back-classic">MAZZO</div>
+            <div id="deck" class="card-back-classic"><span>MASTER</span><span>UNO</span></div>
             <div id="discardPile"></div>
         </div>
-        <div class="game-row">
-            <div id="playerBadge" class="gold-badge">TU: 7</div>
-            <div id="playerHand" class="hand"></div>
+        <div class="player-zone">
+            <div class="game-row">
+                <div id="playerBadge" class="gold-badge">TU: 7</div>
+                <div id="playerHand" class="hand"></div>
+            </div>
+            <button id="endTurnBtn" class="hidden">FINE TURNO</button>
         </div>
         <button id="masterUnoBtn" class="hidden">MASTER UNO!</button>
     </div>
@@ -59,16 +724,490 @@
     </div>
 
     <div id="endScreen" class="hidden">
-        <div class="main-box">
-            <h1 id="endTitle" class="end-title">VITTORIA!</h1>
-            <p id="endSubtitle">Ottima partita!</p>
-            <div class="menu-section">
+        <div id="endBox" class="end-box">
+            <span id="endPill" class="end-pill">RISULTATO</span>
+            <h1 id="endTitle" class="end-title win-text">VITTORIA!</h1>
+            <p id="endSubtitle" class="end-sub">Hai svuotato la mano per primo.</p>
+            <div id="endScoreBox" class="end-score">PUNTI MASTERUNO: 0</div>
+            <div class="end-actions">
                 <div id="playAgainBtn" class="btn-yellow">Gioca Ancora</div>
                 <div id="exitBtn" class="btn-white">Torna al Menu</div>
             </div>
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        const colors = ["red", "blue", "green", "yellow"];
+        const values = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "skip", "reverse", "draw2"];
+        const specialValues = new Set(["draw2", "wild4", "skip", "reverse", "W"]);
+
+        let deck = [], playerHand = [], opponentHand = [], topCard = null, currentColor = "", pileTilt = 0;
+        let isMyTurn = true, hasSaidUno = false, drawStack = 0, chainedValue = null, peer, conn, isMultiplayer = false, gameActive = true;
+
+        // --- INIZIALIZZAZIONE & CLOUD/HUB SYNC ---
+        let myHackerTag = localStorage.getItem('mv_hacker_tag') || localStorage.getItem('nickname') || localStorage.getItem('username') || "GUEST_USER";
+        let myScore = parseInt(localStorage.getItem('points_masteruno')) || 0;
+
+        async function savePointsToCloud(newScore) {
+            myScore = newScore;
+            localStorage.setItem('points_masteruno', myScore);
+
+            // NOTIFICA ALL'HUB ARCADE
+            const target = window.opener || (window.parent !== window ? window.parent : null);
+            if (target) {
+                target.postMessage({ gameKey: 'master-uno', points: 150 }, '*');
+            }
+
+            try {
+                if (typeof db !== 'undefined') {
+                    await db.collection("users").doc(myHackerTag).set({ MasterUno: myScore }, { merge: true });
+                }
+            } catch (e) {
+                console.error("Errore di scrittura database: ", e);
+            }
+        }
+
+        function setStartExitVisible(visible) {
+            const btn = document.getElementById("startExitBtn");
+            if (!btn) return;
+            if (visible) btn.classList.remove("hidden");
+            else btn.classList.add("hidden");
+        }
+
+        function createDeck() {
+            deck = [];
+            colors.forEach(c => {
+                values.forEach(v => {
+                    deck.push({ color: c, value: v });
+                    if (v !== "0") deck.push({ color: c, value: v });
+                });
+            });
+            for (let i = 0; i < 4; i++) {
+                deck.push({ color: "wild", value: "W" }, { color: "wild4", value: "wild4" });
+            }
+            deck.sort(() => Math.random() - 0.5);
+        }
+
+        function showToast(m, isAlert = false) {
+            let container = document.getElementById('toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toast-container';
+                document.body.appendChild(container);
+            }
+            const t = document.createElement('div');
+            t.className = isAlert ? 'toast alert' : 'toast';
+            t.innerText = m;
+            container.appendChild(t);
+            setTimeout(() => {
+                t.classList.add('out');
+                setTimeout(() => t.remove(), 260);
+            }, 2100);
+        }
+
+        function isSpecialCard(card) {
+            return specialValues.has(card.value);
+        }
+
+        function shakeCardAt(index) {
+            const cards = document.querySelectorAll("#playerHand .card");
+            const el = cards[index];
+            if (!el) return;
+            el.classList.remove("shake");
+            void el.offsetWidth;
+            el.classList.add("shake");
+        }
+
+        function hasMatchingChainCard(hand, val) {
+            if (!val) return false;
+            return hand.some(c => c.value === val && !(hand.length === 1 && isSpecialCard(c)));
+        }
+
+        // --- LOGICA DI GIOCO ---
+        function isValidMove(card, handCount = null) {
+            if (handCount === 1 && isSpecialCard(card)) return false;
+
+            if (chainedValue !== null) {
+                return card.value === chainedValue;
+            }
+
+            if (drawStack > 0) {
+                return card.value === "draw2" || card.value === "wild4";
+            }
+            return card.color === currentColor || card.value === topCard.value || card.color.includes("wild");
+        }
+
+        function playCard(i) {
+            if (!isMyTurn || !gameActive) return;
+            const card = playerHand[i];
+
+            if (playerHand.length === 1 && isSpecialCard(card)) {
+                shakeCardAt(i);
+                showToast("NON PUOI FINIRE CON UNA CARTA SPECIALE!", true);
+                return;
+            }
+
+            if (isValidMove(card, playerHand.length)) {
+                if (playerHand.length === 2 && !hasSaidUno) {
+                    showToast("NON HAI DETTO MASTERUNO! +2 🃏", true);
+                    for (let j = 0; j < 2; j++) if (deck.length > 0) playerHand.push(deck.pop());
+                    chainedValue = null;
+                    isMyTurn = false;
+                    finishAction();
+                    return;
+                }
+
+                playerHand.splice(i, 1);
+                topCard = card;
+                pileTilt = Math.floor(Math.random() * 13) - 6;
+                hasSaidUno = false;
+
+                if (card.value === "draw2") drawStack += 2;
+                if (card.value === "wild4") drawStack += 4;
+
+                if (card.color.includes("wild")) {
+                    chainedValue = null;
+                    renderGame();
+                    document.getElementById("colorPicker").classList.remove("hidden");
+                } else {
+                    currentColor = card.color;
+                    if (playerHand.length === 0) {
+                        finishAction();
+                        return;
+                    }
+                    if (hasMatchingChainCard(playerHand, card.value)) {
+                        chainedValue = card.value;
+                        renderGame();
+                    } else {
+                        chainedValue = null;
+                        finishAction();
+                    }
+                }
+            } else {
+                shakeCardAt(i);
+                if (chainedValue !== null) {
+                    showToast(`PUOI METTERE SOLO UN ALTRO ${chainedValue.toUpperCase()} O FINE TURNO!`, true);
+                } else if (drawStack > 0) {
+                    showToast("METTI +2 / +4 OPPURE PESCA!", true);
+                } else {
+                    showToast("CARTA NON VALIDA!", true);
+                }
+            }
+        }
+
+        window.setWildColor = (c) => {
+            currentColor = c;
+            document.getElementById("colorPicker").classList.add("hidden");
+            if (playerHand.length === 0) {
+                finishAction();
+                return;
+            }
+            if (hasMatchingChainCard(playerHand, topCard.value)) {
+                chainedValue = topCard.value;
+                renderGame();
+            } else {
+                chainedValue = null;
+                finishAction();
+            }
+        };
+
+        function finishAction() {
+            chainedValue = null;
+            renderGame();
+            if (playerHand.length === 0) {
+                gameActive = false;
+                if (isMultiplayer && conn && conn.open) conn.send({ type: 'GAME_OVER_LOSS' });
+                setTimeout(() => showEndScreen(true), 450);
+                return;
+            }
+            let skip = (topCard.value === "skip" || topCard.value === "reverse") && drawStack === 0;
+            if (!skip) isMyTurn = !isMyTurn;
+
+            if (isMultiplayer && conn) sendMove();
+            else if (!isMyTurn) setTimeout(botTurn, 1100);
+            renderGame();
+        }
+
+        function botTurn() {
+            if (!gameActive || isMyTurn) return;
+            let idx = opponentHand.findIndex(c => isValidMove(c, opponentHand.length));
+            if (idx !== -1) {
+                const card = opponentHand.splice(idx, 1)[0];
+                topCard = card;
+                pileTilt = Math.floor(Math.random() * 13) - 6;
+                if (card.value === "draw2") drawStack += 2;
+                if (card.value === "wild4") drawStack += 4;
+                currentColor = card.color.includes("wild") ? colors[Math.floor(Math.random() * 4)] : card.color;
+
+                while (opponentHand.length > 0) {
+                    const extraIdx = opponentHand.findIndex(c => c.value === card.value && !(opponentHand.length === 1 && isSpecialCard(c)));
+                    if (extraIdx === -1) break;
+                    const extraCard = opponentHand.splice(extraIdx, 1)[0];
+                    topCard = extraCard;
+                    pileTilt = Math.floor(Math.random() * 13) - 6;
+                    if (extraCard.value === "draw2") drawStack += 2;
+                    if (extraCard.value === "wild4") drawStack += 4;
+                    if (!extraCard.color.includes("wild")) currentColor = extraCard.color;
+                }
+
+                if (opponentHand.length === 0) {
+                    gameActive = false;
+                    setTimeout(() => showEndScreen(false), 450);
+                    return;
+                }
+                finishAction();
+            } else {
+                if (drawStack > 0) {
+                    for (let i = 0; i < drawStack; i++) if (deck.length > 0) opponentHand.push(deck.pop());
+                    showToast(`AVVERSARIO PESCA +${drawStack}!`);
+                    drawStack = 0;
+                } else {
+                    if (deck.length > 0) opponentHand.push(deck.pop());
+                }
+                chainedValue = null;
+                isMyTurn = true;
+                renderGame();
+            }
+        }
+
+        // --- RENDERING ---
+        function cambioColoreSvg(activeCol) {
+            const cR = activeCol === "red" ? "#ff4d4d" : "#d63031";
+            const cB = activeCol === "blue" ? "#38bdf8" : "#0984e3";
+            const cG = activeCol === "green" ? "#4ade80" : "#27ae60";
+            const cY = activeCol === "yellow" ? "#fef08a" : "#f1c40f";
+            return `
+                <svg viewBox="0 0 80 110" aria-hidden="true">
+                    <rect x="0" y="0" width="40" height="55" fill="${cR}"/>
+                    <rect x="40" y="0" width="40" height="55" fill="${cB}"/>
+                    <rect x="0" y="55" width="40" height="55" fill="${cG}"/>
+                    <rect x="40" y="55" width="40" height="55" fill="${cY}"/>
+                    <circle cx="40" cy="55" r="21" fill="#0b130e" stroke="#ffffff" stroke-width="1.5"/>
+                    <text x="40" y="51" text-anchor="middle" fill="#f1c40f" font-size="14" font-family="Arial Black, sans-serif">✦</text>
+                    <text x="40" y="64" text-anchor="middle" fill="#ffffff" font-size="7.5" font-weight="900" font-family="Arial Black, sans-serif">COLORE</text>
+                </svg>
+            `;
+        }
+
+        function getCardRender(card, fallbackColor) {
+            if (card.value === "W") {
+                return {
+                    corner: "✦",
+                    cssClass: "cambio-colore-card",
+                    html: cambioColoreSvg(fallbackColor)
+                };
+            }
+            const v = (card.value === "draw2" ? "+2" : card.value === "wild4" ? "+4" : card.value === "skip" ? "Ø" : card.value === "reverse" ? "⇄" : card.value);
+            const tag = card.value === "draw2" ? "PESCA" : card.value === "wild4" ? "JOLLY" : card.value === "skip" ? "SALTA" : card.value === "reverse" ? "GIRO" : "";
+            return {
+                corner: v,
+                cssClass: fallbackColor || card.color,
+                html: `<div class="card-center"><span>${v}</span>${tag ? `<span class="card-tag">${tag}</span>` : ""}</div>`
+            };
+        }
+
+        function fanAngle(index, total) {
+            if (total <= 1) return 0;
+            const center = (total - 1) / 2;
+            const offset = index - center;
+            return Math.max(-9, Math.min(9, offset * 1.9));
+        }
+
+        function renderGame() {
+            document.getElementById("playerBadge").innerText = `TU: ${playerHand.length}`;
+            document.getElementById("opponentBadge").innerText = `AVVERSARIO: ${opponentHand.length}`;
+            const stackTag = drawStack > 0 ? ` (+${drawStack})` : "";
+            const chainTag = chainedValue ? ` • CATENA ${chainedValue.toUpperCase()}` : "";
+            document.getElementById("turnIndicator").innerText = (isMyTurn ? "🟢 IL TUO TURNO" : "🔴 TURNO AVVERSARIO") + stackTag + chainTag;
+
+            const endTurnBtn = document.getElementById("endTurnBtn");
+            if (isMyTurn && gameActive && chainedValue !== null) {
+                endTurnBtn.classList.remove("hidden");
+            } else {
+                endTurnBtn.classList.add("hidden");
+            }
+
+            const pHand = document.getElementById("playerHand");
+            pHand.innerHTML = "";
+            playerHand.forEach((c, i) => {
+                const d = document.createElement("div");
+                const r = getCardRender(c, c.color);
+                const canPlay = isMyTurn && gameActive && isValidMove(c, playerHand.length);
+                const stateClass = isMyTurn && gameActive ? (canPlay ? "playable" : "dimmed") : "";
+                d.className = `card ${r.cssClass} ${stateClass}`.trim();
+                d.style.setProperty("--rot", `${fanAngle(i, playerHand.length)}deg`);
+                d.innerHTML = r.html;
+                d.setAttribute('data-val', r.corner);
+                d.onclick = () => playCard(i);
+                pHand.appendChild(d);
+            });
+
+            const oHand = document.getElementById("opponentHand");
+            oHand.innerHTML = "";
+            opponentHand.forEach((_, idx) => {
+                const rot = -fanAngle(idx, opponentHand.length);
+                oHand.innerHTML += `<div class="card-back-classic" style="margin:0 -18px;transform:rotate(${rot}deg)"><span>MASTER</span><span>UNO</span></div>`;
+            });
+
+            const discard = document.getElementById("discardPile");
+            const pileColor = topCard.value === "W" ? "cambio-colore-card" : (currentColor || topCard.color);
+            const topR = getCardRender(topCard, pileColor);
+            discard.innerHTML = `<div class="card ${topR.cssClass}" data-val="${topR.corner}" style="--rot:${pileTilt}deg;margin:0;cursor:default;">${topR.html}</div>`;
+
+            const btnUno = document.getElementById("masterUnoBtn");
+            if (playerHand.length === 2 && isMyTurn && gameActive) btnUno.classList.remove("hidden");
+            else btnUno.classList.add("hidden");
+        }
+
+        document.getElementById("endTurnBtn").onclick = () => {
+            if (!isMyTurn || !gameActive || chainedValue === null) return;
+            finishAction();
+        };
+
+        document.getElementById("deck").onclick = () => {
+            if (!isMyTurn || !gameActive) return;
+            if (drawStack > 0) {
+                for (let i = 0; i < drawStack; i++) if (deck.length > 0) playerHand.push(deck.pop());
+                showToast(`HAI PESCATO +${drawStack}!`, true);
+                drawStack = 0;
+            } else {
+                if (deck.length > 0) playerHand.push(deck.pop());
+            }
+            chainedValue = null;
+            isMyTurn = false;
+            if (isMultiplayer) sendMove();
+            else setTimeout(botTurn, 1000);
+            renderGame();
+        };
+
+        // --- MULTIPLAYER (PEERJS) - SEMPLIFICATO ---
+        const initPeer = () => {
+            peer = new Peer(Math.random().toString(36).substr(2, 5).toUpperCase());
+            peer.on('open', id => { document.getElementById("myPeerId").innerText = id; });
+            peer.on('connection', c => {
+                conn = c;
+                isMultiplayer = true;
+                setupChat();
+            });
+        };
+        initPeer();
+
+        function setupChat() {
+            conn.on('data', d => {
+                if (d.type === 'START') {
+                    gameActive = true; deck = d.deck; playerHand = d.oppHand; opponentHand = d.plHand;
+                    topCard = d.top; currentColor = d.color; isMyTurn = d.turn; drawStack = 0; chainedValue = null; pileTilt = 0;
+                    setStartExitVisible(false);
+                    document.querySelectorAll("#startScreen, #endScreen").forEach(s => s.classList.add("hidden"));
+                    document.getElementById("gameArea").classList.remove("hidden");
+                    renderGame();
+                } else if (d.type === 'MOVE') {
+                    playerHand = d.oppHand; opponentHand = d.plHand; topCard = d.top;
+                    currentColor = d.color; drawStack = d.stack; deck = d.deck; isMyTurn = d.turn; chainedValue = null;
+                    pileTilt = Math.floor(Math.random() * 13) - 6;
+                    renderGame();
+                    if (opponentHand.length === 0) { gameActive = false; showEndScreen(false); }
+                } else if (d.type === 'GAME_OVER_LOSS') {
+                    gameActive = false; showEndScreen(false);
+                }
+            });
+        }
+
+        function startG(me) {
+            gameActive = true; createDeck(); playerHand = []; opponentHand = [];
+            for (let i = 0; i < 7; i++) { playerHand.push(deck.pop()); opponentHand.push(deck.pop()); }
+            topCard = deck.pop();
+            while (topCard.color.includes("wild") || isSpecialCard(topCard)) topCard = deck.pop();
+            currentColor = topCard.color;
+            isMyTurn = me;
+            drawStack = 0;
+            chainedValue = null;
+            pileTilt = 0;
+
+            if (isMultiplayer && conn && conn.open) {
+                conn.send({ type: 'START', deck, plHand: playerHand, oppHand: opponentHand, top: topCard, color: currentColor, turn: !me });
+            }
+
+            setStartExitVisible(false);
+            document.querySelectorAll("#startScreen, #endScreen").forEach(s => s.classList.add("hidden"));
+            document.getElementById("gameArea").classList.remove("hidden");
+            renderGame();
+        }
+
+        function sendMove() {
+            if (conn && conn.open) {
+                conn.send({ type: 'MOVE', plHand: playerHand, oppHand: opponentHand, top: topCard, color: currentColor, stack: drawStack, deck: deck, turn: !isMyTurn });
+            }
+        }
+
+        // --- BOTTONI ---
+        document.getElementById("openRulesBtn").onclick = () => {
+            document.getElementById("rulesModal").classList.remove("hidden");
+        };
+        document.getElementById("closeRulesBtn").onclick = () => {
+            document.getElementById("rulesModal").classList.add("hidden");
+        };
+
+        document.getElementById("copyBtn").onclick = () => {
+            navigator.clipboard.writeText(document.getElementById("myPeerId").innerText);
+            showToast("ID COPIATO!");
+        };
+
+        document.getElementById("playBotBtn").onclick = () => { isMultiplayer = false; startG(true); };
+
+        document.getElementById("connectBtn").onclick = () => {
+            let id = document.getElementById("friendIdInput").value.trim().toUpperCase();
+            if (id) {
+                conn = peer.connect(id);
+                isMultiplayer = true;
+                conn.on('open', () => {
+                    setupChat();
+                    startG(true);
+                });
+            }
+        };
+
+        document.getElementById("masterUnoBtn").onclick = () => { hasSaidUno = true; showToast("MASTERUNO! 🔥"); };
+        document.getElementById("playAgainBtn").onclick = () => startG(true);
+        document.getElementById("exitBtn").onclick = () => location.reload();
+
+        function showEndScreen(win) {
+            gameActive = false;
+            setStartExitVisible(false);
+            const endScreen = document.getElementById("endScreen");
+            const endBox = document.getElementById("endBox");
+            const endPill = document.getElementById("endPill");
+            const endTitle = document.getElementById("endTitle");
+            const endSubtitle = document.getElementById("endSubtitle");
+            const endScoreBox = document.getElementById("endScoreBox");
+
+            endScreen.classList.remove("hidden");
+
+            if (win) {
+                let currentPoints = parseInt(localStorage.getItem("points_masteruno")) || 0;
+                const updated = currentPoints + 1;
+                savePointsToCloud(updated);
+
+                endBox.classList.remove("lose-mode");
+                endPill.innerText = "VITTORIA";
+                endTitle.className = "end-title win-text";
+                endTitle.innerText = "HAI VINTO!";
+                endSubtitle.innerText = "Ottima partita! Hai chiuso per primo.";
+                endScoreBox.innerText = `PUNTI MASTERUNO: ${updated}`;
+
+                if (typeof confetti === 'function') {
+                    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                }
+            } else {
+                const stored = parseInt(localStorage.getItem("points_masteruno")) || 0;
+                endBox.classList.add("lose-mode");
+                endPill.innerText = "SCONFITTA";
+                endTitle.className = "end-title lose-text";
+                endTitle.innerText = "HAI PERSO!";
+                endSubtitle.innerText = "L'avversario ha svuotato la mano prima di te.";
+                endScoreBox.innerText = `PUNTI MASTERUNO: ${stored}`;
+            }
+        }
+    </script>
 </body>
 </html>
