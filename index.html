@@ -681,26 +681,33 @@
             transform: rotate(var(--srot, 0deg));
         }
 
-        /* Centro con SINGOLA FRECCIA CURVA CHE RUOTA */
+        /* Centro con ANELLO DIREZIONE DISCRETO E FLUIDO */
         #centerArea {
             grid-area: center;
             position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 44px 50px;
+            padding: 40px 46px;
         }
 
         .direction-ring-wrap {
             position: absolute;
             inset: 0;
             margin: auto;
-            width: 268px;
-            height: 268px;
+            width: 244px;
+            height: 244px;
             pointer-events: none;
             display: flex;
             align-items: center;
             justify-content: center;
+            opacity: 0.34;
+            transition: opacity 0.35s ease, transform 0.35s ease;
+        }
+
+        .direction-ring-wrap.reverse-flash {
+            opacity: 0.78;
+            transform: scale(1.06);
         }
 
         .direction-ring-svg {
@@ -708,10 +715,10 @@
             height: 100%;
             overflow: visible;
             transform-origin: 50% 50%;
-            animation: spinCW 5s linear infinite;
+            animation: spinCW 14s linear infinite;
         }
         .direction-ring-svg.ccw {
-            animation: spinCCW 5s linear infinite;
+            animation: spinCCW 14s linear infinite;
         }
 
         .center-cards {
@@ -932,8 +939,8 @@
                 font-size: 8px;
                 margin: -11px 0;
             }
-            #centerArea { padding: 28px 28px; }
-            .direction-ring-wrap { width: 204px; height: 204px; }
+            #centerArea { padding: 26px 26px; }
+            .direction-ring-wrap { width: 184px; height: 184px; }
             .center-cards { gap: 14px; }
             .card {
                 width: 68px;
@@ -1202,17 +1209,17 @@
         <div id="seatRightBox" class="seat-right"></div>
 
         <div id="centerArea">
-            <div class="direction-ring-wrap" aria-hidden="true">
+            <div id="directionRingWrap" class="direction-ring-wrap" aria-hidden="true">
                 <svg id="directionRingSvg" class="direction-ring-svg" viewBox="0 0 240 240">
-                    <!-- Verso orario: arco curvo singolo con punta rivolta nel senso orario -->
+                    <!-- Verso orario discreto -->
                     <g id="cwArrowGroup">
-                        <path d="M 120 222 A 102 102 0 1 1 180 38" fill="none" stroke="#f1c40f" stroke-width="5" stroke-linecap="round"/>
-                        <path d="M 164 44 L 182 39 L 176 21" fill="none" stroke="#f1c40f" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M 120 218 A 98 98 0 1 1 178 41" fill="none" stroke="rgba(241, 196, 15, 0.85)" stroke-width="2.2" stroke-dasharray="10 7" stroke-linecap="round"/>
+                        <path d="M 167 45 L 179 42 L 175 30" fill="none" stroke="rgba(241, 196, 15, 0.95)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
                     </g>
-                    <!-- Verso antiorario: arco curvo singolo speculare con punta rivolta nel senso antiorario -->
+                    <!-- Verso antiorario discreto -->
                     <g id="ccwArrowGroup" class="hidden">
-                        <path d="M 120 222 A 102 102 0 1 0 60 38" fill="none" stroke="#f1c40f" stroke-width="5" stroke-linecap="round"/>
-                        <path d="M 76 44 L 58 39 L 64 21" fill="none" stroke="#f1c40f" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M 120 218 A 98 98 0 1 0 62 41" fill="none" stroke="rgba(241, 196, 15, 0.85)" stroke-width="2.2" stroke-dasharray="10 7" stroke-linecap="round"/>
+                        <path d="M 73 45 L 61 42 L 65 30" fill="none" stroke="rgba(241, 196, 15, 0.95)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
                     </g>
                 </svg>
             </div>
@@ -1257,7 +1264,9 @@
         const specialValues = new Set(["draw2", "wild4", "skip", "reverse", "W"]);
         const nonChainableValues = new Set(["skip", "reverse", "W"]);
 
-        let myHackerTag = localStorage.getItem('mv_hacker_tag') || localStorage.getItem('nickname') || localStorage.getItem('username') || "PLAYER_1";
+        const urlParams = new URLSearchParams(window.location.search);
+        const hubPlayerParam = urlParams.get("player");
+        let myHackerTag = hubPlayerParam || localStorage.getItem('mv_hacker_tag') || localStorage.getItem('nickname') || localStorage.getItem('username') || "PLAYER_1";
         const nickInput = document.getElementById("nicknameInput");
         nickInput.value = myHackerTag;
 
@@ -1278,6 +1287,7 @@
         let mySeatIndex = 0;
         let currentTurn = 0;
         let direction = 1;
+        let lastRenderedDirection = 1;
         let topCard = null;
         let currentColor = "red";
         let pileTilt = 0;
@@ -1286,6 +1296,7 @@
         let chainedValue = null;
         let gameActive = true;
         let winnerSeatIndex = null;
+        let hasReportedWin = false;
         let isDealing = false;
         let isMultiplayer = false;
         let isRoomHost = true;
@@ -1293,6 +1304,41 @@
         let peer = null;
         let clientConn = null;
         let hostConns = [];
+
+        // --- SISTEMA PUNTI & COLLEGAMENTO HUB ---
+        let localUnoStats = JSON.parse(localStorage.getItem("MasterUnoStats")) || {
+            played: 0, wins: 0, points: 0
+        };
+
+        function inviaVittoriaAlHub(puntiBonus = 50) {
+            const target = window.opener || (window.parent !== window ? window.parent : null);
+            if (target) {
+                target.postMessage({
+                    gameKey: 'master-uno',
+                    points: puntiBonus
+                }, '*');
+            }
+        }
+
+        function calculateWinPoints() {
+            return isMultiplayer ? 75 : 50;
+        }
+
+        function recordLocalMatchResult(isWin) {
+            localUnoStats.played = (localUnoStats.played || 0) + 1;
+            let earned = 0;
+            if (isWin) {
+                earned = calculateWinPoints();
+                localUnoStats.wins = (localUnoStats.wins || 0) + 1;
+                localUnoStats.points = (localUnoStats.points || 0) + earned;
+                const prevWins = parseInt(localStorage.getItem("wins_MasterUno"), 10) || 0;
+                localStorage.setItem("wins_MasterUno", String(prevWins + 1));
+                inviaVittoriaAlHub(earned);
+            }
+            localStorage.setItem("MasterUnoStats", JSON.stringify(localUnoStats));
+            localStorage.setItem("points_MasterUno", String(localUnoStats.points));
+            return earned;
+        }
 
         function resolveSolidColor(card, activeColor) {
             if (validFullColors.has(activeColor)) return activeColor;
@@ -1657,6 +1703,14 @@
             box.classList.remove("win", "lose");
             title.classList.remove("win", "lose");
 
+            if (!hasReportedWin) {
+                hasReportedWin = true;
+                const earnedPts = recordLocalMatchResult(iWon);
+                if (iWon && earnedPts > 0) {
+                    showToast(`🏆 +${earnedPts} XP & +10 PTS CLASSIFICA INVIATI!`);
+                }
+            }
+
             if (iWon) {
                 box.classList.add("win");
                 title.classList.add("win");
@@ -2019,10 +2073,18 @@
                         : `🔴 TURNO: ${(activeSeat ? activeSeat.name : "AVVERSARIO").toUpperCase()}`));
             document.getElementById("turnIndicator").innerText = turnLabel + stackTag + chainTag;
 
+            const ringWrap = document.getElementById("directionRingWrap");
             const ringSvg = document.getElementById("directionRingSvg");
             const cwGroup = document.getElementById("cwArrowGroup");
             const ccwGroup = document.getElementById("ccwArrowGroup");
             if (ringSvg && cwGroup && ccwGroup) {
+                if (direction !== lastRenderedDirection) {
+                    lastRenderedDirection = direction;
+                    if (ringWrap) {
+                        ringWrap.classList.add("reverse-flash");
+                        setTimeout(() => ringWrap.classList.remove("reverse-flash"), 450);
+                    }
+                }
                 if (direction === -1) {
                     ringSvg.classList.add("ccw");
                     cwGroup.classList.add("hidden");
@@ -2261,10 +2323,12 @@
             closeEndGameModal();
             gameActive = true;
             winnerSeatIndex = null;
+            hasReportedWin = false;
             isDealing = true;
             createDeck();
             currentTurn = 0;
             direction = 1;
+            lastRenderedDirection = 1;
             drawStack = 0;
             chainedValue = null;
             hasSaidUno = false;
